@@ -1,12 +1,39 @@
 # Saints Row 2 Archipelago
 
-A heavily work-in-progress Archipelago implementation for Saints Row 2.
+A work-in-progress Archipelago implementation for Saints Row 2.
 
 ## Supported versions of the game
 
 Steam and GOG versions of the game are supported. The Steam version will require [Juiced Patch](https://www.kobraworks.com/juiced), due to the vanilla Steam version including an encrypted EXE which is *not* supported.
 
 > ⚠️ **NOTE:** The [Gentlemen of the Row](https://www.saintsrowmods.com/forum/threads/gentlemen-of-the-row.24/) and [PC DLC](https://www.kobraworks.com/sr2pcdlc) mods are not currently supported!
+
+## APWorld details
+
+The progression is very similar to the vanilla game, with being based around the story missions and strongholds. The key progression item is respect which you need to start missions. Additionally there is a `+1 Bonus Respect` item that can be configured when it comes to how much of it should be generated. It's useful to make it easier to find the respect you need to progress.
+
+The goal is to be one or more gang arcs, with it being configurable which you need to beat:
+- Ronin Arc
+- Brotherhood Arc
+- Sons of Samedi Arc
+- Ultor Epilogue (this requires *ALL* of the other gang arcs due to how the vanilla game is structured!)
+
+The current location checks are:
+- Missions and strongholds
+- Activities (each level for level based ones, each vehicle/target for Chop Shop/Hitman)
+- CDs
+
+The items in the pool are:
+- Respect and Bonus Respect
+- Weapons
+- (most) [Unlockables](https://saintsrow.fandom.com/wiki/Unlockables_in_Saints_Row_2)
+- (most) [Cheats](https://saintsrow.fandom.com/wiki/Cheats_in_Saints_Row_2)
+- Traps
+    - Max Ronin/Brotherhood/Samedi/Police Notoriety
+    - Permanent Heavy Rain/Thunderstorm (until a Restore Weather Cycle item is received)
+- Money (1k, 5k, 10k)
+
+The full list of items can be found in [items_list.py](https://github.com/hoXyy/SaintsRow2Archipelago/blob/main/world/items_list.py).
 
 ## Recommended mods
 
@@ -19,8 +46,9 @@ Steam and GOG versions of the game are supported. The Steam version will require
 2. Open the Archipelago client, and use the `Install APWorld` option to install the .apworld file you downloaded.
 3. Follow your chosen's ASI loader install instructions (when using the Ultimate ASI Loader use `dinput8.dll` as the DLL name of choice).
 4. Extract the `scripts` folder from `SR2Archipelago.zip` into the game folder (same folder that includes `SR2_pc.exe`).
-5. In the Archipelago Launcher, open the `Saints Row 2 Client` and connect to your room.
-6. Launch Saints Row 2, the AP client should show a message that the game integration plugin connected successfully.
+5. Generate your settings YAML using the Archipelago launcher's `Options Creator` and generate the world.
+6. In the Archipelago Launcher, open the `Saints Row 2 Client` and connect to your room.
+7. Launch Saints Row 2, the AP client should show a message that the game integration plugin connected successfully.
 
 
 ### Extra instruction for Linux users
