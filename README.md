@@ -78,3 +78,4 @@ Open an **x86 Native Tools Command Prompt for VS 2022**. Navigate to the `game` 
     - style level
 - In-game AP indicators ([ImGui](https://github.com/ocornut/imgui)-based?)
 - Better progression balancing
+- Deathlink
