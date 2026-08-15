@@ -1,0 +1,61 @@
+name: Build
+
+on:
+    push:
+        branches: [main]
+
+jobs:
+    build-plugin:
+        runs-on: windows-latest
+        name: Build game integration plugin
+
+        steps:
+            - name: Checkout repo
+              uses: actions/checkout@v7
+            - name: Setup MSVC
+              uses: TheMrMilchmann/setup-msvc-dev@v4
+              with:
+                arch: x86
+            - name: Install make
+              run: choco install make
+            - name: Build
+              run: cd game && make BUILD_DIR=build-ci
+            - name: Copy built files into output directory
+              run: |
+                mkdir output
+                cp game/build-ci/SR2Archipelago.asi output/SR2Archipelago.asi
+                cp game/config/SR2Archipelago.ini.example output/SR2Archipelago.ini
+            - name: Upload artifact
+              uses: actions/upload-artifact@v7
+              with:
+                  name: SR2Archipelago.zip
+                  path: output
+
+    build-apworld:
+        name: Build APWorld
+        runs-on: ubuntu-24.04
+
+        steps:
+            - name: Checkout repo
+              uses: actions/checkout@v7
+            - name: Checkout Archipelago repo
+              uses: actions/checkout@v7
+              with:
+                repository: ArchipelagoMW/Archipelago
+                ref: 0.6.7
+                path: Archipelago
+            - name: Install Archipelago dependencies
+              run: |
+                python Archipelago/ModuleUpdate.py --yes
+            - name: Prepare APWorld folder in launcher files
+              run: |
+                mkdir Archipelago/worlds/saints_row_2
+                cp -r world/* Archipelago/worlds/saints_row_2/
+            - name: Build APWorld
+              run: cd Archipelago && SKIP_REQUIREMENTS_UPDATE=1 python Launcher.py "Build APWorlds" -- "Saints Row 2"
+            - name: Upload artifact
+              uses: actions/upload-artifact@v7
+              with:
+                name: saints_row_2.apworld
+                path: Archipelago/build/apworlds/saints_row_2.apworld
+                archive: false  

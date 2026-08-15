@@ -3,23 +3,11 @@ name: Run CMake / CTest C++ unit tests
 on:
   push:
     paths:
-      - '**.cc?'
-      - '**.cpp'
-      - '**.cxx'
-      - '**.hh?'
-      - '**.hpp'
-      - '**.hxx'
-      - '**/CMakeLists.txt'
+      - 'game/'
       - '.github/workflows/ctest.yml'
   pull_request:
     paths:
-      - '**.cc?'
-      - '**.cpp'
-      - '**.cxx'
-      - '**.hh?'
-      - '**.hpp'
-      - '**.hxx'
-      - '**/CMakeLists.txt'
+      - 'game/'
       - '.github/workflows/ctest.yml'
 
 jobs:
@@ -34,7 +22,7 @@ jobs:
           uses: TheMrMilchmann/setup-msvc-dev@v4
           with:
             arch: x86
-        - name: Install dependencies
+        - name: Install make
           run: choco install make
         - name: Run tests
           run: cd game && make test
