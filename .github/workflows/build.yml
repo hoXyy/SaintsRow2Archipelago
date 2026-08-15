@@ -48,7 +48,9 @@ jobs:
                 ref: 0.6.7
                 path: Archipelago
             - name: Install Archipelago dependencies
-              run: python -m pip install --disable-pip-version-check --no-input -r Archipelago/requirements.txt
+              run: |
+                python -m pip install --disable-pip-version-check --no-input -r Archipelago/requirements.txt
+                python -m pip install --no-input nest-asyncio>=1.5.5
             - name: Prepare APWorld folder in launcher files
               run: |
                 mkdir Archipelago/worlds/saints_row_2
