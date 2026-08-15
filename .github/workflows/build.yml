@@ -31,5 +31,31 @@ jobs:
             - name: Upload artifact
               uses: actions/upload-artifact@v7
               with:
-                  name: SR2Archipelago-${{ github.sha }}.zip
+                  name: SR2Archipelago.zip
                   path: output
+
+    build-apworld:
+        name: Build APWorld
+        runs-on: ubuntu-24.04
+
+        steps:
+            - name: Checkout repo
+              uses: actions/checkout@v7
+            - name: Checkout Archipelago repo
+              uses: actions/checkout@v7
+              with:
+                repository: ArchipelagoMW/Archipelago
+                ref: 0.6.7
+                path: Archipelago
+            - name: Prepare APWorld folder in launcher files
+              run: |
+                mkdir Archipelago/worlds/saints_row_2
+                cp -r world/* Archipelago/worlds/saints_row_2/
+            - name: Build APWorld
+              run: python Archipelago/Launcher.py "Build APWorlds" -- "Saints Row 2"
+            - name: Upload artifact
+              uses: actions/upload-artifact@v7
+              with:
+                name: saints_row_2.apworld
+                path: Archipelago/build/apworlds/saints_row_2.apworld
+                archive: false  
