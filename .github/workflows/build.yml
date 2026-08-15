@@ -50,7 +50,7 @@ jobs:
             - name: Prepare APWorld folder in launcher files
               run: |
                 mkdir Archipelago/worlds/saints_row_2
-                cp -r world/* Archipelago/worlds/saints_row_2/
+                cp -r apworld/* Archipelago/worlds/saints_row_2/
             - name: Build APWorld
               run: cd Archipelago && SKIP_REQUIREMENTS_UPDATE=1 python Launcher.py "Build APWorlds" -- "Saints Row 2"
             - name: Upload artifact
