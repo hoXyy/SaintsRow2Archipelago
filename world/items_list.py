@@ -3,6 +3,9 @@ TRAP_ITEMS = [
     "Trap: Max Ronin Notoriety",
     "Trap: Max Brotherhood Notoriety",
     "Trap: Max Samedi Notoriety",
+    "Trap: Heavy Rain",
+    "Trap: Light Rain",
+    "Trap: Thunderstorm",
 ]
 
 MONEY_ITEM_NAMES = ["$1,000", "$5,000", "$10,000"]
@@ -154,11 +157,8 @@ CHEAT_ITEMS = [
     "Time: Midnight",
     "Time: Noon",
     "Weather: Clear Skies",
-    "Weather: Heavy Rain",
-    "Weather: Light Rain",
     "Weather: Overcast",
     "Weather: Restore Normal Cycle",
-    "Weather: Thunderstorm",
     "Remove Police Notoriety",
     "Remove Gang Notoriety",
     "Max Health",

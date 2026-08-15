@@ -3,11 +3,11 @@ name: Run CMake / CTest C++ unit tests
 on:
   push:
     paths:
-      - 'game/*'
+      - 'game/**'
       - '.github/workflows/ctest.yml'
   pull_request:
     paths:
-      - 'game/*'
+      - 'game/**'
       - '.github/workflows/ctest.yml'
 
 jobs:
