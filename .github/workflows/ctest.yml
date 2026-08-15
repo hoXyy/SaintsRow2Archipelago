@@ -34,7 +34,7 @@ jobs:
           uses: TheMrMilchmann/setup-msvc-dev@v4
           with:
             arch: x86
-        - name: Install dependencies
+        - name: Install make
           run: choco install make
         - name: Run tests
           run: cd game && make test

@@ -1,0 +1,32 @@
+name: Build
+
+on:
+    push:
+        branches: [main]
+    # only there until I know this works
+    pull_request:
+        branches: [main]
+
+jobs:
+    build-plugin:
+        runs-on: windows-latest
+        name: Build game integration plugin
+
+        steps:
+            - name: Checkout repo
+              uses: actions/checkout@v7
+            - name: Setup MSVC
+              uses: TheMrMilchmann/setup-msvc-dev@v4
+              with:
+                arch: x86
+            - name: Install make
+              run: choco install make
+            - name: Build
+              run: cd game && make BUILD_DIR=build-ci
+            - name: Copy built files into output directory
+              run: |
+                mkdir output
+                cp build-ci/SR2Archipelago.asi output/SR2Archipelago.asi
+                cp config/SR2Archipelago.ini.example output/SR2Archipelago.ini
+            - name: Package output
+              run: powershell Compress-Archive output SR2Archipelago.zip
