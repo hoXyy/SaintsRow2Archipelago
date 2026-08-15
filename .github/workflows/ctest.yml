@@ -35,6 +35,6 @@ jobs:
           with:
             arch: x86
         - name: Install dependencies
-          run: winget install --id=GnuWin32.Make -e --source winget && winget --id=Kitware.CMake -e --source winget && winget --id=Ninja-build.Ninja -e --source winget
+          run: winget install --id=GnuWin32.Make -e --source winget && winget install --id=Kitware.CMake -e --source winget && winget install --id=Ninja-build.Ninja -e --source winget
         - name: Run tests
           run: cd game && make test
