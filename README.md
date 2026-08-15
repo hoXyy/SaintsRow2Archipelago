@@ -10,7 +10,7 @@ Steam and GOG versions of the game are supported. The Steam version will require
 
 ## Recommended mods
 
-- [Juiced Patch](https://github.com/kobraworksmodding/Saints-Row-2-Juiced-Patch/releases) - **heavily recommended**, makes the PC port actually playable
+- [Juiced Patch](https://github.com/kobraworksmodding/Saints-Row-2-Juiced-Patch/releases) - **heavily recommended for GOG version, required for Steam version**, makes the PC port actually playable 
 - [High Quality Radio](https://www.saintsrowmods.com/forum/threads/high-quality-radio-mod.9515/) - if you intend to use the radio, this makes the radio quality actually bearable
 
 ## Installation
@@ -76,6 +76,8 @@ Open an **x86 Native Tools Command Prompt for VS 2022**. Navigate to the `game` 
 - More checks:
     - other collectibles like tags and stunt jumps
     - style level
+    - buyable items in liquid stores and fast food places?
 - In-game AP indicators ([ImGui](https://github.com/ocornut/imgui)-based?)
 - Better progression balancing
 - Deathlink
+- Support for the PC DLC mod

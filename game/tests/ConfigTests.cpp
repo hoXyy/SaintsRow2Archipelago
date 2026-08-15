@@ -21,39 +21,47 @@ namespace sr2ap {
         EXPECT_EQ(result.warnings, 0U);
     }
 
-    TEST(ConfigTest, LoadsEverySectionAndHexadecimalHotkeys) {
+    TEST(ConfigTest, ParseFullDefaultConfig) {
         const auto result = ParseConfig(R"ini(
 [General]
-Enabled=0
+Enabled=1
+
 [Progression]
-PollingIntervalMs=1500
-LogFullSnapshots=off
-LogStateChanges=0
+PollingIntervalMs=1000 ; how often to poll the game for progression state
+LogFullSnapshots=0
+LogStateChanges=0 ; whether to log progression state changes (for ex. a mission pass)
+
 [Network]
-Enabled=off
-Port=65535
+Enabled=1 ; shouldn't ever need to disable this
+Port=38282 ; port to use to connect to the AP client, currently only changable on the client's end using the CLI
+
 [Unlockables]
-BlockVanillaRewards=yes
+; whether to block unlockables that are already handled by AP from being unlocked by vanilla requirements like missions 
+; currently also handled in the AP client itself so this might disappear from here in the future
+BlockVanillaRewards=1 
+
 [Debug]
-DebugLogging=false
-EnableHotkeys=false
-ModuleReportHotkey=0x70
-SnapshotHotkey=0X71
-AddressDumpHotkey=114
+DebugLogging=0
+WriteStatusFile=0
+EnableHotkeys=0
+ModuleReportHotkey=0x76
+SnapshotHotkey=0x77
+AddressDumpHotkey=0x78
 )ini");
         EXPECT_EQ(result.warnings, 0U);
-        EXPECT_FALSE(result.config.enabled);
+        EXPECT_TRUE(result.config.enabled);
         EXPECT_FALSE(result.config.debugLogging);
-        EXPECT_EQ(result.config.pollingIntervalMs, 1500U);
+        EXPECT_EQ(result.config.pollingIntervalMs, 1000U);
         EXPECT_FALSE(result.config.logFullSnapshots);
         EXPECT_FALSE(result.config.logStateChanges);
-        EXPECT_FALSE(result.config.networkEnabled);
-        EXPECT_EQ(result.config.networkPort, 65535U);
+        EXPECT_TRUE(result.config.networkEnabled);
+        EXPECT_EQ(result.config.networkPort, 38282U);
         EXPECT_TRUE(result.config.blockVanillaUnlockables);
         EXPECT_FALSE(result.config.enableHotkeys);
-        EXPECT_EQ(result.config.moduleReportHotkey, 0x70U);
-        EXPECT_EQ(result.config.snapshotHotkey, 0x71U);
-        EXPECT_EQ(result.config.addressDumpHotkey, 114U);
+        EXPECT_FALSE(result.config.writeStatusFile);
+        EXPECT_EQ(result.config.moduleReportHotkey, 0x76U);
+        EXPECT_EQ(result.config.snapshotHotkey, 0x77U);
+        EXPECT_EQ(result.config.addressDumpHotkey, 0x78U);
     }
 
     TEST(ConfigTest, RejectsMalformedAndOutOfRangeValuesWithoutReplacingDefaults) {
@@ -75,8 +83,18 @@ AddressDumpHotkey=114
         EXPECT_EQ(boundary.warnings, 0U);
     }
 
-    TEST(ConfigTest, ParseConfigWithComments) {
+    TEST(ConfigTest, ParseConfigWithSameLineComments) {
         const auto result = ParseConfig("[Network]\nPort=12345 ; test comment\n");
+        EXPECT_EQ(result.config.networkPort, 12345U);
+    }
+
+    TEST(ConfigTest, ParseConfigWithMultiLineComments) {
+        const auto result = ParseConfig("; test comment \n [Network]\nPort=12345\n");
+        EXPECT_EQ(result.config.networkPort, 12345U);
+    }
+
+    TEST(ConfigTest, ParseConfigWithBothTypeOfComments) {
+        const auto result = ParseConfig("; test comment 1 \n [Network]\nPort=12345 ; test comment 2\n");
         EXPECT_EQ(result.config.networkPort, 12345U);
     }
 }  // namespace sr2ap

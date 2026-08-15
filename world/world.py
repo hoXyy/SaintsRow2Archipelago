@@ -15,6 +15,7 @@ from .missions import ULTOR_SECRET_MISSION, get_mission_by_key
 class SR2Web(WebWorld):
     option_groups = sr2_options.option_groups
     theme = "ocean"
+    bug_report_page = "https://github.com/hoXyy/SaintsRow2Archipelago/issues"
 
 
 class SR2World(World):

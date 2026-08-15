@@ -40,7 +40,7 @@ def _mission_locations() -> dict[str, int]:
     return result
 
 
-def _activity_locations() -> dict[str, tuple[str, str]]:
+def _level_activities_locations() -> dict[str, tuple[str, str]]:
     result: dict[str, tuple[str, str]] = {}
     for activity, instances in ACTIVITIES_LEVEL_BASED.items():
         for instance in instances:
@@ -49,7 +49,7 @@ def _activity_locations() -> dict[str, tuple[str, str]]:
     return result
 
 
-def _diversion_locations(
+def _list_activities_locations(
     prefix: str, lists: dict[str, list[dict[str, str]]]
 ) -> dict[str, int]:
     result: dict[str, int] = {}
@@ -62,9 +62,9 @@ def _diversion_locations(
 
 
 MISSION_LOCATIONS = _mission_locations()
-ACTIVITY_LOCATIONS = _activity_locations()
-CHOP_SHOP_LOCATIONS = _diversion_locations("Chop Shop", CHOP_SHOP_LISTS)
-HITMAN_LOCATIONS = _diversion_locations("Hitman", HITMAN_LISTS)
+ACTIVITY_LOCATIONS = _level_activities_locations()
+CHOP_SHOP_LOCATIONS = _list_activities_locations("Chop Shop", CHOP_SHOP_LISTS)
+HITMAN_LOCATIONS = _list_activities_locations("Hitman", HITMAN_LISTS)
 
 
 class SR2CommandProcessor(ClientCommandProcessor):
