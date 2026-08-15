@@ -28,5 +28,8 @@ jobs:
                 mkdir output
                 cp game/build-ci/SR2Archipelago.asi output/SR2Archipelago.asi
                 cp game/config/SR2Archipelago.ini.example output/SR2Archipelago.ini
-            - name: Package output
-              run: powershell Compress-Archive output SR2Archipelago.zip
+            - name: Upload artifact
+              uses: actions/upload-artifact@v7
+              with:
+                  name: output
+                  path: SR2Archipelago-{{ github.sha }}.zip
