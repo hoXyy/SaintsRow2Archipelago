@@ -1,0 +1,11 @@
+build*/
+/.vs/
+/.vscode/
+*.user
+*.suo
+SR2Archipelago.log
+SR2ArchipelagoStatus.txt
+*.exe
+cmake-build-debug
+server.py
+world/__pycache__

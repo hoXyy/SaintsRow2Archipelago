@@ -1,0 +1,9 @@
+{
+  "game": "Saints Row 2",
+  "compatible_version": 3,
+  "world_version": "0.1.0",
+  "minimum_ap_version": "0.6.7",
+  "authors": [
+    "hoxi"
+  ]
+}
