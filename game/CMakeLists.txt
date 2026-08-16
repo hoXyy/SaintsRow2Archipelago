@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.25)
 
-project(SR2ArchipelagoGame VERSION 0.1.0 LANGUAGES C CXX)
+project(SR2ArchipelagoGame LANGUAGES C CXX)
 
 option(SR2AP_BUILD_TESTS "Build portable unit tests" ON)
 if (SR2AP_BUILD_TESTS)
@@ -121,7 +121,7 @@ if (WIN32)
     target_compile_features(SR2Archipelago PRIVATE cxx_std_23)
     target_compile_definitions(SR2Archipelago PRIVATE
             WIN32_LEAN_AND_MEAN NOMINMAX UNICODE _UNICODE
-            SR2AP_VERSION="${PROJECT_VERSION}"
+            SR2AP_VERSION="${SR2AP_PROJECT_VERSION}"
     )
     target_compile_options(SR2Archipelago PRIVATE /W4 /permissive-)
     target_link_options(SR2Archipelago PRIVATE /INCREMENTAL:NO)

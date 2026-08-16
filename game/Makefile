@@ -1,5 +1,6 @@
 BUILD_TYPE ?= Release
 JOBS ?= 4
+PROJECT_VERSION ?= dev
 
 ifeq ($(OS),Windows_NT)
 CMAKE ?= cmake
@@ -14,7 +15,7 @@ endif
 all: build
 
 configure:
-	$(CMAKE) -B $(BUILD_DIR) -G Ninja -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) -DSR2AP_BUILD_TESTS=ON
+	$(CMAKE) -B $(BUILD_DIR) -G Ninja -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) -DSR2AP_BUILD_TESTS=ON -DSR2AP_PROJECT_VERSION=${PROJECT_VERSION}
 
 build: configure
 	$(CMAKE) --build $(BUILD_DIR) --parallel $(JOBS)

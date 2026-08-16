@@ -19,7 +19,7 @@ jobs:
             - name: Install make
               run: choco install make
             - name: Build
-              run: cd game && make BUILD_DIR=build-ci
+              run: cd game && make BUILD_DIR=build-ci PROJECT_VERSION=dev-${{ github.sha }}
             - name: Copy built files into output directory
               run: |
                 mkdir output
