@@ -24,9 +24,10 @@ jobs:
               run: |
                 mkdir output
                 mkdir output/scripts
+                mkdir output/Mods
                 cp game/build-ci/SR2Archipelago.asi output/scripts/SR2Archipelago.asi
                 cp game/config/SR2Archipelago.ini.example output/scripts/SR2Archipelago.ini
-                cp -r modded_game_files/sr2ap_files output/sr2ap_files
+                cp -r modded_game_files/sr2ap_files output/Mods/sr2ap_files
             - name: Upload artifact
               uses: actions/upload-artifact@v7
               with:
