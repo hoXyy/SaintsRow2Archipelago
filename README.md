@@ -50,9 +50,9 @@ Make sure Juiced Patch is installed and working before installing the Archipelag
 1. Download `SR2Archipelago.zip` and `saints_row_2.apworld` from the `Releases` tab, and get an ASI loader (recommended is the [Ultimate ASI Loader](https://github.com/ThirteenAG/Ultimate-ASI-Loader)).
 2. Open the Archipelago client, and use the `Install APWorld` option to install the .apworld file you downloaded.
 3. Follow your chosen's ASI loader install instructions (when using the Ultimate ASI Loader use `dinput8.dll` as the DLL name of choice).
-4. Extract the `scripts` and `sr2ap_files` folders from `SR2Archipelago.zip` into the game folder (same folder that includes `SR2_pc.exe`).
+4. Extract the `scripts` and `Mods` folders from `SR2Archipelago.zip` into the game folder (same folder that includes `SR2_pc.exe`).
 5. Add the following line to the end of `loose.txt`:
-> sr2ap_files/disable_ambient_respect
+> mods/sr2ap_files/disable_ambient_respect
 5. Generate your settings YAML using the Archipelago launcher's `Options Creator` and generate the world.
 6. In the Archipelago Launcher, open the `Saints Row 2 Client` and connect to your room.
 7. Launch Saints Row 2, the AP client should show a message that the game integration plugin connected successfully.
