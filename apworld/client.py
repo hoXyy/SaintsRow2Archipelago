@@ -26,7 +26,7 @@ from .activities import (
 from .collectibles import CD_IDS, CD_MAPPING
 from .missions import MISSION_CHAINS, ULTOR_SECRET_MISSION
 
-PROTOCOL_VERSION = 2
+PROTOCOL_VERSION = 3
 DEFAULT_PLUGIN_PORT = 38282
 RETRY_SECONDS = 1.0
 
@@ -173,6 +173,12 @@ class SR2Context(CommonContext):
         revisions = session.get("revisions", {})
         return int(revisions.get(f"{checksum:08X}", 0))
 
+    def stored_revision_cursor(self, checksum: int) -> int | None:
+        session = self.ledger.get("sessions", {}).get(self.session_key(), {})
+        revisions = session.get("revisions", {})
+        value = revisions.get(f"{checksum:08X}")
+        return None if value is None else int(value)
+
     def persist_revision(self, checksum: int, next_index: int) -> None:
         sessions = self.ledger.setdefault("sessions", {})
         session = sessions.setdefault(self.session_key(), {})
@@ -218,7 +224,12 @@ async def send_session_ready(ctx: SR2Context) -> None:
     }
 
     if not required.issubset(ctx.slot_data):
-        logger.error("This seed lacks SR2 protocol-v2 slot data; generate a new seed")
+        logger.error("This seed lacks compatible SR2 protocol slot data; generate a new seed")
+        return
+    if ctx.slot_data["protocol"] != PROTOCOL_VERSION:
+        logger.error(
+            "This seed uses an incompatible SR2 protocol version; generate a new seed"
+        )
         return
 
     message = {
@@ -335,7 +346,32 @@ async def process_plugin_message(ctx: SR2Context, message: dict[str, Any]) -> No
                 (int(message["index"]), bool(message["accepted"]))
             )
     elif message_type == "save_revision":
-        ctx.persist_revision(int(message["checksum"]), int(message["next_index"]))
+        checksum = int(message["checksum"])
+        next_index = int(message["next_index"])
+        accepted = 0 <= checksum <= 0xFFFFFFFF and 0 <= next_index <= len(
+            ctx.items_received
+        )
+        existing = ctx.stored_revision_cursor(checksum) if accepted else None
+        if existing is not None and existing != next_index:
+            accepted = False
+            logger.error(
+                "Conflicting SR2 save revision cursor for "
+                f"checksum {checksum:08X}: stored={existing} plugin={next_index}"
+            )
+        if accepted and existing is None:
+            ctx.persist_revision(checksum, next_index)
+        if not accepted:
+            logger.error(
+                f"Rejected SR2 save revision checksum={checksum} next_index={next_index}"
+            )
+        await ctx.send_plugin(
+            {
+                "type": "save_revision_ack",
+                "checksum": checksum,
+                "next_index": next_index,
+                "accepted": accepted,
+            }
+        )
     elif message_type == "progression":
         await process_progression(ctx, message)
     elif message_type == "session_reject":

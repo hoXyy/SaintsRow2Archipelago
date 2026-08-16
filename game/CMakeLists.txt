@@ -73,6 +73,7 @@ add_library(sr2ap_core STATIC
         src/CollectibleDefinitions.cpp
         src/StatusSerialization.cpp
         src/ProgressionEventTracker.cpp
+        src/RevisionJournal.cpp
 )
 target_include_directories(sr2ap_core PUBLIC include)
 target_link_libraries(sr2ap_core PRIVATE sr2ap_inih sr2ap_nlohmann_json)
@@ -145,6 +146,7 @@ if (SR2AP_BUILD_TESTS)
             tests/HandlerActivityTests.cpp
             tests/ProgressionEventTrackerTests.cpp
             tests/ReaderResultTests.cpp
+            tests/RevisionJournalTests.cpp
             tests/StatusSerializationTests.cpp
     )
     target_link_libraries(sr2ap_tests PRIVATE sr2ap_core GTest::gtest_main)

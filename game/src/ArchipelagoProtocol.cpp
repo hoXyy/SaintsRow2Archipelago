@@ -120,6 +120,21 @@ namespace sr2ap {
         return SaveContextMessage{*checksum, *nextIndex};
     }
 
+    std::optional<SaveRevisionAcknowledgementMessage> ParseSaveRevisionAcknowledgementMessage(
+        const std::string_view message) {
+        const auto parsed = ParseObject(message, "save_revision_ack");
+        if (!parsed) {
+            return std::nullopt;
+        }
+        const auto checksum = ReadUnsigned<std::uint32_t>(*parsed, "checksum");
+        const auto nextIndex = ReadUnsigned<std::uint64_t>(*parsed, "next_index");
+        const auto accepted = ReadBoolean(*parsed, "accepted");
+        if (!checksum || !nextIndex || !accepted) {
+            return std::nullopt;
+        }
+        return SaveRevisionAcknowledgementMessage{*checksum, *nextIndex, *accepted};
+    }
+
     std::optional<SessionReadyMessage> ParseSessionReadyMessage(const std::string_view message) {
         const auto parsed = ParseObject(message, "session_ready");
         if (!parsed || !parsed->contains("seed_name") || !(*parsed)["seed_name"].is_string()) {

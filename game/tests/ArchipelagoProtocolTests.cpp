@@ -23,9 +23,20 @@ namespace sr2ap {
         EXPECT_FALSE(ParseSaveContextMessage(R"({"type":"save_context","checksum":1,"next_index":-1})"));
     }
 
+    TEST(ArchipelagoProtocolTest, ParsesSaveRevisionAcknowledgement) {
+        const auto acknowledgement = ParseSaveRevisionAcknowledgementMessage(
+            R"({"type":"save_revision_ack","checksum":4294967295,"next_index":18,"accepted":true})");
+        ASSERT_TRUE(acknowledgement);
+        EXPECT_EQ(acknowledgement->checksum, 4294967295U);
+        EXPECT_EQ(acknowledgement->nextIndex, 18U);
+        EXPECT_TRUE(acknowledgement->accepted);
+        EXPECT_FALSE(
+            ParseSaveRevisionAcknowledgementMessage(R"({"type":"save_revision_ack","checksum":1,"next_index":18})"));
+    }
+
     TEST(ArchipelagoProtocolTest, ParsesCompleteSessionAndDeduplicatesManagedNames) {
         const auto session = ParseSessionReadyMessage(R"({
-          "type":"session_ready","protocol":2,"seed_name":"seed","team":1,"slot":2,
+          "type":"session_ready","protocol":3,"seed_name":"seed","team":1,"slot":2,
           "managed_unlockables":["Taxi","Taxi"],"managed_cheats":["Evil Cars","Evil Cars"],
           "features":{"exclusive_respect":true,"block_vanilla_unlockables":false,"notoriety_traps":true},
           "enabled_progression":{"missions":true,"activities":false,"hitman":true,"chop_shop":false,"cds":true}})");
@@ -38,7 +49,7 @@ namespace sr2ap {
 
     TEST(ArchipelagoProtocolTest, RejectsIncompleteOrOversizedSessions) {
         EXPECT_FALSE(
-            ParseSessionReadyMessage(R"({"type":"session_ready","protocol":2,"seed_name":"x","team":0,"slot":1})"));
+            ParseSessionReadyMessage(R"({"type":"session_ready","protocol":3,"seed_name":"x","team":0,"slot":1})"));
         std::string longName(129, 'x');
         EXPECT_FALSE(ParseSessionReadyMessage("{\"type\":\"session_ready\",\"protocol\":2,\"seed_name\":\"" + longName +
                                               "\",\"team\":0,\"slot\":1}"));

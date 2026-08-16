@@ -8,4 +8,4 @@ SR2ArchipelagoStatus.txt
 *.exe
 cmake-build-*
 server.py
-world/__pycache__
+apworld/__pycache__

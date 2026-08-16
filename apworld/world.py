@@ -109,7 +109,7 @@ class SR2World(World):
             goal_locations.append(ULTOR_SECRET_MISSION.id)
 
         return {
-            "protocol": 2,
+            "protocol": 3,
             "goal_locations": goal_locations,
             "managed_unlockables": sorted(selected_names & unlockable_names),
             "managed_cheats": sorted(selected_names & cheat_names),

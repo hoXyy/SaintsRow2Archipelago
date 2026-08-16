@@ -18,6 +18,12 @@ namespace sr2ap {
         std::uint64_t nextIndex{};
     };
 
+    struct SaveRevisionAcknowledgementMessage {
+        std::uint32_t checksum{};
+        std::uint64_t nextIndex{};
+        bool accepted{};
+    };
+
     struct SessionReadyMessage {
         std::uint32_t protocol{};
         std::string seedName;
@@ -39,6 +45,8 @@ namespace sr2ap {
     [[nodiscard]] std::optional<ReceivedItemMessage> ParseReceivedItemMessage(std::string_view message);
     [[nodiscard]] std::string SerializeItemAcknowledgement(std::uint64_t index, bool accepted);
     [[nodiscard]] std::optional<SaveContextMessage> ParseSaveContextMessage(std::string_view message);
+    [[nodiscard]] std::optional<SaveRevisionAcknowledgementMessage> ParseSaveRevisionAcknowledgementMessage(
+        std::string_view message);
     [[nodiscard]] std::optional<SessionReadyMessage> ParseSessionReadyMessage(std::string_view message);
     [[nodiscard]] bool IsSessionEndMessage(std::string_view message);
     [[nodiscard]] std::string SerializeGameContext(std::optional<std::uint32_t> checksum,
