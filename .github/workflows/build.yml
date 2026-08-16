@@ -23,8 +23,9 @@ jobs:
             - name: Copy built files into output directory
               run: |
                 mkdir output
-                cp game/build-ci/SR2Archipelago.asi output/SR2Archipelago.asi
-                cp game/config/SR2Archipelago.ini.example output/SR2Archipelago.ini
+                mkdir output/scripts
+                cp game/build-ci/SR2Archipelago.asi output/scripts/SR2Archipelago.asi
+                cp game/config/SR2Archipelago.ini.example output/scripts/SR2Archipelago.ini
             - name: Upload artifact
               uses: actions/upload-artifact@v7
               with:
