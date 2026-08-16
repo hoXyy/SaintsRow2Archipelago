@@ -10,7 +10,7 @@ ULTOR_EPILOGUE_ARC_NAME = "Ultor Epilogue"
 
 class RequiredGangArcs(OptionSet):
     """
-    Select which mission chain(s) you need to complete to finish your game.
+    Select which mission chain(s) you need to complete to finish your game. Available options: Ronin Arc, Sons of Samedi Arc, Brotherhood Arc, Ultor Epilogue
     """
 
     display_name = "Required Gang Arcs"
