@@ -6,7 +6,7 @@ A work-in-progress Archipelago implementation for Saints Row 2.
 
 Steam and GOG versions of the game are supported. The Steam version will require [Juiced Patch](https://www.kobraworks.com/juiced), due to the vanilla Steam version including an encrypted EXE which is *not* supported.
 
-> ⚠️ **NOTE:** The [Gentlemen of the Row](https://www.saintsrowmods.com/forum/threads/gentlemen-of-the-row.24/) and [PC DLC](https://www.kobraworks.com/sr2pcdlc) mods are not currently supported!
+> ⚠️ **NOTE:** The [Gentlemen of the Row](https://www.saintsrowmods.com/forum/threads/gentlemen-of-the-row.24/) and [PC DLC](https://www.kobraworks.com/sr2pcdlc) mods are not currently supported! Other mods might not work properly either, so it's best to just use a vanilla copy of the game.
 
 ## APWorld details
 
@@ -35,21 +35,27 @@ The items in the pool are:
 
 The full list of items can be found in [items_list.py](https://github.com/hoXyy/SaintsRow2Archipelago/blob/main/apworld/items_list.py).
 
+## Required mods
+
+- [Juiced Patch](https://github.com/kobraworksmodding/Saints-Row-2-Juiced-Patch/releases) - needed to load the custom game files included with the AP
+
 ## Recommended mods
 
-- [Juiced Patch](https://github.com/kobraworksmodding/Saints-Row-2-Juiced-Patch/releases) - **heavily recommended for GOG version, required for Steam version**, makes the PC port actually playable 
 - [High Quality Radio](https://www.saintsrowmods.com/forum/threads/high-quality-radio-mod.9515/) - if you intend to use the radio, this makes the radio quality actually bearable
 
 ## Installation
 
+Make sure Juiced Patch is installed and working before installing the Archipelago:
+
 1. Download `SR2Archipelago.zip` and `saints_row_2.apworld` from the `Releases` tab, and get an ASI loader (recommended is the [Ultimate ASI Loader](https://github.com/ThirteenAG/Ultimate-ASI-Loader)).
 2. Open the Archipelago client, and use the `Install APWorld` option to install the .apworld file you downloaded.
 3. Follow your chosen's ASI loader install instructions (when using the Ultimate ASI Loader use `dinput8.dll` as the DLL name of choice).
-4. Extract the `scripts` folder from `SR2Archipelago.zip` into the game folder (same folder that includes `SR2_pc.exe`).
+4. Extract the `scripts` and `sr2ap_files` folders from `SR2Archipelago.zip` into the game folder (same folder that includes `SR2_pc.exe`).
+5. Add the following line to the end of `loose.txt`:
+> sr2ap_files/disable_ambient_respect
 5. Generate your settings YAML using the Archipelago launcher's `Options Creator` and generate the world.
 6. In the Archipelago Launcher, open the `Saints Row 2 Client` and connect to your room.
 7. Launch Saints Row 2, the AP client should show a message that the game integration plugin connected successfully.
-
 
 ### Extra instruction for Linux users
 

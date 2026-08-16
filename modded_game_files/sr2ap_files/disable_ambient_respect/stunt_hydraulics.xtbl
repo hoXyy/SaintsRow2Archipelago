@@ -1,0 +1,145 @@
+<root>
+<Table>
+	<Hydraulics_Table>
+		<Name>Stunt_Hydraulics</Name>
+		<_Editor>
+			<Category>Entries</Category>
+			</_Editor>
+		<Max_Speed>15</Max_Speed>
+		<Min_Time>1.5</Min_Time>
+		<Max_Time>20</Max_Time>
+		<Max_Reward>0</Max_Reward>
+		<Tolerance_Time>2</Tolerance_Time>
+		<Reward_Factors>
+			<Height_Factor>5</Height_Factor>
+			<Angular_Factor>5</Angular_Factor>
+			<Non_Gang_Factor>1</Non_Gang_Factor>
+			<Gang_Factor>5</Gang_Factor>
+			<Airtime_Factor>5</Airtime_Factor>
+			<Time_Factor>2</Time_Factor>
+			</Reward_Factors>
+		<Min_Time_Between>2</Min_Time_Between>
+		</Hydraulics_Table>
+	</Table>
+
+<TableTemplates>
+	</TableTemplates>
+
+<TableDescription>
+	<Name>Hydraulics_Table</Name>
+	<Type>TableDescription</Type>
+	<Element>
+		<Name>Name</Name>
+		<Type>String</Type>
+		<Description>Unused.</Description>
+		</Element>
+	<Element>
+		<Name>Max_Reward</Name>
+		<Type>Int</Type>
+		<Display_Name>Maximum Reward</Display_Name>
+		<Description>Maximum respect that can be earned in one instance of this diversion.</Description>
+		<Default>400</Default>
+		<MinValue>0</MinValue>
+		</Element>
+	<Element>
+		<Name>Max_Speed</Name>
+		<Type>Float</Type>
+		<Display_Name>Maximum Speed</Display_Name>
+		<Description>Maximum speed that the player's car can be going before this diversion fails, in MPH.</Description>
+		<Default>10</Default>
+		<MinValue>0</MinValue>
+		</Element>
+	<Element>
+		<Name>Min_Time</Name>
+		<Type>Float</Type>
+		<Display_Name>Minimum Time</Display_Name>
+		<Description>Minimum time a car must be doing hydraulics for this diversion to start, in seconds.</Description>
+		<Default>2</Default>
+		<MinValue>0</MinValue>
+		</Element>
+	<Element>
+		<Name>Max_Time</Name>
+		<Type>Float</Type>
+		<Display_Name>Maximum Time</Display_Name>
+		<Description>Maximum time the player can be in this diversion before it finishes, in seconds.</Description>
+		<Default>20</Default>
+		<MinValue>0</MinValue>
+		</Element>
+	<Element>
+		<Name>Tolerance_Time</Name>
+		<Type>Float</Type>
+		<Display_Name>Tolerance Time</Display_Name>
+		<Description>Maximum length of time betwene hydraulics before this diversion instance stops, in seconds.</Description>
+		<Default>2</Default>
+		<MinValue>0</MinValue>
+		</Element>
+	<Element>
+		<Name>Reward_Factors</Name>
+		<Type>Element</Type>
+		<Display_Name>Reward Factors</Display_Name>
+		<Description>Factors controlling the reward given</Description>
+		<Element>
+			<Name>Height_Factor</Name>
+			<Type>Float</Type>
+			<Display_Name>Height Factor</Display_Name>
+			<Description>Multiplier for calculating the height reward, per meter.</Description>
+			<Default>5</Default>
+			<MinValue>0</MinValue>
+			</Element>
+		<Element>
+			<Name>Angular_Factor</Name>
+			<Type>Float</Type>
+			<Display_Name>Angular Velocity Factor</Display_Name>
+			<Description>Multiplier for calculating the angular velocity reward, per rad/s.</Description>
+			<Default>5</Default>
+			<MinValue>0</MinValue>
+			</Element>
+		<Element>
+			<Name>Non_Gang_Factor</Name>
+			<Type>Float</Type>
+			<Display_Name>Non Gang Witness Factor</Display_Name>
+			<Description>Multiplier for non gang witness reward.</Description>
+			<Default>1</Default>
+			<MinValue>0</MinValue>
+			</Element>
+		<Element>
+			<Name>Gang_Factor</Name>
+			<Type>Float</Type>
+			<Display_Name>Gang Witness Factor</Display_Name>
+			<Description>Multiplier for gang witness reward.</Description>
+			<Default>5</Default>
+			<MinValue>0</MinValue>
+			</Element>
+		<Element>
+			<Name>Airtime_Factor</Name>
+			<Type>Float</Type>
+			<Display_Name>Airtime Factor</Display_Name>
+			<Description>Multiplier for airtime reward, per second.</Description>
+			<Default>5</Default>
+			<MinValue>0</MinValue>
+			</Element>
+		<Element>
+			<Name>Time_Factor</Name>
+			<Type>Float</Type>
+			<Display_Name>Total Time Factor</Display_Name>
+			<Description>Multiplier for total timereward, per second.</Description>
+			<Default>2</Default>
+			<MinValue>0</MinValue>
+			</Element>
+		</Element>
+	<Element>
+		<Name>Min_Time_Between</Name>
+		<Type>Float</Type>
+		<Display_Name>Minimum_Time_Between</Display_Name>
+		<Description>Amount of time after completing hydraulics before the player can start hydraulics again. This is in seconds!</Description>
+		<Default>600</Default>
+		<MinValue>0</MinValue>
+		</Element>
+	</TableDescription>
+
+<EntryCategories>
+	<Category>
+		<Name>Entries</Name>
+		</Category>
+	</EntryCategories>
+</root>

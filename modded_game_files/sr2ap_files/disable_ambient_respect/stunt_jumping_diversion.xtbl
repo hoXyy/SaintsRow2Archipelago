@@ -1,0 +1,248 @@
+<root>
+<Table>
+	<Stunt_Jumping>
+		<Name>Car</Name>
+		<Max_Reward>0</Max_Reward>
+		<Land_Distance>
+			<Minimum>20</Minimum>
+			<Payout>3</Payout>
+			</Land_Distance>
+		<Air_Height>
+			<Minimum>5</Minimum>
+			<Payout>5</Payout>
+			</Air_Height>
+		<Pitch_Rotation>
+			<Minimum>90</Minimum>
+			<Payout>0.5</Payout>
+			</Pitch_Rotation>
+		<Bank_Rotation>
+			<Minimum>45</Minimum>
+			<Payout>0.5</Payout>
+			</Bank_Rotation>
+		<Heading_Rotation>
+			<Minimum>45</Minimum>
+			<Payout>0.5</Payout>
+			</Heading_Rotation>
+		<_Editor>
+			<Category>Entries</Category>
+			</_Editor>
+		<Fall_Dist>
+			<Minimum>10</Minimum>
+			<Payout>3</Payout>
+			</Fall_Dist>
+		</Stunt_Jumping>
+	<Stunt_Jumping>
+		<Name>Motorcycle</Name>
+		<Max_Reward>0</Max_Reward>
+		<Land_Distance>
+			<Minimum>20</Minimum>
+			<Payout>3</Payout>
+			</Land_Distance>
+		<Air_Height>
+			<Minimum>5</Minimum>
+			<Payout>5</Payout>
+			</Air_Height>
+		<Pitch_Rotation>
+			<Minimum>45</Minimum>
+			<Payout>0.5</Payout>
+			</Pitch_Rotation>
+		<Bank_Rotation>
+			<Minimum>45</Minimum>
+			<Payout>0.5</Payout>
+			</Bank_Rotation>
+		<Heading_Rotation>
+			<Minimum>45</Minimum>
+			<Payout>0.5</Payout>
+			</Heading_Rotation>
+		<_Editor>
+			<Category>Entries</Category>
+			</_Editor>
+		<Fall_Dist>
+			<Minimum>10</Minimum>
+			<Payout>3</Payout>
+			</Fall_Dist>
+		</Stunt_Jumping>
+	<Stunt_Jumping>
+		<Name>Boat</Name>
+		<Max_Reward>0</Max_Reward>
+		<Land_Distance>
+			<Minimum>20</Minimum>
+			<Payout>3</Payout>
+			</Land_Distance>
+		<Air_Height>
+			<Minimum>5</Minimum>
+			<Payout>5</Payout>
+			</Air_Height>
+		<Pitch_Rotation>
+			<Minimum>45</Minimum>
+			<Payout>0.30</Payout>
+			</Pitch_Rotation>
+		<Bank_Rotation>
+			<Minimum>45</Minimum>
+			<Payout>0.30</Payout>
+			</Bank_Rotation>
+		<Heading_Rotation>
+			<Minimum>45</Minimum>
+			<Payout>0.30</Payout>
+			</Heading_Rotation>
+		<_Editor>
+			<Category>Entries</Category>
+			</_Editor>
+		<Fall_Dist>
+			<Minimum>10</Minimum>
+			<Payout>3</Payout>
+			</Fall_Dist>
+		</Stunt_Jumping>
+	</Table>
+
+<TableTemplates>
+	</TableTemplates>
+
+<TableDescription>
+	<Name>Stunt_Jumping</Name>
+	<Type>TableDescription</Type>
+	<Element>
+		<Name>Name</Name>
+		<Type>String</Type>
+		<Description>Vehicle type</Description>
+		</Element>
+	<Element>
+		<Name>Max_Reward</Name>
+		<Type>Float</Type>
+		<Display_Name>Maximum Payout</Display_Name>
+		<Description>Maximum payout (in dollars) for a single stunt jump.</Description>
+		<Default>200</Default>
+		<MinValue>0</MinValue>
+		</Element>
+	<Element>
+		<Name>Land_Distance</Name>
+		<Type>Element</Type>
+		<Display_Name>Land Distance</Display_Name>
+		<Description>X-Z (horizontal) distance rewards.</Description>
+		<Element>
+			<Name>Minimum</Name>
+			<Type>Float</Type>
+			<Display_Name>Minimum Distance</Display_Name>
+			<Default>20</Default>
+			<MinValue>0</MinValue>
+			</Element>
+		<Element>
+			<Name>Payout</Name>
+			<Type>Float</Type>
+			<Display_Name>Payout Multiplier</Display_Name>
+			<Description>Dollars per meter</Description>
+			<Default>1</Default>
+			<MinValue>0</MinValue>
+			</Element>
+		</Element>
+	<Element>
+		<Name>Air_Height</Name>
+		<Type>Element</Type>
+		<Display_Name>Air Height</Display_Name>
+		<Description>Vertical distance rewards.</Description>
+		<Element>
+			<Name>Minimum</Name>
+			<Type>Float</Type>
+			<Display_Name>Minimum Height</Display_Name>
+			<Default>20</Default>
+			<MinValue>0</MinValue>
+			</Element>
+		<Element>
+			<Name>Payout</Name>
+			<Type>Float</Type>
+			<Display_Name>Payout Multiplier</Display_Name>
+			<Description>Dollars per meter</Description>
+			<Default>1</Default>
+			<MinValue>0</MinValue>
+			</Element>
+		</Element>
+	<Element>
+		<Name>Fall_Dist</Name>
+		<Type>Element</Type>
+		<Display_Name>Fall Distance</Display_Name>
+		<Element>
+			<Name>Minimum</Name>
+			<Type>Float</Type>
+			<Display_Name>Minimum Height</Display_Name>
+			<Default>20.0</Default>
+			<MinValue>0</MinValue>
+			</Element>
+		<Element>
+			<Name>Payout</Name>
+			<Type>Float</Type>
+			<Display_Name>Payout Multiplier</Display_Name>
+			<Default>1</Default>
+			<MinValue>0</MinValue>
+			</Element>
+		</Element>
+	<Element>
+		<Name>Pitch_Rotation</Name>
+		<Type>Element</Type>
+		<Display_Name>Flip Rotation</Display_Name>
+		<Description>Flip rewards (in degrees)</Description>
+		<Element>
+			<Name>Minimum</Name>
+			<Type>Float</Type>
+			<Display_Name>Minimum Rotation</Display_Name>
+			<Default>10</Default>
+			<MinValue>0</MinValue>
+			</Element>
+		<Element>
+			<Name>Payout</Name>
+			<Type>Float</Type>
+			<Display_Name>Payout Multiplier</Display_Name>
+			<Description>Dollars per degree rotated.</Description>
+			<Default>0.25</Default>
+			<MinValue>0</MinValue>
+			</Element>
+		</Element>
+	<Element>
+		<Name>Bank_Rotation</Name>
+		<Type>Element</Type>
+		<Display_Name>Roll Rotation</Display_Name>
+		<Description>Roll rewards (in degrees)</Description>
+		<Element>
+			<Name>Minimum</Name>
+			<Type>Float</Type>
+			<Display_Name>Minimum Rotation</Display_Name>
+			<Default>10</Default>
+			<MinValue>0</MinValue>
+			</Element>
+		<Element>
+			<Name>Payout</Name>
+			<Type>Float</Type>
+			<Display_Name>Payout Multiplier</Display_Name>
+			<Description>Dollars per degree rotated.</Description>
+			<Default>0.25</Default>
+			<MinValue>0</MinValue>
+			</Element>
+		</Element>
+	<Element>
+		<Name>Heading_Rotation</Name>
+		<Type>Element</Type>
+		<Display_Name>Spin Rotation</Display_Name>
+		<Description>Spin rewards (in degrees)</Description>
+		<Element>
+			<Name>Minimum</Name>
+			<Type>Float</Type>
+			<Display_Name>Minimum Rotation</Display_Name>
+			<Default>10</Default>
+			<MinValue>0</MinValue>
+			</Element>
+		<Element>
+			<Name>Payout</Name>
+			<Type>Float</Type>
+			<Display_Name>Payout Multiplier</Display_Name>
+			<Description>Dollars per degree rotated.</Description>
+			<Default>0.25</Default>
+			<MinValue>0</MinValue>
+			</Element>
+		</Element>
+	</TableDescription>
+
+<EntryCategories>
+	<Category>
+		<Name>Entries</Name>
+		</Category>
+	</EntryCategories>
+</root>

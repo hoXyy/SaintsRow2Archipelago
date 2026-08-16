@@ -1,0 +1,91 @@
+<root>
+<Table>
+	<Oncoming_Table>
+		<Name>Stunt_Oncoming</Name>
+		<_Editor>
+			<Category>Entries</Category>
+			</_Editor>
+		<Respect_Per_Meter>0</Respect_Per_Meter>
+		<Max_Reward>100</Max_Reward>
+		<Minimum_Distance>100</Minimum_Distance>
+		<Minimum_Speed>20</Minimum_Speed>
+		<Angle_Tolerance>30</Angle_Tolerance>
+		<Lane_Tolerance>3.0</Lane_Tolerance>
+		<Timeout>2.0</Timeout>
+		</Oncoming_Table>
+	</Table>
+
+<TableTemplates>
+	</TableTemplates>
+
+<TableDescription>
+	<Name>Oncoming_Table</Name>
+	<Type>TableDescription</Type>
+	<Element>
+		<Name>Name</Name>
+		<Type>String</Type>
+		<Description>Unused.</Description>
+		</Element>
+	<Element>
+		<Name>Max_Reward</Name>
+		<Type>Float</Type>
+		<Display_Name>Maximum Payout</Display_Name>
+		<Description>Maximum total payout allowed, in dollars.</Description>
+		<Default>50.0</Default>
+		<MinValue>0</MinValue>
+		</Element>
+	<Element>
+		<Name>Respect_Per_Meter</Name>
+		<Type>Float</Type>
+		<Display_Name>Respect per Meter</Display_Name>
+		<Description>Dollars awarded for each meter of wrong-way travel</Description>
+		<Default>1.0</Default>
+		<MinValue>0</MinValue>
+		</Element>
+	<Element>
+		<Name>Minimum_Distance</Name>
+		<Type>Float</Type>
+		<Display_Name>Minimum Distance</Display_Name>
+		<Description>Minimum distance for oncoming traffic rewards, in meters.</Description>
+		<Default>25.0</Default>
+		<MinValue>0</MinValue>
+		</Element>
+	<Element>
+		<Name>Minimum_Speed</Name>
+		<Type>Float</Type>
+		<Display_Name>Minimum Speed</Display_Name>
+		<Description>Minimum speed required to start this diversion, in MPH.</Description>
+		<Default>0.0</Default>
+		</Element>
+	<Element>
+		<Name>Angle_Tolerance</Name>
+		<Type>Float</Type>
+		<Display_Name>Angle Tolerance</Display_Name>
+		<Description>Tolerance parameter defining how far off of true "wrong way" the player can be for the diversion to start, in degrees.</Description>
+		<Default>15.0</Default>
+		<MinValue>0</MinValue>
+		<MaxValue>180</MaxValue>
+		</Element>
+	<Element>
+		<Name>Lane_Tolerance</Name>
+		<Type>Float</Type>
+		<Display_Name>Lane Distance Tolerance</Display_Name>
+		<Description>Tolerance parameter defining how far from the lane center the player can be in order to count, in meters.</Description>
+		<Default>3.0</Default>
+		<MinValue>0</MinValue>
+		</Element>
+	<Element>
+		<Name>Timeout</Name>
+		<Type>Float</Type>
+		<Display_Name>Timeout (s)</Display_Name>
+		<Description>Tolerance time in which you can leave a lane and come back in without losing the stunt.</Description>
+		<Default>2.0</Default>
+		</Element>
+	</TableDescription>
+
+<EntryCategories>
+	<Category>
+		<Name>Entries</Name>
+		</Category>
+	</EntryCategories>
+</root>

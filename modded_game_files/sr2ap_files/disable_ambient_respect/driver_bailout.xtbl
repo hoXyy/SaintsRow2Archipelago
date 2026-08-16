@@ -1,0 +1,82 @@
+<root>
+<Table>
+	<Driver_Bailout_Table>
+		<Name>Driver_Bailout</Name>
+		<Minimum_Distance>5</Minimum_Distance>
+		<Dollars_per_Meter>3</Dollars_per_Meter>
+		<Minimum_Damage>50</Minimum_Damage>
+		<Dollars_per_Damage>0.25</Dollars_per_Damage>
+		<Maximum_Reward>0</Maximum_Reward>
+		<_Editor>
+			<Category>Entries</Category>
+			</_Editor>
+		<Damage_Value_Multiplier>1.0</Damage_Value_Multiplier>
+		</Driver_Bailout_Table>
+	</Table>
+
+<TableTemplates>
+	</TableTemplates>
+
+<TableDescription>
+	<Name>Driver_Bailout_Table</Name>
+	<Type>TableDescription</Type>
+	<Element>
+		<Name>Name</Name>
+		<Type>String</Type>
+		</Element>
+	<Element>
+		<Name>Minimum_Distance</Name>
+		<Type>Float</Type>
+		<Display_Name>Minimum Distance</Display_Name>
+		<Description>Minimum distance to receive rewards from distance travelled during bailout.</Description>
+		<Default>1.0</Default>
+		<MinValue>0</MinValue>
+		</Element>
+	<Element>
+		<Name>Dollars_per_Meter</Name>
+		<Type>Float</Type>
+		<Display_Name>Dollars per Meter</Display_Name>
+		<Description>Dollars to award per meter of distance over the minimum</Description>
+		<Default>5.0</Default>
+		<MinValue>0</MinValue>
+		</Element>
+	<Element>
+		<Name>Minimum_Damage</Name>
+		<Type>Int</Type>
+		<Display_Name>Minimum Damage</Display_Name>
+		<Description>Minimum amount of damage the vehicle must do to receive damage done rewards.</Description>
+		<Default>10</Default>
+		<MinValue>0</MinValue>
+		</Element>
+	<Element>
+		<Name>Dollars_per_Damage</Name>
+		<Type>Float</Type>
+		<Display_Name>Dollars per Damage</Display_Name>
+		<Description>Number of dollars to award for each point of damage done. May be fractional.</Description>
+		<Default>1.0</Default>
+		<MinValue>0</MinValue>
+		</Element>
+	<Element>
+		<Name>Maximum_Reward</Name>
+		<Type>Float</Type>
+		<Display_Name>Maximum Reward</Display_Name>
+		<Description>Maximum total reward a player can receive for one instance of this diversion.</Description>
+		<Default>200</Default>
+		<MinValue>0</MinValue>
+		</Element>
+	<Element>
+		<Name>Damage_Value_Multiplier</Name>
+		<Type>Float</Type>
+		<Display_Name>Damage Value Multiplier</Display_Name>
+		<Description>This determins how much each point of damage is "worth" in the Stats display. This does NOT impact reward, only the "Damage done" Stats display.  For example, a value of 2.0 means that ten points of damage would display as "Damage: $20.00".</Description>
+		<Default>1.0</Default>
+		<MinValue>0</MinValue>
+		</Element>
+	</TableDescription>
+
+<EntryCategories>
+	<Category>
+		<Name>Entries</Name>
+		</Category>
+	</EntryCategories>
+</root>
