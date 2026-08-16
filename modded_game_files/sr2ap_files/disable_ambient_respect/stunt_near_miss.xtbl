@@ -1,0 +1,56 @@
+<root>
+<Table>
+	<Near_Miss>
+		<Name>Near Miss</Name>
+		<_Editor>
+			<Category>Entries</Category>
+			</_Editor>
+		<Max_Time_Between_Misses>5</Max_Time_Between_Misses>
+		<Max_Reward>0</Max_Reward>
+		<Minimum_Speed>40</Minimum_Speed>
+		</Near_Miss>
+	</Table>
+
+<TableTemplates>
+	</TableTemplates>
+
+<TableDescription>
+	<Name>Near_Miss</Name>
+	<Type>TableDescription</Type>
+	<Element>
+		<Name>Name</Name>
+		<Type>String</Type>
+		<Description>Unused.</Description>
+		</Element>
+	<Element>
+		<Name>Max_Reward</Name>
+		<Type>Float</Type>
+		<Display_Name>Maximum Reward</Display_Name>
+		<Description>Maximum reward for one instance of "near miss."</Description>
+		<Default>9</Default>
+		<MinValue>0</MinValue>
+		</Element>
+	<Element>
+		<Name>Minimum_Speed</Name>
+		<Type>Float</Type>
+		<Display_Name>Minimum Speed</Display_Name>
+		<Description>Minimum speed to start and maintain stunt, in MPH</Description>
+		<Default>25</Default>
+		<MinValue>0</MinValue>
+		</Element>
+	<Element>
+		<Name>Max_Time_Between_Misses</Name>
+		<Type>Float</Type>
+		<Display_Name>Maximum Time Between Misses</Display_Name>
+		<Description>Maximum time between consecutive misses to have them count as the same near miss, in seconds.</Description>
+		<Default>3</Default>
+		<MinValue>0</MinValue>
+		</Element>
+	</TableDescription>
+
+<EntryCategories>
+	<Category>
+		<Name>Entries</Name>
+		</Category>
+	</EntryCategories>
+</root>

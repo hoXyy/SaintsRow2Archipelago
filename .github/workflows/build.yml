@@ -20,12 +20,13 @@ jobs:
               run: choco install make
             - name: Build
               run: cd game && make BUILD_DIR=build-ci PROJECT_VERSION=dev-${{ github.sha }}
-            - name: Copy built files into output directory
+            - name: Prepare output archive
               run: |
                 mkdir output
                 mkdir output/scripts
                 cp game/build-ci/SR2Archipelago.asi output/scripts/SR2Archipelago.asi
                 cp game/config/SR2Archipelago.ini.example output/scripts/SR2Archipelago.ini
+                cp -r modded_game_files/sr2ap_files output/sr2ap_files
             - name: Upload artifact
               uses: actions/upload-artifact@v7
               with:

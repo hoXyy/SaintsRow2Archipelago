@@ -1,0 +1,77 @@
+<root>
+<Table>
+	<Taunting>
+		<_Editor>
+			<Category>Entries</Category>
+			</_Editor>
+		<Name>Taunting</Name>
+		<Props_First_Star>0</Props_First_Star>
+		<Props_Multiplier>1.15</Props_Multiplier>
+		<Death_Taunt_Delay>3</Death_Taunt_Delay>
+		<Death_Taunt_Distance>15</Death_Taunt_Distance>
+		<Taunt_Continue_Delay>6</Taunt_Continue_Delay>
+		<Stars_Per_Aggro_Taunt>1</Stars_Per_Aggro_Taunt>
+		<Stars_Per_Death_Taunt>2</Stars_Per_Death_Taunt>
+		</Taunting>
+	</Table>
+
+<TableTemplates>
+	</TableTemplates>
+
+<TableDescription>
+	<Name>Taunting</Name>
+	<Type>TableDescription</Type>
+	<Element>
+		<Name>Name</Name>
+		<Type>String</Type>
+		</Element>
+	<Element>
+		<Name>Props_First_Star</Name>
+		<Type>Int</Type>
+		<Display_Name>Props for First Star</Display_Name>
+		<Default>0</Default>
+		</Element>
+	<Element>
+		<Name>Props_Multiplier</Name>
+		<Type>Float</Type>
+		<Display_Name>Props Multiplier (Per Star)</Display_Name>
+		<Default>0.0</Default>
+		</Element>
+	<Element>
+		<Name>Death_Taunt_Delay</Name>
+		<Type>Float</Type>
+		<Display_Name>Death Taunt Delay (s)</Display_Name>
+		<Default>0.0</Default>
+		</Element>
+	<Element>
+		<Name>Death_Taunt_Distance</Name>
+		<Type>Float</Type>
+		<Display_Name>Death Taunt Distance</Display_Name>
+		<Default>0.0</Default>
+		</Element>
+	<Element>
+		<Name>Stars_Per_Death_Taunt</Name>
+		<Type>Int</Type>
+		<Display_Name>Stars Per Death Taunt</Display_Name>
+		<Default>0</Default>
+		</Element>
+	<Element>
+		<Name>Stars_Per_Aggro_Taunt</Name>
+		<Type>Int</Type>
+		<Display_Name>Stars Per Aggro Taunt</Display_Name>
+		<Default>0</Default>
+		</Element>
+	<Element>
+		<Name>Taunt_Continue_Delay</Name>
+		<Type>Float</Type>
+		<Display_Name>Taunt Continue Delay (s)</Display_Name>
+		<Default>0.0</Default>
+		</Element>
+	</TableDescription>
+
+<EntryCategories>
+	<Category>
+		<Name>Entries</Name>
+		</Category>
+	</EntryCategories>
+</root>

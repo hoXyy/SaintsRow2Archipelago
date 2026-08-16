@@ -1,0 +1,80 @@
+<root>
+<Table>
+	<Drifting>
+		<Name>Drifting</Name>
+		<_Editor>
+			<Category>Entries</Category>
+			</_Editor>
+		<Max_Reward>120</Max_Reward>
+		<Respect_Per_Second>0</Respect_Per_Second>
+		<Minimum_Time>.3</Minimum_Time>
+		<Minimum_Speed>5</Minimum_Speed>
+		<Timeout>3.0</Timeout>
+		<Min_Drift_Angle>11</Min_Drift_Angle>
+		</Drifting>
+	</Table>
+
+<TableTemplates>
+	</TableTemplates>
+
+<TableDescription>
+	<Name>Drifting</Name>
+	<Type>TableDescription</Type>
+	<Element>
+		<Name>Name</Name>
+		<Type>String</Type>
+		<Description>Unused.</Description>
+		</Element>
+	<Element>
+		<Name>Max_Reward</Name>
+		<Type>Float</Type>
+		<Display_Name>Maximum Payout</Display_Name>
+		<Description>Maximum possible payout from a single instance of this diversion.</Description>
+		<Default>20.0</Default>
+		<MinValue>0</MinValue>
+		</Element>
+	<Element>
+		<Name>Respect_Per_Second</Name>
+		<Type>Float</Type>
+		<Display_Name>Respect per Second</Display_Name>
+		<Description>Respect paid out per second spent drifting.</Description>
+		<Default>5.0</Default>
+		<MinValue>0</MinValue>
+		</Element>
+	<Element>
+		<Name>Minimum_Time</Name>
+		<Type>Float</Type>
+		<Display_Name>Minimum Time</Display_Name>
+		<Description>Minimum time drifting needed to start this stunt.</Description>
+		<Default>0.0</Default>
+		<MinValue>0</MinValue>
+		</Element>
+	<Element>
+		<Name>Minimum_Speed</Name>
+		<Type>Float</Type>
+		<Display_Name>Minimum Speed</Display_Name>
+		<Description>Minimum Speed to maintain stunt, in MPH.</Description>
+		<Default>20</Default>
+		<MinValue>0</MinValue>
+		</Element>
+	<Element>
+		<Name>Timeout</Name>
+		<Type>Float</Type>
+		<Description>Time in seconds between drifts allowed to continue a drift.</Description>
+		<Default>5.0</Default>
+		</Element>
+	<Element>
+		<Name>Min_Drift_Angle</Name>
+		<Type>Float</Type>
+		<Display_Name>Min Drift Angle</Display_Name>
+		<Description>Minimum for the angle between the direction the vehicle is facing and the direction the vehicle is moving.</Description>
+		<Default>12</Default>
+		</Element>
+	</TableDescription>
+
+<EntryCategories>
+	<Category>
+		<Name>Entries</Name>
+		</Category>
+	</EntryCategories>
+</root>

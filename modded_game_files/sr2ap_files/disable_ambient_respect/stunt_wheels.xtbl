@@ -1,0 +1,74 @@
+<root>
+<Table>
+	<Wheels>
+		<Name>Two Wheels</Name>
+		<_Editor>
+			<Category>Entries</Category>
+			</_Editor>
+		<Max_Reward>120</Max_Reward>
+		<Respect_Per_Meter>0</Respect_Per_Meter>
+		<Min_Distance>7</Min_Distance>
+		</Wheels>
+	<Wheels>
+		<Name>Wheelie</Name>
+		<Max_Reward>75</Max_Reward>
+		<Respect_Per_Meter>0</Respect_Per_Meter>
+		<Min_Distance>15</Min_Distance>
+		<_Editor>
+			<Category>Entries</Category>
+			</_Editor>
+		</Wheels>
+	<Wheels>
+		<Name>Stoppie</Name>
+		<Max_Reward>75</Max_Reward>
+		<Respect_Per_Meter>0</Respect_Per_Meter>
+		<Min_Distance>4</Min_Distance>
+		<_Editor>
+			<Category>Entries</Category>
+			</_Editor>
+		</Wheels>
+	</Table>
+
+<TableTemplates>
+	</TableTemplates>
+
+<TableDescription>
+	<Name>Wheels</Name>
+	<Type>TableDescription</Type>
+	<Element>
+		<Name>Name</Name>
+		<Type>String</Type>
+		<Description>Unused.</Description>
+		</Element>
+	<Element>
+		<Name>Max_Reward</Name>
+		<Type>Float</Type>
+		<Display_Name>Maximum Reward</Display_Name>
+		<Description>Maximum reward for a single instance of this stunt.</Description>
+		<Default>50</Default>
+		<MinValue>0</MinValue>
+		</Element>
+	<Element>
+		<Name>Respect_Per_Meter</Name>
+		<Type>Float</Type>
+		<Display_Name>Respect per Meter</Display_Name>
+		<Description>Reward per meter of distance travelled over the minimum.</Description>
+		<Default>2.5</Default>
+		<MinValue>0</MinValue>
+		</Element>
+	<Element>
+		<Name>Min_Distance</Name>
+		<Type>Float</Type>
+		<Display_Name>Minimum Distance</Display_Name>
+		<Description>Minimum distance a player must travel on two wheels for this stunt to start, in meters.</Description>
+		<Default>2</Default>
+		<MinValue>0</MinValue>
+		</Element>
+	</TableDescription>
+
+<EntryCategories>
+	<Category>
+		<Name>Entries</Name>
+		</Category>
+	</EntryCategories>
+</root>

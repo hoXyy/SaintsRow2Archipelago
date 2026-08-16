@@ -1,0 +1,200 @@
+<root>
+<Table>
+	<Combat_Tricks>
+		<Name>Combat_Tricks</Name>
+		<_Editor>
+			<Category>Entries</Category>
+			</_Editor>
+		<Gang_Kill_Bonus>0</Gang_Kill_Bonus>
+		<Multi_Kill_Bonus>0</Multi_Kill_Bonus>
+		<Multi_Kill_Per_Person_Bonus>0</Multi_Kill_Per_Person_Bonus>
+		<Gang_Car_Kill_Bonus>0</Gang_Car_Kill_Bonus>
+		<One_Hit_Kill_Bonus>0</One_Hit_Kill_Bonus>
+		<Close_Quarters_Kill_Bonus>0</Close_Quarters_Kill_Bonus>
+		<Human_Shield_Kill_Bonus>0</Human_Shield_Kill_Bonus>
+		<Head_Shot_Kill_Bonus>0</Head_Shot_Kill_Bonus>
+		<Groin_Shot_Kill_Bonus>0</Groin_Shot_Kill_Bonus>
+		<Melee_Kill_Bonus>0</Melee_Kill_Bonus>
+		<Throwing_Bonus>0</Throwing_Bonus>
+		<Multi_Kill_Trick_Duration>0</Multi_Kill_Trick_Duration>
+		<Close_Quarters_Kill_Range>0</Close_Quarters_Kill_Range>
+		<Motorcycle_Sword_Kill_Bonus>0</Motorcycle_Sword_Kill_Bonus>
+		<Combat_Tricks_Duration>5000</Combat_Tricks_Duration>
+		<Throwing_Star_Dist>4</Throwing_Star_Dist>
+		<Hip_Shot_Bonus>0</Hip_Shot_Bonus>
+		<Min_Hip_Shot_Dist>0</Min_Hip_Shot_Dist>
+		<Max_Hip_Shot_Dist>0</Max_Hip_Shot_Dist>
+		<Throwing_Duration>2000</Throwing_Duration>
+		<Prop_Kill_Bonus>0</Prop_Kill_Bonus>
+		</Combat_Tricks>
+	</Table>
+
+<TableTemplates>
+	</TableTemplates>
+
+<TableDescription>
+	<Name>Combat_Tricks</Name>
+	<Type>TableDescription</Type>
+	<Display_Name>Combat Tricks</Display_Name>
+	<Element>
+		<Name>Name</Name>
+		<Type>String</Type>
+		</Element>
+	<Element>
+		<Name>Combat_Tricks_Duration</Name>
+		<Type>Int</Type>
+		<Display_Name>Combat Tricks Duration (ms)</Display_Name>
+		<Description>The length of time (milliseconds) before a combat trick expires and more stars cannot be gained.</Description>
+		<Default>3500</Default>
+		<MinValue>0</MinValue>
+		</Element>
+	<Element>
+		<Name>Gang_Kill_Bonus</Name>
+		<Type>Int</Type>
+		<Display_Name>Gang Kill Bonus</Display_Name>
+		<Default>0</Default>
+		<MinValue>0</MinValue>
+		</Element>
+	<Element>
+		<Name>Gang_Car_Kill_Bonus</Name>
+		<Type>Int</Type>
+		<Display_Name>Gang Car Kill Bonus</Display_Name>
+		<Default>0</Default>
+		<MinValue>0</MinValue>
+		</Element>
+	<Element>
+		<Name>One_Hit_Kill_Bonus</Name>
+		<Type>Int</Type>
+		<Display_Name>One Hit Kill Bonus</Display_Name>
+		<Default>0</Default>
+		<MinValue>0</MinValue>
+		</Element>
+	<Element>
+		<Name>Human_Shield_Kill_Bonus</Name>
+		<Type>Int</Type>
+		<Display_Name>Human Shield Kill Bonus</Display_Name>
+		<Default>0</Default>
+		<MinValue>0</MinValue>
+		</Element>
+	<Element>
+		<Name>Head_Shot_Kill_Bonus</Name>
+		<Type>Int</Type>
+		<Display_Name>Head Shot Kill Bonus</Display_Name>
+		<Default>0</Default>
+		<MinValue>0</MinValue>
+		</Element>
+	<Element>
+		<Name>Groin_Shot_Kill_Bonus</Name>
+		<Type>Int</Type>
+		<Display_Name>Groin Shot Kill Bonus</Display_Name>
+		<Default>0</Default>
+		<MinValue>0</MinValue>
+		</Element>
+	<Element>
+		<Name>Melee_Kill_Bonus</Name>
+		<Type>Int</Type>
+		<Display_Name>Melee Kill Bonus</Display_Name>
+		<Default>0</Default>
+		<MinValue>0</MinValue>
+		</Element>
+	<Element>
+		<Name>Prop_Kill_Bonus</Name>
+		<Type>Int</Type>
+		<Display_Name>Havok Weapon Kill Bonus</Display_Name>
+		<Default>0</Default>
+		<MinValue>0</MinValue>
+		</Element>
+	<Element>
+		<Name>Throwing_Bonus</Name>
+		<Type>Int</Type>
+		<Display_Name>Throwing Bonus</Display_Name>
+		<Default>0</Default>
+		<MinValue>0</MinValue>
+		</Element>
+	<Element>
+		<Name>Throwing_Star_Dist</Name>
+		<Type>Float</Type>
+		<Display_Name>Throwing Star Dist</Display_Name>
+		<Description>Minimum throw distance for it to count in your statistics.</Description>
+		<Default>2</Default>
+		</Element>
+	<Element>
+		<Name>Throwing_Duration</Name>
+		<Type>Int</Type>
+		<Display_Name>Throwing Duration (ms)</Display_Name>
+		<Default>2000</Default>
+		<MinValue>0</MinValue>
+		</Element>
+	<Element>
+		<Name>Motorcycle_Sword_Kill_Bonus</Name>
+		<Type>Int</Type>
+		<Display_Name>Motorcycle Sword Kill Bonus</Display_Name>
+		<Default>0</Default>
+		<MinValue>0</MinValue>
+		</Element>
+	<Element>
+		<Name>Multi_Kill_Bonus</Name>
+		<Type>Int</Type>
+		<Display_Name>Multi Kill Bonus</Display_Name>
+		<Default>0</Default>
+		</Element>
+	<Element>
+		<Name>Multi_Kill_Per_Person_Bonus</Name>
+		<Type>Int</Type>
+		<Display_Name>Multi Kill Per Person Bonus</Display_Name>
+		<Default>0</Default>
+		<MinValue>0</MinValue>
+		</Element>
+	<Element>
+		<Name>Multi_Kill_Trick_Duration</Name>
+		<Type>Int</Type>
+		<Display_Name>Multi Kill Trick Duration (ms)</Display_Name>
+		<Description>The window that kills must be made in order to get a multi kill.</Description>
+		<Default>0</Default>
+		<MinValue>0</MinValue>
+		</Element>
+	<Element>
+		<Name>Hip_Shot_Bonus</Name>
+		<Type>Int</Type>
+		<Display_Name>Hip Shot Bonus</Display_Name>
+		<Description>Per-star bonus for a hip-shot kill. (NOT USED)</Description>
+		<Default>10</Default>
+		</Element>
+	<Element>
+		<Name>Min_Hip_Shot_Dist</Name>
+		<Type>Float</Type>
+		<Display_Name>Min Hip Shot Dist</Display_Name>
+		<Description>Minimum hip shot distance to count. (NOT USED)</Description>
+		<Default>50.0</Default>
+		</Element>
+	<Element>
+		<Name>Max_Hip_Shot_Dist</Name>
+		<Type>Float</Type>
+		<Display_Name>Max Hip Shot Dist</Display_Name>
+		<Description>Distance which will give you the maximum reward for a hipshot. (NOT USED)</Description>
+		<Default>250.0</Default>
+		</Element>
+	<Element>
+		<Name>Close_Quarters_Kill_Bonus</Name>
+		<Type>Int</Type>
+		<Display_Name>Close Quarters Kill Bonus</Display_Name>
+		<Description>NOT VALID ANYMORE - COVERED BY ONE HIT</Description>
+		<Default>0</Default>
+		<MinValue>0</MinValue>
+		</Element>
+	<Element>
+		<Name>Close_Quarters_Kill_Range</Name>
+		<Type>Float</Type>
+		<Display_Name>Close Quarters Kill Range (meters)</Display_Name>
+		<Description>NOT VALID ANYMORE - COVERED BY ONE HIT</Description>
+		<Default>0.0</Default>
+		<MinValue>0</MinValue>
+		</Element>
+	</TableDescription>
+
+<EntryCategories>
+	<Category>
+		<Name>Entries</Name>
+		</Category>
+	</EntryCategories>
+</root>
