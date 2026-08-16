@@ -1,12 +1,17 @@
-TRAP_ITEMS = [
+TRAP_NOTORIETY_ITEMS = [
     "Trap: Max Police Notoriety",
     "Trap: Max Ronin Notoriety",
     "Trap: Max Brotherhood Notoriety",
     "Trap: Max Samedi Notoriety",
+]
+
+TRAP_CHEATS = [
     "Trap: Heavy Rain",
     "Trap: Light Rain",
     "Trap: Thunderstorm",
 ]
+
+TRAP_ITEMS = TRAP_CHEATS + TRAP_NOTORIETY_ITEMS
 
 MONEY_ITEM_NAMES = ["$1,000", "$5,000", "$10,000"]
 
