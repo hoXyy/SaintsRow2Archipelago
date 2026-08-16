@@ -1,6 +1,7 @@
 #include "sr2ap/Plugin.hpp"
 #include "sr2ap/ArchipelagoProtocol.hpp"
 #include "sr2ap/ArchipelagoTcpClient.hpp"
+#include "sr2ap/AtomicFile.hpp"
 #include "sr2ap/Cheats.hpp"
 #include "sr2ap/Config.hpp"
 #include "sr2ap/GameState.hpp"
@@ -9,6 +10,7 @@
 #include "sr2ap/Notoriety.hpp"
 #include "sr2ap/ProgressionMonitor.hpp"
 #include "sr2ap/Respect.hpp"
+#include "sr2ap/RevisionJournal.hpp"
 #include "sr2ap/SaveRevisionMonitor.hpp"
 #include "sr2ap/Unlockables.hpp"
 
@@ -88,8 +90,14 @@ namespace sr2ap {
 
         class SessionRuntime {
            public:
-            SessionRuntime(const Config& config, bool gameSupported)
-                : blockVanillaUnlockables_{config.blockVanillaUnlockables}, gameSupported_{gameSupported} {
+            SessionRuntime(const Config& config, bool gameSupported, std::filesystem::path revisionJournalPath)
+                : revisionJournalPath_{std::move(revisionJournalPath)},
+                  blockVanillaUnlockables_{config.blockVanillaUnlockables},
+                  gameSupported_{gameSupported} {
+                revisionJournalAvailable_ = revisionJournal_.Load(revisionJournalPath_);
+                if (!revisionJournalAvailable_) {
+                    LogError("SaveRevision", "Could not load durable revision journal; AP item delivery disabled");
+                }
             }
 
             bool InstallSaveMonitoring(SaveRevisionMonitor& monitor, bool enabled) {
@@ -160,7 +168,8 @@ namespace sr2ap {
 
            private:
             void SendGameContext() {
-                if (!client_ || !communicationsActive_ || deliveryState_ == DeliveryContextState::waitingForGameplay) {
+                if (!client_ || !communicationsActive_ || revisionSyncPending_ ||
+                    deliveryState_ == DeliveryContextState::waitingForGameplay) {
                     return;
                 }
                 client_->SendLine(SerializeGameContext(activeSaveChecksum_, nextItemIndex_,
@@ -168,12 +177,62 @@ namespace sr2ap {
                                                        deliveryState_ == DeliveryContextState::awaitingCursor));
             }
 
-            void SendPendingRevision() {
-                if (!client_ || !pendingSaveRevision_) {
+            RevisionSession CurrentRevisionSession() const {
+                return {sessionConfiguration_->seedName, sessionConfiguration_->team, sessionConfiguration_->slot};
+            }
+
+            bool PersistRevisionJournal() {
+                if (ReplaceFileAtomically(revisionJournalPath_, revisionJournal_.Serialize())) {
+                    return true;
+                }
+                revisionJournalAvailable_ = false;
+                LogError("SaveRevision", "Could not persist durable revision journal; AP item delivery disabled");
+                return false;
+            }
+
+            void SendPendingRevisions() {
+                if (!client_ || !sessionConfiguration_) {
                     return;
                 }
-                client_->SendLine(SerializeSaveRevision(pendingSaveRevision_->first, pendingSaveRevision_->second));
-                pendingSaveRevision_.reset();
+                for (const auto& revision : revisionJournal_.Pending(CurrentRevisionSession())) {
+                    client_->SendLine(SerializeSaveRevision(revision.checksum, revision.nextIndex));
+                }
+            }
+
+            void BeginRevisionSync() {
+                revisionSyncPending_ = true;
+                const auto pending = revisionJournal_.Pending(CurrentRevisionSession());
+                SendPendingRevisions();
+                if (pending.empty()) {
+                    revisionSyncPending_ = false;
+                    SendGameContext();
+                } else {
+                    LogInfo("SaveRevision", "Synchronizing " + std::to_string(pending.size()) +
+                                                " durable revision(s) before item delivery");
+                }
+            }
+
+            void HandleSaveRevisionAcknowledgement(const SaveRevisionAcknowledgementMessage& acknowledgement) {
+                if (!sessionConfiguration_ || !acknowledgement.accepted) {
+                    LogError("SaveRevision", "Client rejected revision checksum=" + Hex(acknowledgement.checksum) +
+                                                 " next_index=" + std::to_string(acknowledgement.nextIndex));
+                    return;
+                }
+                if (!revisionJournal_.Acknowledge(CurrentRevisionSession(), acknowledgement.checksum,
+                                                  acknowledgement.nextIndex)) {
+                    LogWarning("SaveRevision", "Ignored stale or mismatched revision acknowledgement checksum=" +
+                                                   Hex(acknowledgement.checksum));
+                    return;
+                }
+                if (!PersistRevisionJournal()) {
+                    return;
+                }
+                LogInfo("SaveRevision", "Revision persisted by client checksum=" + Hex(acknowledgement.checksum) +
+                                            " next_index=" + std::to_string(acknowledgement.nextIndex));
+                if (revisionSyncPending_ && revisionJournal_.Pending(CurrentRevisionSession()).empty()) {
+                    revisionSyncPending_ = false;
+                    SendGameContext();
+                }
             }
 
             void OnSaveLoaded(std::uint32_t checksum) {
@@ -191,11 +250,18 @@ namespace sr2ap {
                 }
                 activeSaveChecksum_ = checksum;
                 deliveryState_ = DeliveryContextState::activeRevision;
-                pendingSaveRevision_ = std::pair{checksum, nextItemIndex_};
+                if (!sessionConfiguration_ || !revisionJournalAvailable_) {
+                    LogWarning("SaveRevision", "Could not associate generated checksum with an AP session");
+                    return;
+                }
+                revisionJournal_.Record(CurrentRevisionSession(), checksum, nextItemIndex_);
+                if (!PersistRevisionJournal()) {
+                    return;
+                }
                 LogInfo("SaveRevision",
                         "Generated checksum=" + Hex(checksum) + " next_index=" + std::to_string(nextItemIndex_));
                 if (communicationsActive_) {
-                    SendPendingRevision();
+                    SendPendingRevisions();
                 }
             }
 
@@ -240,8 +306,8 @@ namespace sr2ap {
             }
 
             void HandleSession(const SessionReadyMessage& session) {
-                if (session.protocol != 2 || !gameSupported_) {
-                    LogWarning("Session", "Rejected unsupported session protocol or executable");
+                if (session.protocol != 3 || !gameSupported_ || !revisionJournalAvailable_) {
+                    LogWarning("Session", "Rejected unsupported session protocol, executable, or revision journal");
                     return;
                 }
                 if (sessionLatched_) {
@@ -260,8 +326,7 @@ namespace sr2ap {
                     }
                     communicationsActive_ = true;
                     LogInfo("Session", "Authenticated AP session resumed");
-                    SendPendingRevision();
-                    SendGameContext();
+                    BeginRevisionSync();
                     return;
                 }
                 if (!SupportsManagedItems(session)) {
@@ -278,8 +343,7 @@ namespace sr2ap {
                 communicationsActive_ = true;
                 LogInfo("Session", "AP gameplay policy activated seed=" + session.seedName + " team=" +
                                        std::to_string(session.team) + " slot=" + std::to_string(session.slot));
-                SendPendingRevision();
-                SendGameContext();
+                BeginRevisionSync();
             }
 
             void HandleSaveContext(const SaveContextMessage& context) {
@@ -340,6 +404,8 @@ namespace sr2ap {
                     LogInfo("Session", "AP communications ended; gameplay policy remains latched");
                 } else if (const auto context = ParseSaveContextMessage(message)) {
                     HandleSaveContext(*context);
+                } else if (const auto acknowledgement = ParseSaveRevisionAcknowledgementMessage(message)) {
+                    HandleSaveRevisionAcknowledgement(*acknowledgement);
                 } else if (const auto item = ParseReceivedItemMessage(message)) {
                     HandleItem(*item);
                 }
@@ -367,7 +433,8 @@ namespace sr2ap {
             UnlockableController unlockables_;
             std::optional<ArchipelagoTcpClient> client_;
             std::optional<SessionReadyMessage> sessionConfiguration_;
-            std::optional<std::pair<std::uint32_t, std::uint64_t>> pendingSaveRevision_;
+            RevisionJournal revisionJournal_;
+            std::filesystem::path revisionJournalPath_;
             std::optional<std::uint32_t> activeSaveChecksum_;
             std::uint64_t nextItemIndex_{};
             DeliveryContextState deliveryState_{DeliveryContextState::waitingForGameplay};
@@ -381,6 +448,8 @@ namespace sr2ap {
             bool sessionLatched_{};
             bool communicationsActive_{};
             bool networkWasConnected_{};
+            bool revisionJournalAvailable_{};
+            bool revisionSyncPending_{};
         };
     }  // namespace
 
@@ -418,7 +487,7 @@ namespace sr2ap {
                 LogInfo("Plugin", "Supported executable found.");
             }
 
-            SessionRuntime session{config, gameSupported};
+            SessionRuntime session{config, gameSupported, pluginDirectory / L"SR2ArchipelagoRevisions.json"};
             SaveRevisionMonitor saveRevisions;
             const bool saveRevisionInstalled = session.InstallSaveMonitoring(saveRevisions, config.enabled);
             if (saveRevisionInstalled) {

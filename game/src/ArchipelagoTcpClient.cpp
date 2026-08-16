@@ -78,7 +78,7 @@ namespace sr2ap {
         if (const int result = connect(socket_, reinterpret_cast<sockaddr*>(&address), sizeof(address)); result == 0) {
             state_ = State::connected;
             LogInfo("Network", "Connected to client");
-            const json message = {{"type", "hello"}, {"protocol", 2}, {"game", "Saints Row 2"}};
+            const json message = {{"type", "hello"}, {"protocol", 3}, {"game", "Saints Row 2"}};
             SendLine(message.dump());
             return;
         }
@@ -131,7 +131,7 @@ namespace sr2ap {
 
         state_ = State::connected;
         LogInfo("Network", "Connected to AP client");
-        const json helloMessage = {{"type", "hello"}, {"protocol", 2}, {"game", "Saints Row 2"}};
+        const json helloMessage = {{"type", "hello"}, {"protocol", 3}, {"game", "Saints Row 2"}};
         SendLine(helloMessage.dump());
     }
 
