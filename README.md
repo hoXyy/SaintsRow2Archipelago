@@ -37,7 +37,7 @@ The full list of items can be found in [items_list.py](https://github.com/hoXyy/
 
 ## Required mods
 
-- [Juiced Patch](https://github.com/kobraworksmodding/Saints-Row-2-Juiced-Patch/releases) - needed to load the custom game files included with the AP
+- [Juiced Patch](https://www.kobraworks.com/juiced) - needed to load the custom game files included with the AP
 
 ## Recommended mods
 
