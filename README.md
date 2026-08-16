@@ -12,7 +12,7 @@ Steam and GOG versions of the game are supported. The Steam version will require
 
 The progression is very similar to the vanilla game, with being based around the story missions and strongholds. The key progression item is respect which you need to start missions. Additionally there is a `+1 Bonus Respect` item that can be configured when it comes to how much of it should be generated. It's useful to make it easier to find the respect you need to progress.
 
-The goal is to be one or more gang arcs, with it being configurable which you need to beat:
+The goal is to beat one or more gang arcs, with it being configurable which you need to beat:
 - Ronin Arc
 - Brotherhood Arc
 - Sons of Samedi Arc
@@ -33,7 +33,7 @@ The items in the pool are:
     - Permanent Heavy Rain/Thunderstorm (until a Restore Weather Cycle item is received)
 - Money (1k, 5k, 10k)
 
-The full list of items can be found in [items_list.py](https://github.com/hoXyy/SaintsRow2Archipelago/blob/main/world/items_list.py).
+The full list of items can be found in [items_list.py](https://github.com/hoXyy/SaintsRow2Archipelago/blob/main/apworld/items_list.py).
 
 ## Recommended mods
 
