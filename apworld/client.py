@@ -224,7 +224,9 @@ async def send_session_ready(ctx: SR2Context) -> None:
     }
 
     if not required.issubset(ctx.slot_data):
-        logger.error("This seed lacks compatible SR2 protocol slot data; generate a new seed")
+        logger.error(
+            "This seed lacks compatible SR2 protocol slot data; generate a new seed"
+        )
         return
     if ctx.slot_data["protocol"] != PROTOCOL_VERSION:
         logger.error(
@@ -262,10 +264,7 @@ async def send_goal_if_complete(ctx: SR2Context) -> None:
         logger.error("Ignored invalid SR2 goal location data")
         return
 
-    if not all(
-        location in ctx.locations_checked or location not in ctx.missing_locations
-        for location in goal_locations
-    ):
+    if not goal_locations.issubset(ctx.locations_checked):
         return
 
     ctx.finished_game = True
