@@ -80,8 +80,8 @@ def generate_patched_game_files(world: "SR2World", output_directory: str) -> Non
         missions_global_file_content = file.read()
 
     patch_file_name = (
-        f"SR2AP-Seed_{world.multiworld.seed_name}-"
-        f"Player_{world.player}-"
+        f"AP-{world.multiworld.seed_name}-"
+        f"P{world.player}-"
         f"{world.multiworld.get_file_safe_player_name(world.player)}-"
         f"{curr_timestamp}"
     )
