@@ -11,9 +11,11 @@ from .items_list import (
     TRAP_CHEATS,
 )
 from .missions import ULTOR_SECRET_MISSION, get_mission_by_key
+from .patch import generate_patched_game_files
 
 
 class SR2Web(WebWorld):
+    game = "Saints Row 2"
     option_groups = sr2_options.option_groups
     theme = "ocean"
     bug_report_page = "https://github.com/hoXyy/SaintsRow2Archipelago/issues"
@@ -30,6 +32,8 @@ class SR2World(World):
     game = "Saints Row 2"
 
     web = SR2Web()
+
+    generate_output = generate_patched_game_files
 
     options_dataclass = sr2_options.SR2Options
     options: sr2_options.SR2Options
