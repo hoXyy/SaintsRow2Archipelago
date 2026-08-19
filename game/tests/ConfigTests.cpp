@@ -35,11 +35,6 @@ LogStateChanges=0 ; whether to log progression state changes (for ex. a mission 
 Enabled=1 ; shouldn't ever need to disable this
 Port=38282 ; port to use to connect to the AP client, currently only changable on the client's end using the CLI
 
-[Unlockables]
-; whether to block unlockables that are already handled by AP from being unlocked by vanilla requirements like missions 
-; currently also handled in the AP client itself so this might disappear from here in the future
-BlockVanillaRewards=1 
-
 [Debug]
 DebugLogging=0
 WriteStatusFile=0
@@ -56,7 +51,6 @@ AddressDumpHotkey=0x78
         EXPECT_FALSE(result.config.logStateChanges);
         EXPECT_TRUE(result.config.networkEnabled);
         EXPECT_EQ(result.config.networkPort, 38282U);
-        EXPECT_TRUE(result.config.blockVanillaUnlockables);
         EXPECT_FALSE(result.config.enableHotkeys);
         EXPECT_FALSE(result.config.writeStatusFile);
         EXPECT_EQ(result.config.moduleReportHotkey, 0x76U);

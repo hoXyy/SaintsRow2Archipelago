@@ -12,7 +12,6 @@ namespace sr2ap {
         std::uint32_t pollingIntervalMs{1000};
         bool networkEnabled{true};
         std::uint16_t networkPort{38282};
-        bool blockVanillaUnlockables{true};
         bool logFullSnapshots{false};
         bool logStateChanges{false};
         bool writeStatusFile{false};

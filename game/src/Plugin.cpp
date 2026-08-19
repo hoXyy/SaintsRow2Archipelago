@@ -91,9 +91,7 @@ namespace sr2ap {
         class SessionRuntime {
            public:
             SessionRuntime(const Config& config, bool gameSupported, std::filesystem::path revisionJournalPath)
-                : revisionJournalPath_{std::move(revisionJournalPath)},
-                  blockVanillaUnlockables_{config.blockVanillaUnlockables},
-                  gameSupported_{gameSupported} {
+                : revisionJournalPath_{std::move(revisionJournalPath)}, gameSupported_{gameSupported} {
                 revisionJournalAvailable_ = revisionJournal_.Load(revisionJournalPath_);
                 if (!revisionJournalAvailable_) {
                     LogError("SaveRevision", "Could not load durable revision journal; AP item delivery disabled");
@@ -286,8 +284,7 @@ namespace sr2ap {
                 cheatsInstalled_ = cheatsRequested && cheats_.Install(session.managedCheats);
                 notorietyInstalled_ = notorietyRequested && notoriety_.Install();
                 respectInstalled_ = respectRequested && saveMonitoringInstalled_ && respect_.Install();
-                unlockablesInstalled_ = unlockablesRequested && unlockables_.Install(session.blockVanillaUnlockables &&
-                                                                                         blockVanillaUnlockables_,
+                unlockablesInstalled_ = unlockablesRequested && unlockables_.Install(session.blockVanillaUnlockables,
                                                                                      session.managedUnlockables);
 
                 const bool failed =
@@ -438,7 +435,6 @@ namespace sr2ap {
             std::optional<std::uint32_t> activeSaveChecksum_;
             std::uint64_t nextItemIndex_{};
             DeliveryContextState deliveryState_{DeliveryContextState::waitingForGameplay};
-            bool blockVanillaUnlockables_{};
             bool gameSupported_{};
             bool saveMonitoringInstalled_{};
             bool cheatsInstalled_{};
