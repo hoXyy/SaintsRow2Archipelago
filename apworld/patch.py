@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from datetime import datetime, UTC
 import os
 from typing import Set, TYPE_CHECKING
@@ -37,6 +39,23 @@ ARC_INTRO_CHAIN_MISSIONS = {
     BROTHERHOOD_ARC_NAME: "bh01",
     SAMEDI_ARC_NAME: "ss01",
 }
+
+TEXT_LANGUAGES = [
+    "CH",
+    "CZ",
+    "DE",
+    "DK",
+    "ES",
+    "FR",
+    "IT",
+    "JP",
+    "NL",
+    "PL",
+    "RU",
+    "SE",
+    "SK",
+    "US",
+]
 
 
 class SR2PatchContainer(APPlayerContainer):
@@ -95,6 +114,11 @@ def generate_patched_game_files(world: "SR2World", output_directory: str) -> Non
         MISSION_GLOBALS_LUA_FILE_NAME: missions_global_file_content,  # this file needs to be included even if it's unmodified in case someone has a modified version installed already
     }
 
+    for language in TEXT_LANGUAGES:
+        patch_files[f"sr2ap_seed_{language}.cxt"] = generate_main_menu_info_strings(
+            world
+        )
+
     patch = SR2PatchContainer(
         patch_files,
         patch_dir,
@@ -125,3 +149,22 @@ def generate_patched_mission_chains_file(enabled_arcs: Set[str]) -> str:
                 mission.remove(start_nav)
 
     return XmlTree.tostring(root, encoding="unicode")
+
+
+def generate_main_menu_info_strings(world: SR2World) -> str:
+    seed = world.multiworld.seed_name
+    player_name = world.multiworld.player_name[world.player]
+
+    with open(
+        os.path.join(
+            os.path.dirname(__file__),
+            "game_files",
+            "templates",
+            "ap_main_menu_info.cxt",
+        )
+    ) as file:
+        template_string = file.read()
+
+    return template_string.replace("{{SEED}}", seed).replace(
+        "{{PLAYER_NAME}}", player_name
+    )
