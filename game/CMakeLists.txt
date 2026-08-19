@@ -102,6 +102,7 @@ if (WIN32)
             src/Progression.cpp
             src/ProgressionMonitor.cpp
             src/Activities.cpp
+            src/Racing.cpp
             src/Collectibles.cpp
             src/ArchipelagoTcpClient.cpp
             src/Cheats.cpp

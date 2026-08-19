@@ -16,6 +16,7 @@ namespace sr2ap {
                                                          const ChopShopSnapshot& chopShop,
                                                          const MissionSnapshot& missions,
                                                          const ActivitySnapshot& activities,
+                                                         const RacingSnapshot& racing,
                                                          const CdSnapshot& cds);
     bool WriteProgressionStatus(const std::filesystem::path& path, const ProgressionSnapshot& snapshot);
     bool WriteProgressionStatus(const std::filesystem::path& path,
@@ -23,5 +24,6 @@ namespace sr2ap {
                                 const ChopShopSnapshot& chopShop,
                                 const MissionSnapshot& missions,
                                 const ActivitySnapshot& activities,
+                                const RacingSnapshot& racing,
                                 const CdSnapshot& cds);
 }  // namespace sr2ap

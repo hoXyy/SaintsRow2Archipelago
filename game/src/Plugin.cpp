@@ -417,6 +417,7 @@ namespace sr2ap {
                     case ProgressionKind::Mission:
                         return sessionConfiguration_->missions;
                     case ProgressionKind::Activity:
+                    case ProgressionKind::Racing:
                         return sessionConfiguration_->activities;
                     case ProgressionKind::Cd:
                         return sessionConfiguration_->cds;
@@ -515,7 +516,8 @@ namespace sr2ap {
             ULONGLONG nextPoll = GetTickCount64();
             const auto statusPath = pluginDirectory / L"SR2ArchipelagoStatus.txt";
             ProgressionMonitor progression(
-                statusPath, [&session](const ProgressionEvent& event) { session.SendProgression(event); });
+                statusPath, [&session](const ProgressionEvent& event) { session.SendProgression(event); },
+                config.writeStatusFile);
             auto previousReadiness = GetGameReadiness();
 
             while (!shutdownRequested.load(std::memory_order_acquire)) {
@@ -539,7 +541,7 @@ namespace sr2ap {
                     }
                 }
                 const auto now = GetTickCount64();
-                if (config.enabled && session.CommunicationsActive() && now >= nextPoll) {
+                if (config.enabled && (session.CommunicationsActive() || config.writeStatusFile) && now >= nextPoll) {
                     nextPoll = now + config.pollingIntervalMs;
                     progression.Poll();
                 }

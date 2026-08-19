@@ -69,6 +69,8 @@ namespace sr2ap {
                     return "mission";
                 case ProgressionKind::Activity:
                     return "activity";
+                case ProgressionKind::Racing:
+                    return "racing";
                 case ProgressionKind::Cd:
                     return "cd";
             }

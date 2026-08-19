@@ -9,6 +9,7 @@ namespace sr2ap {
         ChopShop,
         Mission,
         Activity,
+        Racing,
         Cd
     };
 

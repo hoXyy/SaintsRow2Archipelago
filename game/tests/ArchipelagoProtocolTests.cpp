@@ -56,11 +56,10 @@ namespace sr2ap {
     }
 
     TEST(ArchipelagoProtocolTest, SerializesEveryProgressionCategory) {
-        const std::pair<ProgressionKind, const char*> cases[]{{ProgressionKind::Hitman, "hitman"},
-                                                              {ProgressionKind::ChopShop, "chop_shop"},
-                                                              {ProgressionKind::Mission, "mission"},
-                                                              {ProgressionKind::Activity, "activity"},
-                                                              {ProgressionKind::Cd, "cd"}};
+        const std::pair<ProgressionKind, const char*> cases[]{
+            {ProgressionKind::Hitman, "hitman"},   {ProgressionKind::ChopShop, "chop_shop"},
+            {ProgressionKind::Mission, "mission"}, {ProgressionKind::Activity, "activity"},
+            {ProgressionKind::Racing, "racing"},   {ProgressionKind::Cd, "cd"}};
         for (const auto& [kind, category] : cases) {
             const auto json = SerializeProgressionEvent({kind, "key", 1, 3});
             EXPECT_NE(json.find(std::string{"\"category\":\""} + category + '"'), std::string::npos);

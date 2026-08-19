@@ -5,6 +5,7 @@
 #include "sr2ap/Collectibles.hpp"
 #include "sr2ap/Hitman.hpp"
 #include "sr2ap/Missions.hpp"
+#include "sr2ap/Racing.hpp"
 
 namespace sr2ap {
     struct ProgressionSnapshot {
@@ -12,6 +13,7 @@ namespace sr2ap {
         ChopShopSnapshot chopShop;
         MissionSnapshot missions;
         ActivitySnapshot activities;
+        RacingSnapshot racing;
         CdSnapshot cds;
     };
 
