@@ -124,14 +124,6 @@ namespace sr2ap {
             }
         }
 
-        void ParseUnlockables(ParseContext& context, const std::string_view key, const std::string_view value) {
-            if (EqualsIgnoreCase(key, "BlockVanillaRewards")) {
-                ParseBoolean(context, value, context.config.blockVanillaUnlockables);
-            } else {
-                ++context.warnings;
-            }
-        }
-
         int HandleIniValue(void* user, const char* section, const char* name, const char* value) {
             auto& context = *static_cast<ParseContext*>(user);
             const std::string_view sectionName{section};
@@ -146,8 +138,6 @@ namespace sr2ap {
                 ParseDebug(context, key, text);
             } else if (EqualsIgnoreCase(sectionName, "Network")) {
                 ParseNetwork(context, key, text);
-            } else if (EqualsIgnoreCase(sectionName, "Unlockables")) {
-                ParseUnlockables(context, key, text);
             } else {
                 ++context.warnings;
             }
