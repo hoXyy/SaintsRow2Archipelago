@@ -60,6 +60,11 @@ mods/sr2ap_seed_files
 7. In the Archipelago Launcher, open the `Saints Row 2 Client` and connect to your room.
 8. Launch Saints Row 2, the AP client should show a message that the game integration plugin connected successfully.
 
+With everything installed correctly, you should see a new option instead of the Credits in the main menu:
+![correctly modified main menu](.github/readme_imgs/ap_main_menu.jpg) 
+
+The room info will not be available without installing the room-specific game files.
+
 ### Extra instruction for Linux users
 
 You need to add an extra environment variable, the way to do it depends fully on how you launch the game. As an example, for Steam you'd add this to the game's launch options:
@@ -67,6 +72,14 @@ You need to add an extra environment variable, the way to do it depends fully on
 > WINEDLLOVERRIDES=dinput8=n,b %command
 
 Replace `dinput8` with the DLL name you use for your ASI loader if it's different.
+
+### Installing multiworld room game files
+
+Once you create a multiworld room, you'll have patched files available to download:
+![patched files available example](.github/readme_imgs/multiworld_patch_file.jpg)
+
+Extract the `mods` folder in the zip file to your game directory. If installed properly, the Archipelago Info option in the main menu should show the seed and your player name in the current world:
+![main menu archipelago info](.github/readme_imgs/ap_main_menu_world_info.jpg)
 
 ## Building from source
 
