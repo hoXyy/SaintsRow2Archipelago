@@ -124,14 +124,13 @@ namespace sr2ap {
                 networkWasConnected_ = connected;
             }
 
-            void UpdateReadiness(GameReadiness previous, GameReadiness current) {
-                if (previous == GameReadiness::GameplayReady && current == GameReadiness::MainMenu) {
+            void UpdateReadiness(GameReadiness current) {
+                if (current == GameReadiness::MainMenu && deliveryState_ != DeliveryContextState::waitingForGameplay) {
                     activeSaveChecksum_.reset();
                     nextItemIndex_ = 0;
                     deliveryState_ = DeliveryContextState::waitingForGameplay;
                     LogInfo("Items", "Gameplay ended; delivery context cleared");
-                } else if (current == GameReadiness::GameplayReady &&
-                           deliveryState_ == DeliveryContextState::waitingForGameplay) {
+                } else if (IsGameplayLoaded(current) && deliveryState_ == DeliveryContextState::waitingForGameplay) {
                     activeSaveChecksum_.reset();
                     nextItemIndex_ = 0;
                     deliveryState_ = DeliveryContextState::provisional;
@@ -364,9 +363,9 @@ namespace sr2ap {
 
             void HandleItem(const ReceivedItemMessage& item) {
                 if (!communicationsActive_ || !IsDeliveryReady(deliveryState_) ||
-                    GetGameReadiness() != GameReadiness::GameplayReady) {
+                    !IsGameplayInteractive(GetGameReadiness())) {
                     LogWarning("Items",
-                               "Rejected item while gameplay context unavailable index=" + std::to_string(item.index));
+                               "Deferred item until gameplay is interactive index=" + std::to_string(item.index));
                     Acknowledge(item.index, false);
                     return;
                 }
@@ -518,16 +517,13 @@ namespace sr2ap {
             ProgressionMonitor progression(
                 statusPath, [&session](const ProgressionEvent& event) { session.SendProgression(event); },
                 config.writeStatusFile);
-            auto previousReadiness = GetGameReadiness();
-
             while (!shutdownRequested.load(std::memory_order_acquire)) {
                 if (saveRevisionInstalled) {
                     saveRevisions.Poll();
                 }
 
                 const auto readiness = GetGameReadiness();
-                session.UpdateReadiness(previousReadiness, readiness);
-                previousReadiness = readiness;
+                session.UpdateReadiness(readiness);
 
                 if (config.enableHotkeys) {
                     if (Pressed(config.moduleReportHotkey, moduleDown)) {
