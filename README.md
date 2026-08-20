@@ -20,7 +20,10 @@ The goal is to beat one or more gang arcs, with it being configurable which you 
 
 The current location checks are:
 - Missions and strongholds
-- Activities (each level for level based ones, each vehicle/target for Chop Shop/Hitman)
+- Activities
+    - each level for level based ones
+    - each vehicle/target for Chop Shop/Hitman
+    - each medal for Races
 - CDs
 
 The items in the pool are:
