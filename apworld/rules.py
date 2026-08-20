@@ -25,6 +25,8 @@ from .activities import (
     ACTIVITIES_LEVEL_BASED,
     CHOP_SHOP_LISTS,
     HITMAN_LISTS,
+    RACES,
+    MEDAL_STRINGS,
 )
 from .items import RESPECT_ITEM_NAME
 from .options import (
@@ -251,6 +253,17 @@ def set_activity_rules(world: SR2World) -> None:
 
         for target in targets:
             curr_key = f"Hitman ({location}) - {target}"
+            if curr_key in location_cache:
+                add_rule(
+                    world.get_location(curr_key),
+                    lambda state, unlock_item=tss02_complete_item: state.has(
+                        unlock_item, world.player
+                    ),
+                )
+
+    for race in RACES.values():
+        for medal in MEDAL_STRINGS.values():
+            curr_key = f"{race} - {medal}"
             if curr_key in location_cache:
                 add_rule(
                     world.get_location(curr_key),
