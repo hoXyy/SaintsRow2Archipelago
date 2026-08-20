@@ -9,13 +9,14 @@
 namespace sr2ap {
     std::string SerializeProgressionStatus(const ProgressionSnapshot& snapshot) {
         return SerializeProgressionStatus(snapshot.hitman, snapshot.chopShop, snapshot.missions, snapshot.activities,
-                                          snapshot.cds);
+                                          snapshot.racing, snapshot.cds);
     }
 
     std::string SerializeProgressionStatus(const HitmanSnapshot& hitman,
                                            const ChopShopSnapshot& chopShop,
                                            const MissionSnapshot& missions,
                                            const ActivitySnapshot& activities,
+                                           const RacingSnapshot& racing,
                                            const CdSnapshot& cds) {
         std::ostringstream output;
         const auto hitmanComplete = std::count_if(hitman.targets.begin(), hitman.targets.end(),
@@ -64,6 +65,20 @@ namespace sr2ap {
                        << instance.instanceTag << "_flags=0x" << std::uppercase << std::hex << std::setw(2)
                        << std::setfill('0') << static_cast<unsigned>(instance.completionFlags) << std::dec
                        << std::setfill(' ') << '\n';
+            }
+        }
+
+        const auto medalCount = std::count_if(racing.races.begin(), racing.races.end(), [](const auto& race) {
+            return race.medal == RacingMedal::Gold || race.medal == RacingMedal::Silver ||
+                   race.medal == RacingMedal::Bronze;
+        });
+        output << "\n[racing]\nresult=" << ToString(racing.result) << "\nrace_count=" << racing.races.size()
+               << "\nmedal_count=" << medalCount << '\n';
+        if (racing.result == ReaderResult::Success) {
+            for (const auto& race : racing.races) {
+                output << race.name << '=' << RacingMedalRank(race.medal) << '\n'
+                       << race.name << "_medal=" << ToString(race.medal) << '\n'
+                       << race.name << "_best_time=" << race.bestTime << '\n';
             }
         }
 

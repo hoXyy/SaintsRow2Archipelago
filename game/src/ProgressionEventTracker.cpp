@@ -89,6 +89,24 @@ namespace sr2ap {
         return result;
     }
 
+    ProgressionUpdate ProgressionEventTracker::Observe(const RacingSnapshot& snapshot) {
+        if (snapshot.result != ReaderResult::Success)
+            return InvalidateUnlessSuccessful(snapshot.result, racing_);
+        const auto update = racing_.Observe(MakeState(snapshot.races, &RaceStatus::name, &RaceStatus::medal));
+        ProgressionUpdate result{update.kind, {}};
+        if (update.kind == BaselineUpdateKind::Created || update.kind == BaselineUpdateKind::IdentityChanged) {
+            for (const auto& race : snapshot.races) {
+                if (const auto rank = RacingMedalRank(race.medal); rank != 0)
+                    result.events.push_back({ProgressionKind::Racing, std::string{race.name}, 0, rank});
+            }
+        }
+        for (const auto& change : update.changes) {
+            result.events.push_back({ProgressionKind::Racing, std::string{change.key}, RacingMedalRank(change.previous),
+                                     RacingMedalRank(change.current)});
+        }
+        return result;
+    }
+
     ProgressionUpdate ProgressionEventTracker::Observe(const CdSnapshot& snapshot) {
         if (snapshot.result != ReaderResult::Success) {
             if (!cdsValid_) {

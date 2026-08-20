@@ -54,6 +54,22 @@ namespace sr2ap {
         EXPECT_EQ(update.events.front().key, "new");
     }
 
+    TEST(ProgressionEventTrackerTest, RacingEmitsCurrentMedalAndUpgrades) {
+        ProgressionEventTracker tracker;
+        RacingSnapshot snapshot{ReaderResult::Success, {{"car_pj", 13, 0x0EBCD323, RacingMedal::Gold, 81.994F, 0}}};
+        const auto baseline = tracker.Observe(snapshot);
+        ASSERT_EQ(baseline.events.size(), 1U);
+        EXPECT_EQ(baseline.events.front().kind, ProgressionKind::Racing);
+        EXPECT_EQ(baseline.events.front().key, "car_pj");
+        EXPECT_EQ(baseline.events.front().current, 3U);
+
+        snapshot.races.front().medal = RacingMedal::Silver;
+        const auto changed = tracker.Observe(snapshot);
+        ASSERT_EQ(changed.events.size(), 1U);
+        EXPECT_EQ(changed.events.front().previous, 3U);
+        EXPECT_EQ(changed.events.front().current, 2U);
+    }
+
     TEST(ProgressionEventTrackerTest, CdsEmitOnlyAdditionsAndRepresentUnknownIdsSafely) {
         ProgressionEventTracker tracker;
         const auto known = GetCdDefinitions().front();

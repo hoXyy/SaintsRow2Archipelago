@@ -187,6 +187,32 @@ namespace sr2ap {
         return update.kind != BaselineUpdateKind::Unchanged;
     }
 
+    bool ProgressionMonitor::UpdateRacing(const RacingSnapshot& snapshot) {
+        const auto eventUpdate = eventTracker_.Observe(snapshot);
+        if (snapshot.result != ReaderResult::Success)
+            return HandleUnavailable(racing_, snapshot.result, lastRacingResult_, "Racing");
+        const auto update = racing_.Observe(MakeState(snapshot.races, &RaceStatus::name, &RaceStatus::medal));
+        if (update.kind == BaselineUpdateKind::Created) {
+            LogInfo("Racing", "Baseline created: races=" + std::to_string(snapshot.races.size()));
+        } else if (update.kind == BaselineUpdateKind::IdentityChanged) {
+            LogInfo("Racing", "Race identity changed; baseline recreated");
+        }
+        for (const auto& change : update.changes) {
+            const auto message = "Medal changed: " + std::string{change.key} + " " + ToString(change.previous) +
+                                 " -> " + ToString(change.current);
+            const bool improved = change.current != RacingMedal::Unattempted &&
+                                  (change.previous == RacingMedal::Unattempted || change.current < change.previous);
+            if (improved)
+                LogInfo("Racing", message);
+            else
+                LogWarning("Racing", message);
+        }
+        for (const auto& event : eventUpdate.events)
+            Emit(event);
+        lastRacingResult_ = ReaderResult::Success;
+        return update.kind != BaselineUpdateKind::Unchanged;
+    }
+
     bool ProgressionMonitor::UpdateCds(const CdSnapshot& snapshot) {
         const auto eventUpdate = eventTracker_.Observe(snapshot);
         if (snapshot.result != CdReadResult::Success) {
@@ -238,7 +264,7 @@ namespace sr2ap {
         const auto snapshot = GetProgressionSnapshot();
         const bool changed = UpdateHitman(snapshot.hitman) | UpdateChopShop(snapshot.chopShop) |
                              UpdateMissions(snapshot.missions) | UpdateActivities(snapshot.activities) |
-                             UpdateCds(snapshot.cds);
+                             UpdateRacing(snapshot.racing) | UpdateCds(snapshot.cds);
         if (changed && writeStatusFile_ && !WriteProgressionStatus(statusPath_, snapshot)) {
             LogWarning("Status", "Unable to replace diagnostic status file");
         }

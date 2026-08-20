@@ -38,6 +38,14 @@ namespace sr2ap::addresses {
     inline constexpr std::size_t kActivityProgressionEntryStride = 0x0C;
     inline constexpr std::size_t kActivityProgressionFlagsOffset = 0x08;
 
+    inline constexpr std::ptrdiff_t kRacingRecordCountRva = 0x02127B2C;
+    inline constexpr std::ptrdiff_t kRacingRecordTableRva = 0x023A5EF8;
+    inline constexpr std::size_t kRacingRecordStride = 0x24;
+    inline constexpr std::size_t kRacingRecordIdentityHashOffset = 0x04;
+    inline constexpr std::size_t kRacingRecordMedalOffset = 0x10;
+    inline constexpr std::size_t kRacingRecordBestTimeOffset = 0x14;
+    inline constexpr std::size_t kRacingRecordClassOffset = 0x20;
+
     inline constexpr std::ptrdiff_t kCollectibleManagerRva = 0x01D703D4;
     inline constexpr std::size_t kCollectedCdIdsOffset = 0x13C0;
     inline constexpr std::size_t kCollectedCdCountOffset = 0x14B0;

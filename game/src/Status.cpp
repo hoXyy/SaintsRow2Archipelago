@@ -11,7 +11,9 @@ namespace sr2ap {
                                 const ChopShopSnapshot& chopShop,
                                 const MissionSnapshot& missions,
                                 const ActivitySnapshot& activities,
+                                const RacingSnapshot& racing,
                                 const CdSnapshot& cds) {
-        return ReplaceFileAtomically(path, SerializeProgressionStatus(hitman, chopShop, missions, activities, cds));
+        return ReplaceFileAtomically(path,
+                                     SerializeProgressionStatus(hitman, chopShop, missions, activities, racing, cds));
     }
 }  // namespace sr2ap

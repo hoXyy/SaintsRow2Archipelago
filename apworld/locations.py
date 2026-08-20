@@ -25,6 +25,8 @@ from .activities import (
     CHOP_SHOP_LISTS,
     HITMAN_LISTS,
     ACTIVITY_LEVEL_IDS,
+    RACES,
+    MEDAL_STRINGS,
     is_activity_enabled_in_options,
 )
 from .options import (
@@ -172,6 +174,20 @@ def create_activities_location(world: SR2World) -> None:
 
             for target in targets:
                 curr_key = f"Hitman ({location}) - {target}"
+                region.locations.append(
+                    SR2Location(
+                        world.player,
+                        curr_key,
+                        ACTIVITY_LEVEL_IDS[curr_key],
+                        region,
+                        respect_safe=True,
+                    )
+                )
+
+    if is_activity_enabled_in_options(world, "Races"):
+        for race in RACES.values():
+            for medal in MEDAL_STRINGS.values():
+                curr_key = f"{race} - {medal}"
                 region.locations.append(
                     SR2Location(
                         world.player,

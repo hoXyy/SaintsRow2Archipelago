@@ -20,6 +20,7 @@ namespace sr2ap {
         ProgressionUpdate Observe(const ChopShopSnapshot& snapshot);
         ProgressionUpdate Observe(const MissionSnapshot& snapshot);
         ProgressionUpdate Observe(const ActivitySnapshot& snapshot);
+        ProgressionUpdate Observe(const RacingSnapshot& snapshot);
         ProgressionUpdate Observe(const CdSnapshot& snapshot);
 
        private:
@@ -27,6 +28,7 @@ namespace sr2ap {
         BaselineTracker<std::string, bool> chopShop_;
         BaselineTracker<std::string, bool> missions_;
         BaselineTracker<std::string, std::uint8_t> activities_;
+        BaselineTracker<std::string_view, RacingMedal> racing_;
         std::unordered_set<std::uint32_t> cds_;
         bool cdsValid_{};
     };
