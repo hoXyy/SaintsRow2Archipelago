@@ -71,11 +71,7 @@ namespace sr2ap {
             } else {
                 LogError("Module", "Unable to inspect SR2_pc.exe");
             }
-            if (const auto juiced = FindLoadedModule(L"DFEngine.dll")) {
-                ReportModule("Juiced", *juiced);
-            } else {
-                LogInfo("Juiced", "DFEngine.dll not loaded");
-            }
+
             if (const auto self = InspectModule(plugin)) {
                 ReportModule("Plugin", *self);
             }
@@ -90,7 +86,7 @@ namespace sr2ap {
 
         class SessionRuntime {
            public:
-            SessionRuntime(const Config& config, bool gameSupported, std::filesystem::path revisionJournalPath)
+            SessionRuntime(bool gameSupported, std::filesystem::path revisionJournalPath)
                 : revisionJournalPath_{std::move(revisionJournalPath)}, gameSupported_{gameSupported} {
                 revisionJournalAvailable_ = revisionJournal_.Load(revisionJournalPath_);
                 if (!revisionJournalAvailable_) {
@@ -483,7 +479,7 @@ namespace sr2ap {
                 LogInfo("Plugin", "Supported executable found.");
             }
 
-            SessionRuntime session{config, gameSupported, pluginDirectory / L"SR2ArchipelagoRevisions.json"};
+            SessionRuntime session{gameSupported, pluginDirectory / L"SR2ArchipelagoRevisions.json"};
             SaveRevisionMonitor saveRevisions;
             const bool saveRevisionInstalled = session.InstallSaveMonitoring(saveRevisions, config.enabled);
             if (saveRevisionInstalled) {
