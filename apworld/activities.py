@@ -36,6 +36,8 @@ def is_activity_enabled_in_options(world: SR2World, name: str) -> bool:
             return world.options.include_chop_shop.value == 1
         case "Hitman":
             return world.options.include_hitman.value == 1
+        case "Races":
+            return world.options.include_races.value == 1
         case _:
             return False
 
@@ -44,6 +46,7 @@ def generate_level_ids(
     activities: dict,
     chop_shop_lists: dict,
     hitman_lists: dict,
+    races: dict,
     start_id: int = 100,
     levels: int = 6,
 ) -> dict[str, int]:
@@ -74,6 +77,13 @@ def generate_level_ids(
                 name = f"Hitman ({location}) - {target}"
                 result[name] = current_id
                 current_id += 1
+
+    # Races
+    for race in races.values():
+        for medal in MEDAL_STRINGS.values():
+            name = f"{race} - {medal}"
+            result[name] = current_id
+            current_id += 1
 
     return result
 
@@ -204,6 +214,42 @@ HITMAN_LISTS = {
     ],
 }
 
+RACES = {
+    "bike_air": "Race (Bike, Huntersfield)",
+    "bike_ht": "Race (Bike, Stilwater Boardwalk)",
+    "bike_mu": "Race (Bike, Amberbrook)",
+    "bike_tp": "Race (Bike, Elysian Fields)",
+    "bike_un": "Race (Bike, Sunsinger)",
+    "boat_ht": "Race (Boat, Centennial Beach (Ocean))",
+    "boat_pr": "Race (Boat, Hangman's Wharf (Ocean))",
+    "car_air1": "Race (Car, Wardill Airport (Carpark))",
+    "car_air2": "Race (Car, Wardill Airport (South Runway))",
+    "car_dt": "Race (Car, Union Square)",
+    "car_ht": "Race (Car, Stilwater Boardwalk)",
+    "car_mu": "Race (Car, Amberbrook)",
+    "car_nu": "Race (Car, Stilwater Nuclear)",
+    "car_pj": "Race (Car, Prawn Court)",
+    "car_sr": "Race (Car, Mission Beach)",
+    "car_sx": "Race (Car, Misty Lane)",
+    "car_tp": "Race (Car, Elysian Fields)",
+    "heli_dt": "Race (Helicopter, Brighton)",
+    "heli_mu": "Race (Helicopter, Humbolt Park)",
+    "heli_sr": "Race (Helicopter, Athos Bay)",
+    "jetski_cv": "Race (Jetski, Stilwater Caverns)",
+    "jetski_fa": "Race (Jetski, Black Bottom (Ocean))",
+    "jetski_nu": "Race (Jetski, Stilwater Nuclear (Ocean))",
+    "jetski_pr": "Race (Jetski, Stilwater Penitentiary (Ocean))",
+    "jetski_sr": "Race (Jetski, Harrowgate (Ocean))",
+    "plane_air": "Race (Plane, Wardill Airport (East Runway))",
+    "plane_un": "Race (Plane, Pleasant View)",
+}
+
+MEDAL_STRINGS = {
+    "gold": "Gold Medal",
+    "silver": "Silver Medal",
+    "bronze": "Bronze Medal",
+}
+
 ACTIVITY_LEVEL_IDS = generate_level_ids(
-    ACTIVITIES_LEVEL_BASED, CHOP_SHOP_LISTS, HITMAN_LISTS
+    ACTIVITIES_LEVEL_BASED, CHOP_SHOP_LISTS, HITMAN_LISTS, RACES
 )

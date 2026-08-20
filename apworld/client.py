@@ -22,6 +22,8 @@ from .activities import (
     ACTIVITY_LEVEL_IDS,
     CHOP_SHOP_LISTS,
     HITMAN_LISTS,
+    RACES,
+    MEDAL_STRINGS,
 )
 from .collectibles import CD_IDS, CD_MAPPING
 from .missions import MISSION_CHAINS, ULTOR_SECRET_MISSION
@@ -324,6 +326,21 @@ async def process_progression(ctx: SR2Context, message: dict[str, Any]) -> None:
         locations.append(CHOP_SHOP_LOCATIONS[key])
     elif category == "cd" and key in CD_MAPPING:
         locations.append(CD_IDS[CD_MAPPING[key]])
+    elif category == "racing" and key in RACES:
+        race = RACES[key]
+
+        # the medal value is an enum, where bronze = 1, silver = 2, gold = 3
+        if current == 3:
+            race_location = f"{race} - {MEDAL_STRINGS["gold"]}"
+            locations.append(ACTIVITY_LEVEL_IDS[race_location])
+
+        if current >= 2:
+            race_location = f"{race} - {MEDAL_STRINGS["silver"]}"
+            locations.append(ACTIVITY_LEVEL_IDS[race_location])
+
+        if current >= 1:
+            race_location = f"{race} - {MEDAL_STRINGS["bronze"]}"
+            locations.append(ACTIVITY_LEVEL_IDS[race_location])
 
     ctx.observed_locations.update(locations)
     await submit_observed_locations(ctx)

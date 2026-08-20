@@ -10,7 +10,9 @@ ULTOR_EPILOGUE_ARC_NAME = "Ultor Epilogue"
 
 class RequiredGangArcs(OptionSet):
     """
-    Select which mission chain(s) you need to complete to finish your game. Available options: Ronin Arc, Sons of Samedi Arc, Brotherhood Arc, Ultor Epilogue
+    Select which mission chain(s) you need to complete to finish your game.
+
+    Available options: Ronin Arc, Sons of Samedi Arc, Brotherhood Arc, Ultor Epilogue
     """
 
     display_name = "Required Gang Arcs"
@@ -178,6 +180,17 @@ class IncludeCDs(Toggle):
     default = 1
 
 
+class IncludeRaces(Toggle):
+    """
+    Whether to include all races as individual location checks.
+
+    Each race will include a location for the Bronze, Silver and Gold medal.
+    """
+
+    display_name = "Includes Races"
+    default = 1
+
+
 class TrapChance(Range):
     """
     Percentage chance that you'll drop a trap item.
@@ -224,6 +237,7 @@ class SR2Options(PerGameCommonOptions):
     include_snatch: IncludeSnatch
     include_torch: IncludeTorch
     include_cds: IncludeCDs
+    include_races: IncludeRaces
     trap_chance: TrapChance
     bonus_respect_percentage: BonusRespectPercentage
 
@@ -245,6 +259,7 @@ option_groups = [
             IncludeHeliAssault,
             IncludeHitman,
             IncludeMayhem,
+            IncludeRaces,
             IncludeSewage,
             IncludeSnatch,
             IncludeTorch,
