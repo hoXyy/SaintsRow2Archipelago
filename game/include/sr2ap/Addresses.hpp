@@ -74,6 +74,12 @@ namespace sr2ap::addresses {
 
     inline constexpr std::ptrdiff_t kPlayerGlobalRva = 0x01D703D4;
     inline constexpr std::size_t kPlayerRespectOffset = 0x1200;
+    // shamefully stolen from Juiced Patch
+    inline constexpr std::ptrdiff_t kGameLoadedRva = 0x00A94D3E;
+    inline constexpr std::ptrdiff_t kMenuStateRva = 0x00ABE860;
+    inline constexpr std::ptrdiff_t kCutsceneActiveRva = 0x02127D14;
+    inline constexpr std::uint8_t kGameplayMenuState = 3;
+    inline constexpr std::uint8_t kLoadingMenuState = 13;
     inline constexpr std::ptrdiff_t kRespectPointsPerBarRva = 0x00A98528;
     inline constexpr std::ptrdiff_t kRespectLoadWriteRva = 0x00294124;
     inline constexpr std::ptrdiff_t kRespectAwardWriteRva = 0x005DBB3B;
