@@ -4,7 +4,7 @@ A work-in-progress Archipelago implementation for Saints Row 2.
 
 ## Supported versions of the game
 
-Steam and GOG versions of the game are supported. The Steam version will require [Juiced Patch](https://www.kobraworks.com/juiced), due to the vanilla Steam version including an encrypted EXE which is *not* supported.
+Steam and GOG versions of the game are supported.
 
 > ⚠️ **NOTE:** The [Gentlemen of the Row](https://www.saintsrowmods.com/forum/threads/gentlemen-of-the-row.24/) and [PC DLC](https://www.kobraworks.com/sr2pcdlc) mods are not currently supported! Other mods might not work properly either, so it's best to just use a vanilla copy of the game.
 
@@ -42,7 +42,7 @@ The full list of items can be found in [items_list.py](https://github.com/hoXyy/
 
 ## Required mods
 
-- [Juiced Patch](https://www.kobraworks.com/juiced) - needed to load the custom game files included with the AP
+- [Juiced Patch](https://www.kobraworks.com/juiced) - needed to load the custom game files included with the AP (also makes the PC version of the game actually playable)
 
 ## Recommended mods
 
