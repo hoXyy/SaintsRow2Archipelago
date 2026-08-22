@@ -3,27 +3,27 @@ name: Run CMake / CTest C++ unit tests
 on:
   push:
     paths:
-      - 'game/**'
-      - '.github/workflows/ctest.yml'
+      - "game/**"
+      - ".github/workflows/ctest.yml"
     branches: [main]
   pull_request:
     paths:
-      - 'game/**'
-      - '.github/workflows/ctest.yml'
+      - "game/**"
+      - ".github/workflows/ctest.yml"
 
 jobs:
-    test:
-        runs-on: windows-latest
-        name: Test C++
+  test:
+    runs-on: windows-latest
+    name: Test C++
 
-        steps:
-        - name: Checkout repo
-          uses: actions/checkout@v7
-        - name: Setup MSVC
-          uses: TheMrMilchmann/setup-msvc-dev@v4
-          with:
-            arch: x86
-        - name: Install make
-          run: choco install make
-        - name: Run tests
-          run: cd game && make test
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v7
+      - name: Setup MSVC
+        uses: TheMrMilchmann/setup-msvc-dev@v4
+        with:
+          arch: x86
+      - name: Install make
+        run: choco install make
+      - name: Run tests
+        run: cd game && make test
