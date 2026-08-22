@@ -8,6 +8,8 @@ Steam and GOG versions of the game are supported. The Steam version will require
 
 > ⚠️ **NOTE:** The [Gentlemen of the Row](https://www.saintsrowmods.com/forum/threads/gentlemen-of-the-row.24/) and [PC DLC](https://www.kobraworks.com/sr2pcdlc) mods are not currently supported! Other mods might not work properly either, so it's best to just use a vanilla copy of the game.
 
+> ⚠️ Co-op and Multiplayer are also **not** supported!
+
 ## APWorld details
 
 The progression is very similar to the vanilla game, with being based around the story missions and strongholds. The key progression item is respect which you need to start missions. Additionally there is a `+1 Bonus Respect` item that can be configured when it comes to how much of it should be generated. It's useful to make it easier to find the respect you need to progress.
