@@ -1,0 +1,136 @@
+name: Create release
+
+on:
+    push:
+        tags:
+            - v*
+
+permissions:
+    contents: write
+
+jobs:
+    test-plugin:
+        runs-on: windows-latest
+        name: Test Game Plugin
+
+        steps:
+            - name: Checkout repo
+              uses: actions/checkout@v7
+            - name: Setup MSVC
+              uses: TheMrMilchmann/setup-msvc-dev@v4
+              with:
+                  arch: x86
+            - name: Install make
+              run: choco install make
+            - name: Run tests
+              run: cd game && make test
+
+    test-apworld:
+        name: Test APWorld
+        runs-on: ubuntu-24.04
+
+        steps:
+            - name: Checkout repo
+              uses: actions/checkout@v7
+            - name: Checkout Archipelago repo
+              uses: actions/checkout@v7
+              with:
+                  repository: ArchipelagoMW/Archipelago
+                  ref: 0.6.7
+                  path: Archipelago
+            - name: Install Archipelago dependencies
+              run: |
+                  python Archipelago/ModuleUpdate.py --yes
+            - name: Install pytest
+              run: pip install pytest pytest-subtests
+            - name: Prepare APWorld folder in launcher files
+              run: |
+                  mkdir Archipelago/worlds/saints_row_2
+                  cp -r apworld/* Archipelago/worlds/saints_row_2/
+            - name: Run tests
+              run: cd Archipelago && pytest worlds/saints_row_2/test/ -v --no-header --no-summary
+
+    build-plugin:
+        runs-on: windows-latest
+        name: Build game integration plugin
+        needs: [test-plugin]
+
+        steps:
+            - name: Checkout repo
+              uses: actions/checkout@v7
+            - name: Setup MSVC
+              uses: TheMrMilchmann/setup-msvc-dev@v4
+              with:
+                  arch: x86
+            - name: Install make
+              run: choco install make
+            - name: Build
+              run: cd game && make BUILD_DIR=build-ci PROJECT_VERSION=${{ github.ref_name }}
+            - name: Prepare output archive
+              run: |
+                  mkdir output
+                  mkdir output/scripts
+                  mkdir output/Mods
+                  cp game/build-ci/SR2Archipelago.asi output/scripts/SR2Archipelago.asi
+                  cp game/config/SR2Archipelago.ini.example output/scripts/SR2Archipelago.ini
+                  cp -r modded_game_files/sr2ap_core_files output/Mods/sr2ap_core_files
+                  cp -r modded_game_files/sr2ap_seed_files output/Mods/sr2ap_seed_files
+            - name: Create zip file
+              run: powershell Compress-Archive -Path output/* -DestinationPath SR2Archipelago.zip
+            - name: Upload artifact
+              uses: actions/upload-artifact@v7
+              with:
+                  name: SR2Archipelago.zip
+                  path: SR2Archipelago.zip
+                  archive: false
+
+    build-apworld:
+        name: Build APWorld
+        runs-on: ubuntu-24.04
+        needs: [test-apworld]
+
+        steps:
+            - name: Checkout repo
+              uses: actions/checkout@v7
+            - name: Checkout Archipelago repo
+              uses: actions/checkout@v7
+              with:
+                  repository: ArchipelagoMW/Archipelago
+                  ref: 0.6.7
+                  path: Archipelago
+            - name: Install Archipelago dependencies
+              run: |
+                  python Archipelago/ModuleUpdate.py --yes
+            - name: Prepare APWorld folder in launcher files
+              run: |
+                  mkdir Archipelago/worlds/saints_row_2
+                  cp -r apworld/* Archipelago/worlds/saints_row_2/
+            - name: Build APWorld
+              run: cd Archipelago && SKIP_REQUIREMENTS_UPDATE=1 python Launcher.py "Build APWorlds" -- "Saints Row 2"
+            - name: Upload artifact
+              uses: actions/upload-artifact@v7
+              with:
+                  name: saints_row_2.apworld
+                  path: Archipelago/build/apworlds/saints_row_2.apworld
+                  archive: false
+
+    release:
+        name: Create release
+        runs-on: ubuntu-latest
+        needs: [build-plugin, build-apworld]
+
+        steps:
+            - name: Checkout repo
+              uses: actions/checkout@v7
+            - name: Download built artifacts
+              uses: actions/download-artifact@v8
+              with:
+                skip-decompress: true
+                merge-multiple: true
+            - name: Create release
+              uses: ncipollo/release-action@v1
+              with:
+                  allowUpdates: true
+                  artifactErrorsFailBuild: true
+                  generateReleaseNotes: true
+                  artifacts: "saints_row_2.apworld,SR2Archipelago.zip"
