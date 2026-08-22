@@ -39,12 +39,16 @@ namespace sr2ap {
           "type":"session_ready","protocol":3,"seed_name":"seed","team":1,"slot":2,
           "managed_unlockables":["Taxi","Taxi"],"managed_cheats":["Evil Cars","Evil Cars"],
           "features":{"exclusive_respect":true,"block_vanilla_unlockables":false,"notoriety_traps":true},
-          "enabled_progression":{"missions":true,"activities":false,"hitman":true,"chop_shop":false,"cds":true}})");
+          "enabled_progression":{"missions":true,"activities":false,"hitman":true,"chop_shop":false,"cds":true,"races":true}})");
         ASSERT_TRUE(session);
         EXPECT_EQ(session->managedUnlockables, std::vector<std::string>{"Taxi"});
         EXPECT_EQ(session->managedCheats, std::vector<std::string>{"Evil Cars"});
         EXPECT_TRUE(session->exclusiveRespect);
         EXPECT_FALSE(session->activities);
+        EXPECT_TRUE(session->hitman);
+        EXPECT_FALSE(session->chopShop);
+        EXPECT_TRUE(session->cds);
+        EXPECT_TRUE(session->races);
     }
 
     TEST(ArchipelagoProtocolTest, RejectsIncompleteOrOversizedSessions) {

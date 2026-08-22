@@ -5,6 +5,7 @@ on:
     paths:
       - 'game/**'
       - '.github/workflows/ctest.yml'
+    branches: [main]
   pull_request:
     paths:
       - 'game/**'

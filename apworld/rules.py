@@ -208,32 +208,35 @@ def set_activity_rules(world: SR2World) -> None:
 
         unlock_item = tss04_complete_item if is_heli_assault else tss02_complete_item
 
-        for location in activity_locations:
+        for district in activity_locations:
             for level in range(1, 7):
-                curr_key = f"{activity} ({location}) - Level {level}"
+                curr_key = f"{activity} ({district}) - Level {level}"
 
-                if curr_key in location_cache:
+                if curr_key not in location_cache:
+                    continue
+                    
+                curr_location = world.get_location(curr_key)
+
+                if level == 1:
+                    prerequisite_item = unlock_item
+                else:
+                    prev_key = f"{activity} ({district}) - Level {level - 1}"
+                    prerequisite_item = f"Item: {prev_key} Complete"
+
+                add_rule(
+                    curr_location,
+                    lambda state, prerequisite_item=prerequisite_item: state.has(
+                        prerequisite_item, world.player
+                    ),
+                )
+
+                if level < 6:
                     add_rule(
-                        world.get_location(curr_key),
-                        lambda state, unlock_item=unlock_item: state.has(
-                            unlock_item, world.player
+                        world.get_location(f"Event: {curr_key} Complete"),
+                        lambda state, prerequisite_item=prerequisite_item: state.has(
+                            prerequisite_item, world.player
                         ),
                     )
-
-                    if level < 6:
-                        add_rule(
-                            world.get_location(f"Event: {curr_key} Complete"),
-                            lambda state, unlock_item=unlock_item: state.has(
-                                unlock_item, world.player
-                            ),
-                        )
-
-                        add_rule(
-                            world.get_location(curr_key),
-                            lambda state, curr_key=curr_key: state.has(
-                                f"Item: {curr_key} Complete", world.player
-                            ),
-                        )
 
     for location in CHOP_SHOP_LISTS:
         vehicles = [value for d in CHOP_SHOP_LISTS[location] for value in d.values()]
@@ -243,8 +246,8 @@ def set_activity_rules(world: SR2World) -> None:
             if curr_key in location_cache:
                 add_rule(
                     world.get_location(curr_key),
-                    lambda state, unlock_item=tss02_complete_item: state.has(
-                        unlock_item, world.player
+                    lambda state, chop_shop_unlock_item=tss02_complete_item: state.has(
+                        chop_shop_unlock_item, world.player
                     ),
                 )
 
@@ -256,8 +259,8 @@ def set_activity_rules(world: SR2World) -> None:
             if curr_key in location_cache:
                 add_rule(
                     world.get_location(curr_key),
-                    lambda state, unlock_item=tss02_complete_item: state.has(
-                        unlock_item, world.player
+                    lambda state, hitman_unlock_item=tss02_complete_item: state.has(
+                        hitman_unlock_item, world.player
                     ),
                 )
 
@@ -267,8 +270,8 @@ def set_activity_rules(world: SR2World) -> None:
             if curr_key in location_cache:
                 add_rule(
                     world.get_location(curr_key),
-                    lambda state, unlock_item=tss02_complete_item: state.has(
-                        unlock_item, world.player
+                    lambda state, race_unlock_item=tss02_complete_item: state.has(
+                        race_unlock_item, world.player
                     ),
                 )
 
@@ -310,9 +313,9 @@ def set_completion_rules(world: SR2World) -> None:
 
 
 def mark_as_unlocked_after_intro(
-    world: SR2World,
-    location_cache: dict[str, Location],
-    missions: list[Mission | Stronghold],
+        world: SR2World,
+        location_cache: dict[str, Location],
+        missions: list[Mission | Stronghold],
 ):
     tss04_complete_item = get_mission_complete_item_name(get_mission_by_key("tss04"))
 
@@ -337,10 +340,10 @@ def mark_as_unlocked_after_intro(
 
 
 def mark_as_needing_all_strongholds(
-    world: SR2World,
-    location_cache: dict[str, Location],
-    mission: Mission | Stronghold,
-    strongholds: list[Stronghold],
+        world: SR2World,
+        location_cache: dict[str, Location],
+        mission: Mission | Stronghold,
+        strongholds: list[Stronghold],
 ):
     if mission.name in location_cache:
         add_rule(
@@ -367,6 +370,6 @@ def set_respect_placement_rules(world: SR2World) -> None:
             add_item_rule(
                 location,
                 lambda item: (
-                    item.name != RESPECT_ITEM_NAME or item.player != world.player
+                        item.name != RESPECT_ITEM_NAME or item.player != world.player
                 ),
             )
