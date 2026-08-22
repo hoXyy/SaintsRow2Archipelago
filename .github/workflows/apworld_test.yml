@@ -1,15 +1,15 @@
 name: Run APWorld Tests
 
 on:
-  push:
-    paths:
-      - 'apworld/**'
-      - '.github/workflows/apworld_test.yml'
-    branches: [main]
-  pull_request:
-    paths:
-      - 'apworld/**'
-      - '.github/workflows/apworld_test.yml'
+    push:
+        paths:
+            - "apworld/**"
+            - ".github/workflows/apworld_test.yml"
+        branches: [main]
+    pull_request:
+        paths:
+            - "apworld/**"
+            - ".github/workflows/apworld_test.yml"
 
 jobs:
     test:
@@ -22,17 +22,17 @@ jobs:
             - name: Checkout Archipelago repo
               uses: actions/checkout@v7
               with:
-                repository: ArchipelagoMW/Archipelago
-                ref: 0.6.7
-                path: Archipelago
+                  repository: ArchipelagoMW/Archipelago
+                  ref: 0.6.7
+                  path: Archipelago
             - name: Install Archipelago dependencies
               run: |
-                python Archipelago/ModuleUpdate.py --yes
+                  python Archipelago/ModuleUpdate.py --yes
             - name: Install pytest
               run: pip install pytest pytest-subtests
             - name: Prepare APWorld folder in launcher files
               run: |
-                mkdir Archipelago/worlds/saints_row_2
-                cp -r apworld/* Archipelago/worlds/saints_row_2/
+                  mkdir Archipelago/worlds/saints_row_2
+                  cp -r apworld/* Archipelago/worlds/saints_row_2/
             - name: Run tests
               run: cd Archipelago && pytest worlds/saints_row_2/test/ -v --no-header --no-summary
