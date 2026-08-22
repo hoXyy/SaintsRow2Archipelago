@@ -39,6 +39,7 @@ namespace sr2ap {
         bool hitman{};
         bool chopShop{};
         bool cds{};
+        bool races{};
     };
 
     [[nodiscard]] std::string SerializeProgressionEvent(const ProgressionEvent& event);

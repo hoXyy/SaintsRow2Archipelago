@@ -79,7 +79,7 @@ class SR2World(World):
         rules.set_all_rules(self)
 
     def create_items(self) -> None:
-        return items.get_all_items(self)
+        items.get_all_items(self)
 
     def create_item(self, name: str) -> items.SR2Item:
         return items.create_item_with_correct_classification(self, name)
@@ -146,5 +146,6 @@ class SR2World(World):
                 "hitman": bool(self.options.include_hitman.value),
                 "chop_shop": bool(self.options.include_chop_shop.value),
                 "cds": bool(self.options.include_cds.value),
+                "races": bool(self.options.include_races.value),
             },
         }

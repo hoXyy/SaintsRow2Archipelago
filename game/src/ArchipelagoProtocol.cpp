@@ -167,13 +167,26 @@ namespace sr2ap {
         const auto hitman = ReadBoolean(progression, "hitman");
         const auto chopShop = ReadBoolean(progression, "chop_shop");
         const auto cds = ReadBoolean(progression, "cds");
+        const auto races = ReadBoolean(progression, "races");
         if (!exclusiveRespect || !blockUnlockables || !notorietyTraps || !missions || !activities || !hitman ||
-            !chopShop || !cds) {
+            !chopShop || !cds || !races) {
             return std::nullopt;
         }
-        return SessionReadyMessage{
-            *protocol,         seedName,        *team,     *slot,       *unlockables, *cheats,   *exclusiveRespect,
-            *blockUnlockables, *notorietyTraps, *missions, *activities, *hitman,      *chopShop, *cds};
+        return SessionReadyMessage{*protocol,
+                                   seedName,
+                                   *team,
+                                   *slot,
+                                   *unlockables,
+                                   *cheats,
+                                   *exclusiveRespect,
+                                   *blockUnlockables,
+                                   *notorietyTraps,
+                                   *missions,
+                                   *activities,
+                                   *hitman,
+                                   *chopShop,
+                                   *cds,
+                                   *races};
     }
 
     bool IsSessionEndMessage(const std::string_view message) {

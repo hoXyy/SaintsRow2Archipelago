@@ -412,10 +412,11 @@ namespace sr2ap {
                     case ProgressionKind::Mission:
                         return sessionConfiguration_->missions;
                     case ProgressionKind::Activity:
-                    case ProgressionKind::Racing:
                         return sessionConfiguration_->activities;
                     case ProgressionKind::Cd:
                         return sessionConfiguration_->cds;
+                    case ProgressionKind::Racing:
+                        return sessionConfiguration_->races;
                 }
                 return false;
             }
