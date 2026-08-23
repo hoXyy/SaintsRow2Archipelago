@@ -52,7 +52,7 @@ The full list of items can be found in [items_list.py](https://github.com/hoXyy/
 
 Make sure Juiced Patch is installed and working before installing the Archipelago:
 
-1. Download `SR2Archipelago.zip` and `saints_row_2.apworld` from the `Releases` tab, and get an ASI loader (recommended is the [Ultimate ASI Loader](https://github.com/ThirteenAG/Ultimate-ASI-Loader)).
+1. Download `SR2Archipelago.zip` and `saints_row_2.apworld` from the `Releases` tab, and get an ASI loader (recommended is the [Ultimate ASI Loader](https://github.com/ThirteenAG/Ultimate-ASI-Loader) with `dinput8.dll` as the DLL name).
 2. Open the Archipelago client, and use the `Install APWorld` option to install the .apworld file you downloaded.
 3. Follow your chosen's ASI loader install instructions (when using the Ultimate ASI Loader use `dinput8.dll` as the DLL name of choice).
 4. Extract the `scripts` and `Mods` folders from `SR2Archipelago.zip` into the game folder (same folder that includes `SR2_pc.exe`).
