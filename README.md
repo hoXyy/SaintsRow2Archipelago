@@ -74,7 +74,7 @@ The room info will not be available without installing the room-specific game fi
 
 You need to add an extra environment variable, the way to do it depends fully on how you launch the game. As an example, for Steam you'd add this to the game's launch options:
 
-> WINEDLLOVERRIDES=dinput8=n,b %command
+> WINEDLLOVERRIDES=dinput8=n,b %command%
 
 Replace `dinput8` with the DLL name you use for your ASI loader if it's different.
 
@@ -92,7 +92,7 @@ The project is split into 2 parts, the native game integration plugin that lives
 
 ### APWorld
 
-The APWorld can be built using the source-code version of the Archipelago Client as noted in the client's [documentation](https://github.com/ArchipelagoMW/Archipelago/blob/main/docs/apworld%20specification.md#build-apworlds-launcher-component). Clone the launcher's code, put the contents of this repository's `world` folder into a folder in the client's `worlds` directory, then run the launcher and use the `Build APWorlds` option. You'll find the generated .apworld in the client's `custom_worlds` directory.
+The APWorld can be built using the source-code version of the Archipelago Client as noted in the client's [documentation](https://github.com/ArchipelagoMW/Archipelago/blob/main/docs/apworld%20specification.md#build-apworlds-launcher-component). Clone the launcher's code, put the contents of this repository's `apworld` folder into a folder in the client's `worlds` directory, then run the launcher and use the `Build APWorlds` option. You'll find the generated .apworld in the client's `custom_worlds` directory.
 
 ### Game integration
 
