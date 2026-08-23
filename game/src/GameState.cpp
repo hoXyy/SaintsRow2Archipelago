@@ -1,7 +1,6 @@
 #include "sr2ap/GameState.hpp"
 #include "sr2ap/Addresses.hpp"
 #include "sr2ap/Hitman.hpp"
-#include "sr2ap/Logger.hpp"
 #include "sr2ap/Memory.hpp"
 #include "sr2ap/ModuleInfo.hpp"
 
