@@ -5,6 +5,7 @@ import os
 from typing import Set, TYPE_CHECKING
 import xml.etree.ElementTree as XmlTree
 import zipfile
+from importlib.resources import files
 
 from worlds.Files import APPlayerContainer
 import Utils
@@ -19,17 +20,16 @@ from .options import (
     ULTOR_EPILOGUE_ARC_NAME,
 )
 
+GAME_FILES_DIR = files(__package__).joinpath("game_files")
 MISSIONS_TABLE_FILE_NAME = "sr2_city_missions.xtbl"
-MISSIONS_TABLE_FILE = os.path.join(
-    os.path.dirname(__file__), "game_files", MISSIONS_TABLE_FILE_NAME
-)
+MISSIONS_TABLE_FILE = GAME_FILES_DIR.joinpath(MISSIONS_TABLE_FILE_NAME)
 
 MISSION_GLOBALS_LUA_FILE_NAME = "mission_globals.lua"
-VANILLA_MISSION_GLOBALS_LUA_FILE = os.path.join(
-    os.path.dirname(__file__), "game_files", "mission_globals.lua"
+VANILLA_MISSION_GLOBALS_LUA_FILE = GAME_FILES_DIR.joinpath(
+    MISSION_GLOBALS_LUA_FILE_NAME
 )
-MODIFIED_MISSION_GLOBALS_LUA_FILE = os.path.join(
-    os.path.dirname(__file__), "game_files", "mission_globals_no_bh01_call.lua"
+MODIFIED_MISSION_GLOBALS_LUA_FILE = GAME_FILES_DIR.joinpath(
+    "mission_globals_no_bh01_call.lua"
 )
 
 PATCHED_FILES_OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "patched_game_files")
@@ -95,8 +95,9 @@ def generate_patched_game_files(world: "SR2World", output_directory: str) -> Non
         else VANILLA_MISSION_GLOBALS_LUA_FILE
     )
 
-    with open(missions_globals_file_path, "r") as file:
-        missions_global_file_content = file.read()
+    missions_global_file_content = missions_globals_file_path.read_text(
+        encoding="utf-8"
+    )
 
     patch_file_name = (
         f"AP-{world.multiworld.seed_name}-"
@@ -133,8 +134,7 @@ def generate_patched_game_files(world: "SR2World", output_directory: str) -> Non
 
 
 def generate_patched_mission_chains_file(enabled_arcs: Set[str]) -> str:
-    tree = XmlTree.parse(MISSIONS_TABLE_FILE)
-    root = tree.getroot()
+    root = XmlTree.fromstring(MISSIONS_TABLE_FILE.read_bytes())
 
     missions = {
         mission.findtext("Name"): mission for mission in root.findall("./Table/Mission")
@@ -155,15 +155,9 @@ def generate_main_menu_info_strings(world: SR2World) -> str:
     seed = world.multiworld.seed_name
     player_name = world.multiworld.player_name[world.player]
 
-    with open(
-        os.path.join(
-            os.path.dirname(__file__),
-            "game_files",
-            "templates",
-            "ap_main_menu_info.cxt",
-        )
-    ) as file:
-        template_string = file.read()
+    template_string = GAME_FILES_DIR.joinpath(
+        "templates", "ap_main_menu_info.cxt"
+    ).read_text(encoding="utf-8")
 
     return template_string.replace("{{SEED}}", seed).replace(
         "{{PLAYER_NAME}}", player_name
