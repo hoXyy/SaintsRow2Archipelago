@@ -1,6 +1,7 @@
 #include "sr2ap/GameState.hpp"
 #include "sr2ap/Addresses.hpp"
 #include "sr2ap/Hitman.hpp"
+#include "sr2ap/Logger.hpp"
 #include "sr2ap/Memory.hpp"
 #include "sr2ap/ModuleInfo.hpp"
 
@@ -52,7 +53,9 @@ namespace sr2ap {
         if (menuState == addresses::kLoadingMenuState) {
             return GameReadiness::Loading;
         }
-        if (gameLoaded != 0 && menuState == addresses::kGameplayMenuState && cutsceneActive == 0 && player != 0) {
+        if (gameLoaded != 0 &&
+            (menuState == addresses::kGameplayMenuState || menuState == addresses::kGameplayBusyState) &&
+            cutsceneActive == 0 && player != 0) {
             return GameReadiness::GameplayInteractive;
         }
         return GameReadiness::GameplayReady;
