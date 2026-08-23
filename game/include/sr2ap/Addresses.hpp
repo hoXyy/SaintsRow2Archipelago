@@ -78,6 +78,7 @@ namespace sr2ap::addresses {
     inline constexpr std::ptrdiff_t kGameLoadedRva = 0x00A94D3E;
     inline constexpr std::ptrdiff_t kMenuStateRva = 0x00ABE860;
     inline constexpr std::ptrdiff_t kCutsceneActiveRva = 0x02127D14;
+    inline constexpr std::uint8_t kGameplayBusyState = 2;
     inline constexpr std::uint8_t kGameplayMenuState = 3;
     inline constexpr std::uint8_t kLoadingMenuState = 13;
     inline constexpr std::ptrdiff_t kRespectPointsPerBarRva = 0x00A98528;
