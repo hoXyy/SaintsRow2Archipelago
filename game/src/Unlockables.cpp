@@ -45,7 +45,7 @@ namespace sr2ap {
             {"Vehicle: Ultor Tornado", 0x7AC7C6F8},
             {"Vehicle: News Helicopter", 0x3697CA58},
             {"Vehicle: Medical Helicopter", 0x9169B869},
-            {"Vehicle: Saints Oppressor", 0x9169B869},
+            {"Vehicle: Saints Oppressor", 0x5920A8CB},
             {"Vehicle: Buggy", 0x25A4CA19},
             {"Vehicle: Saints Combine", 0x70306F95},
             {"Vehicle: Saints Tow Truck", 0x8B7EFDEF},
