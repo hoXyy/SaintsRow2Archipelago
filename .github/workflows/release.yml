@@ -69,7 +69,7 @@ jobs:
             - name: Install Rust x86 target
               run: rustup target add i686-pc-windows-msvc
             - name: Build
-              run: cd game && make BUILD_DIR=build-ci PROJECT_VERSION=${{ github.ref_name }}
+              run: cd game_plugin && make BUILD_DIR=build-ci PROJECT_VERSION=${{ github.ref_name }}
             - name: Prepare output archive
               run: |
                   mkdir output
