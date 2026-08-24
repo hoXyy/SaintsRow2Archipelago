@@ -1,0 +1,31 @@
+name: Run game integration plugin tests
+
+on:
+  push:
+    paths:
+      - "game_plugin/**"
+      - ".github/workflows/game_plugin_test.yml"
+    branches: [main]
+  pull_request:
+    paths:
+      - "game_plugin/**"
+      - ".github/workflows/game_plugin_test.yml"
+
+jobs:
+  test:
+    runs-on: windows-latest
+    name: Test C++
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v7
+      - name: Setup MSVC
+        uses: TheMrMilchmann/setup-msvc-dev@v4
+        with:
+          arch: x86
+      - name: Install make
+        run: choco install make
+      - name: Install Rust x86 target
+        run: rustup target add i686-pc-windows-msvc
+      - name: Run tests
+        run: cd game_plugin && make test

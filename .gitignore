@@ -11,3 +11,4 @@ server.py
 apworld/__pycache__
 apworld/test/__pycache__
 .pytest_cache
+/game_plugin/rust/target/
