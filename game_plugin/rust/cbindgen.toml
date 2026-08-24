@@ -1,0 +1,8 @@
+language = "C"
+pragma_once = true
+documentation = true
+usize_is_size_t = true
+cpp_compat = true
+
+[enum]
+rename_variants = "QualifiedScreamingSnakeCase"

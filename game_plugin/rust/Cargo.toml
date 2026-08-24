@@ -1,0 +1,15 @@
+[package]
+name = "sr2ap-rust"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["staticlib"]
+
+[dependencies]
+chrono = { version = "0.4", default-features = false, features = ["clock"] }
+log = "0.4"
+thiserror = "2"
+
+[build-dependencies]
+cbindgen = "0.29"

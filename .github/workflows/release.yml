@@ -22,8 +22,10 @@ jobs:
                   arch: x86
             - name: Install make
               run: choco install make
+            - name: Install Rust x86 target
+              run: rustup target add i686-pc-windows-msvc
             - name: Run tests
-              run: cd game && make test
+              run: cd game_plugin && make test
 
     test-apworld:
         name: Test APWorld
@@ -64,6 +66,8 @@ jobs:
                   arch: x86
             - name: Install make
               run: choco install make
+            - name: Install Rust x86 target
+              run: rustup target add i686-pc-windows-msvc
             - name: Build
               run: cd game && make BUILD_DIR=build-ci PROJECT_VERSION=${{ github.ref_name }}
             - name: Prepare output archive
@@ -71,8 +75,8 @@ jobs:
                   mkdir output
                   mkdir output/scripts
                   mkdir output/Mods
-                  cp game/build-ci/SR2Archipelago.asi output/scripts/SR2Archipelago.asi
-                  cp game/config/SR2Archipelago.ini.example output/scripts/SR2Archipelago.ini
+                  cp game_plugin/build-ci/SR2Archipelago.asi output/scripts/SR2Archipelago.asi
+                  cp game_plugin/config/SR2Archipelago.ini.example output/scripts/SR2Archipelago.ini
                   cp -r modded_game_files/sr2ap_core_files output/Mods/sr2ap_core_files
                   cp -r modded_game_files/sr2ap_seed_files output/Mods/sr2ap_seed_files
             - name: Create zip file

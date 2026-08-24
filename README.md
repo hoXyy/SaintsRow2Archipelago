@@ -88,7 +88,7 @@ Extract the `mods` folder in the zip file to your game directory. If installed p
 
 ## Building from source
 
-The project is split into 2 parts, the native game integration plugin that lives in the `game` directory and the APWorld code that lives in `world`.
+The project is split into 2 parts, the native game integration plugin that lives in the `game_plugin` directory and the APWorld code that lives in `apworld`.
 
 ### APWorld
 
@@ -100,15 +100,13 @@ The build instruction for the game integration plugin depend on the system you'r
 
 #### Linux
 
-This project uses Microsoft's MSVC compiler even on Linux. It can be installed on Linux using the [msvc-wine](https://github.com/mstorsjo/msvc-wine) project. On Arch you can use the `msvc-wine-git` to simplify the installation (the Makefile is set up with this package in mind). Additionally, you'll need `make` and `cmake`.
+This project uses Microsoft's MSVC compiler even on Linux. It can be installed on Linux using the [msvc-wine](https://github.com/mstorsjo/msvc-wine) project. On Arch you can use the `msvc-wine-git` to simplify the installation (the Makefile is set up with this package in mind). Additionally, you'll need `make`, `cmake`, and a Rust toolchain installed through `rustup`. Install the 32-bit MSVC Rust target with `rustup target add i686-pc-windows-msvc`.
 
-After setting up the compiler, you can run `make` in the `game` directory to build the plugin. The output will be in the `build-msvc-linux` folder.
+After setting up the compiler, you can run `make` in the `game_plugin` directory to build the plugin. The output will be in the `build-msvc-linux` folder.
 
 #### Windows
 
-> Note: These instructions haven't been fully tested as this project is being developed on Linux.
-
-On Windows you require Visual Studio 2022 (or possibly later) with the following components:
+On Windows you require Visual Studio 2022 (or later) with the following components:
 - Desktop development with C++
 - MSVC x86/x64 build tools
 - Windows SDK
@@ -116,13 +114,14 @@ On Windows you require Visual Studio 2022 (or possibly later) with the following
 Additionally, you need:
 - [CMake 3.25+](https://cmake.org/download/)
 - [Ninja](https://github.com/ninja-build/ninja/releases)
+- [Rust](https://rustup.rs/) with the `i686-pc-windows-msvc` target
 - GNU Make
 
 You can also install `clang-format` if you want to use code formatting setup in this repo.
 
 Make sure all these tools are available in the PATH before continuing.
 
-Open an **x86 Native Tools Command Prompt for VS 2022**. Navigate to the `game` directory, and run `make`. The output will be in `build-msvc-win`.
+Open an **x86 Native Tools Command Prompt for VS**. Navigate to the `game_plugin` directory, and run `make`. The output will be in `build-msvc-win`.
 
 ## General future roadmap 
 
