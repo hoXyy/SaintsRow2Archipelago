@@ -28,4 +28,4 @@ jobs:
       - name: Install Rust x86 target
         run: rustup target add i686-pc-windows-msvc
       - name: Run tests
-        run: cd game && make test
+        run: cd game_plugin && make test
