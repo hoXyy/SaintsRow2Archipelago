@@ -8,15 +8,15 @@
 #include "sr2ap/Racing.hpp"
 
 namespace sr2ap {
-    struct ProgressionSnapshot {
-        HitmanSnapshot hitman;
-        ChopShopSnapshot chopShop;
-        MissionSnapshot missions;
-        ActivitySnapshot activities;
-        RacingSnapshot racing;
-        CdSnapshot cds;
-    };
+struct ProgressionSnapshot {
+    HitmanSnapshot hitman;
+    ChopShopSnapshot chopShop;
+    MissionSnapshot missions;
+    ActivitySnapshot activities;
+    RacingSnapshot racing;
+    CdSnapshot cds;
+};
 
-    ProgressionSnapshot GetProgressionSnapshot();
-    void LogProgressionSnapshot(const ProgressionSnapshot& snapshot, bool full);
+ProgressionSnapshot GetProgressionSnapshot();
+void LogProgressionSnapshot(const ProgressionSnapshot& snapshot, bool full);
 }  // namespace sr2ap
