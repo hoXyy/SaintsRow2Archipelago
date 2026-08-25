@@ -1,15 +1,12 @@
 ---
-BasedOnStyle: Chromium
+BasedOnStyle: Google
 Language: Cpp
 
-# Keep the project's existing four-space, no-tab layout.
 IndentWidth: 4
 TabWidth: 4
 UseTab: Never
-ColumnLimit: 120
+ColumnLimit: 80
 
-# Visually separate top-level declarations and definitions while avoiding
-# multiple consecutive blank lines.
 SeparateDefinitionBlocks: Always
 MaxEmptyLinesToKeep: 1
 KeepEmptyLines:
@@ -17,7 +14,6 @@ KeepEmptyLines:
   AtStartOfBlock: false
   AtStartOfFile: false
 
-BreakBeforeBraces: Attach
 PointerAlignment: Left
 ReferenceAlignment: Left
 
@@ -28,10 +24,9 @@ AllowShortIfStatementsOnASingleLine: Never
 AllowShortLoopsOnASingleLine: false
 AllowShortLambdasOnASingleLine: Inline
 
-IncludeBlocks: Preserve
+IncludeBlocks: Regroup
 SortIncludes: CaseSensitive
 FixNamespaceComments: true
-NamespaceIndentation: All
 
 EmptyLineAfterAccessModifier: Never
 EmptyLineBeforeAccessModifier: LogicalBlock
