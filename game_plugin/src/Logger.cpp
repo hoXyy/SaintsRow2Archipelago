@@ -1,7 +1,7 @@
 #include "sr2ap/Logger.hpp"
 
 #include "rust/cxx.h"
-#include "sr2ap/src/ffi.rs.h"
+#include "sr2ap/src/ffi/logger.rs.h"
 
 #include <cstdint>
 #include <string_view>
