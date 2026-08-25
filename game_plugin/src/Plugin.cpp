@@ -466,19 +466,33 @@ class SessionRuntime {
     }
 
     void HandleMessage(std::string_view message) {
-        if (const auto session = ParseSessionReadyMessage(message)) {
-            HandleSession(*session);
-        } else if (IsSessionEndMessage(message)) {
-            communicationsActive_ = false;
-            LogInfo("Session",
+        const auto parsed = ParseIncomingMessage(message);
+        switch (parsed.kind) {
+            case IncomingMessageKind::SessionReady:
+                HandleSession(*parsed.session);
+                break;
+            case IncomingMessageKind::SessionEnd:
+                communicationsActive_ = false;
+                LogInfo(
+                    "Session",
                     "AP communications ended; gameplay policy remains latched");
-        } else if (const auto context = ParseSaveContextMessage(message)) {
-            HandleSaveContext(*context);
-        } else if (const auto acknowledgement =
-                       ParseSaveRevisionAcknowledgementMessage(message)) {
-            HandleSaveRevisionAcknowledgement(*acknowledgement);
-        } else if (const auto item = ParseReceivedItemMessage(message)) {
-            HandleItem(*item);
+                break;
+            case IncomingMessageKind::SaveContext:
+                HandleSaveContext(*parsed.saveContext);
+                break;
+            case IncomingMessageKind::SaveRevisionAcknowledgement:
+                HandleSaveRevisionAcknowledgement(
+                    *parsed.saveRevisionAcknowledgement);
+                break;
+            case IncomingMessageKind::Item:
+                HandleItem(*parsed.item);
+                break;
+            case IncomingMessageKind::Invalid:
+                LogWarning("Protocol",
+                           "Rejected malformed AP message: " + parsed.error);
+                break;
+            case IncomingMessageKind::Unknown:
+                break;
         }
     }
 

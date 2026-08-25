@@ -34,6 +34,7 @@ if(WIN32 AND SR2AP_BUILD_RUST)
         set(SR2AP_RUST_CXX_INCLUDE_DIR "${SR2AP_RUST_TARGET_DIR}/cxxbridge")
         set(SR2AP_RUST_LOGGER_HEADER "${SR2AP_RUST_CXX_INCLUDE_DIR}/sr2ap/src/ffi/logger_ffi.rs.h")
         set(SR2AP_RUST_CONFIG_HEADER "${SR2AP_RUST_CXX_INCLUDE_DIR}/sr2ap/src/ffi/config_ffi.rs.h")
+        set(SR2AP_RUST_PROTOCOL_HEADER "${SR2AP_RUST_CXX_INCLUDE_DIR}/sr2ap/src/ffi/protocol_ffi.rs.h")
         set(SR2AP_RUST_CXX_RUNTIME_HEADER "${SR2AP_RUST_CXX_INCLUDE_DIR}/rust/cxx.h")
 
         file(MAKE_DIRECTORY "${SR2AP_RUST_CXX_INCLUDE_DIR}")
@@ -53,6 +54,7 @@ if(WIN32 AND SR2AP_BUILD_RUST)
                 "${SR2AP_RUST_LIBRARY}"
                 "${SR2AP_RUST_LOGGER_HEADER}"
                 "${SR2AP_RUST_CONFIG_HEADER}"
+                "${SR2AP_RUST_PROTOCOL_HEADER}"
                 "${SR2AP_RUST_CXX_RUNTIME_HEADER}"
                 COMMAND ${CMAKE_COMMAND} -E env
                 "CARGO_TARGET_DIR=${SR2AP_RUST_TARGET_DIR}"
@@ -91,6 +93,7 @@ if(WIN32 AND SR2AP_BUILD_RUST)
                 IMPORTED_LOCATION_MINSIZEREL "${SR2AP_RUST_RELEASE_LIBRARY}"
                 INTERFACE_INCLUDE_DIRECTORIES "${SR2AP_RUST_CXX_INCLUDE_DIR}"
         )
+        target_link_libraries(sr2ap_rust INTERFACE ntdll userenv ws2_32)
         add_dependencies(sr2ap_rust sr2ap_rust_build)
 endif()
 
@@ -141,6 +144,10 @@ add_library(sr2ap_core STATIC
 target_include_directories(sr2ap_core PUBLIC include)
 target_link_libraries(sr2ap_core PRIVATE sr2ap_nlohmann_json)
 target_compile_features(sr2ap_core PUBLIC cxx_std_17)
+if(WIN32 AND SR2AP_BUILD_RUST)
+        target_link_libraries(sr2ap_core PUBLIC sr2ap_rust)
+        add_dependencies(sr2ap_core sr2ap_rust_build)
+endif()
 
 if(WIN32)
         add_library(sr2ap_safetyhook STATIC
@@ -200,6 +207,7 @@ if(WIN32)
         set_source_files_properties(
             "${SR2AP_RUST_LOGGER_HEADER}"
             "${SR2AP_RUST_CONFIG_HEADER}"
+            "${SR2AP_RUST_PROTOCOL_HEADER}"
             "${SR2AP_RUST_CXX_RUNTIME_HEADER}"
             PROPERTIES
                     GENERATED TRUE
@@ -209,6 +217,7 @@ if(WIN32)
         target_sources(SR2Archipelago PRIVATE
                 "${SR2AP_RUST_LOGGER_HEADER}"
                 "${SR2AP_RUST_CONFIG_HEADER}"
+                "${SR2AP_RUST_PROTOCOL_HEADER}"
                 "${SR2AP_RUST_CXX_RUNTIME_HEADER}"
         )
 
@@ -217,6 +226,7 @@ if(WIN32)
                 FILES
                         "${SR2AP_RUST_LOGGER_HEADER}"
                         "${SR2AP_RUST_CONFIG_HEADER}"
+                        "${SR2AP_RUST_PROTOCOL_HEADER}"
                         "${SR2AP_RUST_CXX_RUNTIME_HEADER}"
         )
 endif()

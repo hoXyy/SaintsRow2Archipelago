@@ -37,21 +37,11 @@ impl Default for Config {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub(crate) struct ConfigLoadResult {
     pub config: Config,
     pub file_found: bool,
     pub warnings: u32,
-}
-
-impl Default for ConfigLoadResult {
-    fn default() -> Self {
-        Self {
-            config: Config::default(),
-            file_found: false,
-            warnings: 0,
-        }
-    }
 }
 
 #[derive(Debug, thiserror::Error)]
