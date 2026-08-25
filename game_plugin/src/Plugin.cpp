@@ -456,7 +456,7 @@ namespace sr2ap {
             const auto pluginInfo = InspectModule(plugin);
             const auto pluginDirectory = pluginInfo && !pluginInfo->path.empty() ? pluginInfo->path.parent_path()
                                                                                  : std::filesystem::current_path();
-            const auto configPath = pluginDirectory / L"SR2Archipelago.ini";
+            const auto configPath = pluginDirectory / L"SR2Archipelago.toml";
             const auto [config, fileFound, warnings] = LoadConfig(configPath);
             log::Initialize(pluginDirectory, config.debugLogging);
             LogInfo("Plugin", std::string("SR2Archipelago loaded version=") + SR2AP_VERSION);

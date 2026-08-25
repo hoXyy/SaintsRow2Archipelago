@@ -1,0 +1,21 @@
+[general]
+enabled = true
+
+[progression]
+polling_interval_ms = 1000 # How often to poll the game for progression state
+log_full_snapshots = false
+log_state_changes = false # Whether to log progression state changes (for ex. a mission pass)
+
+[network]
+enabled = true # You shouldn't ever need to disable this
+port = 38282 # The port to use to connect to the AP client, currently only changable on the client's end using the CLI
+
+[debug]
+debug_logging = false
+write_status_file = false
+
+[debug.hotkeys]
+enable_hotkeys = false
+module_report_hotkey = 0x76
+snapshot_hotkey = 0x77
+address_dump_hotkey = 0x78
