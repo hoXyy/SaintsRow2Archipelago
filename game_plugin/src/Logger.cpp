@@ -1,52 +1,80 @@
 #include "sr2ap/Logger.hpp"
 
-#include "sr2ap/sr2ap_rust.h"
+#include "rust/cxx.h"
+#include "sr2ap/src/ffi.rs.h"
 
 #include <cstdint>
 #include <string_view>
 
 namespace sr2ap::log {
     namespace {
-        [[nodiscard]] constexpr Sr2apLogLevel ToRustLevel(Level level) noexcept {
+        [[nodiscard]] constexpr rust::LogLevel ToRustLevel(
+            const Level level) noexcept {
             switch (level) {
                 case Level::Trace:
-                    return SR2AP_LOG_LEVEL_TRACE;
+                    return rust::LogLevel::Trace;
                 case Level::Debug:
-                    return SR2AP_LOG_LEVEL_DEBUG;
+                    return rust::LogLevel::Debug;
                 case Level::Info:
-                    return SR2AP_LOG_LEVEL_INFO;
+                    return rust::LogLevel::Info;
                 case Level::Warning:
-                    return SR2AP_LOG_LEVEL_WARNING;
+                    return rust::LogLevel::Warning;
                 case Level::Error:
-                    return SR2AP_LOG_LEVEL_ERROR;
+                    return rust::LogLevel::Error;
                 case Level::Critical:
-                    return SR2AP_LOG_LEVEL_CRITICAL;
+                    return rust::LogLevel::Critical;
             }
 
-            return SR2AP_LOG_LEVEL_ERROR;
+            return rust::LogLevel::Error;
         }
 
-        [[nodiscard]] const std::uint8_t* Bytes(std::string_view value) noexcept {
-            return reinterpret_cast<const std::uint8_t*>(value.data());
+        [[nodiscard]] ::rust::Slice<const std::uint8_t> Bytes(
+            const std::string_view value) noexcept {
+            return {
+                reinterpret_cast<const std::uint8_t*>(value.data()),
+                value.size(),
+            };
         }
-    }  // namespace
-
-    bool Initialize(const std::filesystem::path& directory, bool debug) {
-        const auto& native = directory.native();
-        return sr2ap_log_initialize(reinterpret_cast<const std::uint16_t*>(native.data()), native.size(),
-                                    debug ? std::uint8_t{1} : std::uint8_t{0}) == SR2AP_RESULT_OK;
     }
 
-    void Write(Level level, std::string_view subsystem, std::string_view message) {
-        static_cast<void>(sr2ap_log_write(ToRustLevel(level), Bytes(subsystem), subsystem.size(), Bytes(message),
-                                          message.size()));
+    bool Initialize(
+        const std::filesystem::path& directory,
+        const bool debugEnabled) {
+        const auto& native = directory.native();
+
+        try {
+            rust::log_initialize(
+                {reinterpret_cast<const std::uint16_t*>(native.data()),
+                 native.size()},
+                debugEnabled);
+            return true;
+        } catch (const ::rust::Error&) {
+            return false;
+        }
+    }
+
+    void Write(
+        const Level level,
+        const std::string_view subsystem,
+        const std::string_view message) {
+        try {
+            rust::log_write(
+                ToRustLevel(level),
+                Bytes(subsystem),
+                Bytes(message));
+        } catch (const ::rust::Error&) {
+            // Logging cannot report a logging failure through the logger itself.
+        }
     }
 
     void Flush() {
-        static_cast<void>(sr2ap_log_flush());
+        try {
+            rust::log_flush();
+        } catch (const ::rust::Error&) {
+        }
     }
 
     void Shutdown() {
-        sr2ap_log_shutdown();
+        rust::log_shutdown();
     }
-}  // namespace sr2ap::log
+}
