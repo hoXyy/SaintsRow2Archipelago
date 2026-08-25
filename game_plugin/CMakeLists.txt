@@ -130,9 +130,6 @@ target_include_directories(sr2ap_inih PUBLIC vendor/inih)
 add_library(sr2ap_nlohmann_json INTERFACE)
 target_include_directories(sr2ap_nlohmann_json INTERFACE vendor/nlohmann-json)
 
-add_library(sr2ap_cxx INTERFACE)
-target_include_directories(sr2ap_cxx INTERFACE vendor/cxx)
-
 add_library(sr2ap_core STATIC
         src/Config.cpp
         src/ArchipelagoProtocol.cpp
