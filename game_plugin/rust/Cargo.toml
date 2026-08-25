@@ -8,8 +8,9 @@ crate-type = ["staticlib"]
 
 [dependencies]
 chrono = { version = "0.4", default-features = false, features = ["clock"] }
+cxx = "1"
 log = "0.4"
 thiserror = "2"
 
 [build-dependencies]
-cbindgen = "0.29"
+cxx-build = "1"

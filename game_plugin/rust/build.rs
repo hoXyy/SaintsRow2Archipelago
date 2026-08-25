@@ -1,21 +1,9 @@
-use std::{env, path::PathBuf};
-
 fn main() {
-    let crate_dir =
-        PathBuf::from(env::var_os("CARGO_MANIFEST_DIR").expect("Cargo manifest directory"));
+    cxx_build::CFG.include_prefix = "sr2ap";
 
-    let output = crate_dir.join("../include/sr2ap/sr2ap_rust.h");
+    cxx_build::bridge("src/ffi.rs")
+        .std("c++17")
+        .compile("sr2ap-cxxbridge");
 
-    println!("cargo::rerun-if-changed=src");
-    println!("cargo::rerun-if-changed=cbindgen.toml");
-
-    cbindgen::Builder::new()
-        .with_crate(&crate_dir)
-        .with_config(
-            cbindgen::Config::from_file(crate_dir.join("cbindgen.toml"))
-                .expect("valid cbindgen configuration"),
-        )
-        .generate()
-        .expect("generate C header")
-        .write_to_file(output);
+    println!("cargo::rerun-if-changed=src/ffi.rs");
 }

@@ -27,6 +27,8 @@ pub(crate) enum LoggerError {
     Install,
     #[error(transparent)]
     Io(#[from] std::io::Error),
+    #[error("Invalid argument")]
+    InvalidArgument,
 }
 
 impl LogLevel {
