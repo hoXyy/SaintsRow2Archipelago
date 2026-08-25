@@ -3,3 +3,4 @@
 mod config;
 mod ffi;
 mod logger;
+mod protocol;

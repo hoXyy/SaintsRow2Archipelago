@@ -94,4 +94,20 @@ TEST(ArchipelagoProtocolTest, SerializesContextAndAcknowledgements) {
     EXPECT_TRUE(IsSessionEndMessage(R"({"type":"session_end"})"));
     EXPECT_FALSE(IsSessionEndMessage(R"({"type":"session_ready"})"));
 }
+
+TEST(ArchipelagoProtocolTest, ParsesIncomingMessageOnceWithDiagnostics) {
+    const auto item =
+        ParseIncomingMessage(R"({"type":"item","index":17,"name":"Taxi"})");
+    ASSERT_EQ(item.kind, IncomingMessageKind::Item);
+    ASSERT_TRUE(item.item);
+    EXPECT_EQ(item.item->name, "Taxi");
+
+    const auto malformed = ParseIncomingMessage("not json");
+    EXPECT_EQ(malformed.kind, IncomingMessageKind::Invalid);
+    EXPECT_FALSE(malformed.error.empty());
+
+    const auto unknown = ParseIncomingMessage(R"({"type":"future_message"})");
+    EXPECT_EQ(unknown.kind, IncomingMessageKind::Unknown);
+    EXPECT_TRUE(unknown.error.empty());
+}
 }  // namespace sr2ap

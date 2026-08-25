@@ -43,6 +43,28 @@ struct SessionReadyMessage {
     bool races{};
 };
 
+enum class IncomingMessageKind {
+    Invalid,
+    Unknown,
+    Item,
+    SaveContext,
+    SaveRevisionAcknowledgement,
+    SessionReady,
+    SessionEnd,
+};
+
+struct IncomingMessage {
+    IncomingMessageKind kind{IncomingMessageKind::Invalid};
+    std::string error;
+    std::optional<ReceivedItemMessage> item;
+    std::optional<SaveContextMessage> saveContext;
+    std::optional<SaveRevisionAcknowledgementMessage>
+        saveRevisionAcknowledgement;
+    std::optional<SessionReadyMessage> session;
+};
+
+[[nodiscard]] IncomingMessage ParseIncomingMessage(std::string_view message);
+
 [[nodiscard]] std::string SerializeProgressionEvent(
     const ProgressionEvent& event);
 [[nodiscard]] std::optional<ReceivedItemMessage> ParseReceivedItemMessage(
