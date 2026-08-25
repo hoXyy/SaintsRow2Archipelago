@@ -13,3 +13,4 @@ apworld/test/__pycache__
 .pytest_cache
 /game_plugin/rust/target/
 /game_plugin/rust/.idea
+/game_plugin/.vs

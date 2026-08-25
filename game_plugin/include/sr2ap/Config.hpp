@@ -27,7 +27,6 @@ namespace sr2ap {
         std::size_t warnings{0};
     };
 
-    ConfigLoadResult ParseConfig(std::string_view text);
     ConfigLoadResult LoadConfig(const std::filesystem::path& path);
 
 }  // namespace sr2ap

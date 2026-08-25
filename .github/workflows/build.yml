@@ -28,7 +28,7 @@ jobs:
           mkdir output/scripts
           mkdir output/Mods
           cp game_plugin/build-ci/SR2Archipelago.asi output/scripts/SR2Archipelago.asi
-          cp game_plugin/config/SR2Archipelago.ini.example output/scripts/SR2Archipelago.ini
+          cp game_plugin/config/SR2Archipelago.toml.example output/scripts/SR2Archipelago.toml
           cp -r modded_game_files/sr2ap_core_files output/Mods/sr2ap_core_files
           cp -r modded_game_files/sr2ap_seed_files output/Mods/sr2ap_seed_files
       - name: Upload artifact

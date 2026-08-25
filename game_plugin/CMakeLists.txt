@@ -32,7 +32,8 @@ if(WIN32 AND SR2AP_BUILD_RUST)
         set(SR2AP_RUST_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/rust")
         set(SR2AP_RUST_TARGET_DIR "${CMAKE_CURRENT_BINARY_DIR}/cargo-target")
         set(SR2AP_RUST_CXX_INCLUDE_DIR "${SR2AP_RUST_TARGET_DIR}/cxxbridge")
-        set(SR2AP_RUST_LOGGER_HEADER "${SR2AP_RUST_CXX_INCLUDE_DIR}/sr2ap/src/ffi/logger.rs.h")
+        set(SR2AP_RUST_LOGGER_HEADER "${SR2AP_RUST_CXX_INCLUDE_DIR}/sr2ap/src/ffi/logger_ffi.rs.h")
+        set(SR2AP_RUST_CONFIG_HEADER "${SR2AP_RUST_CXX_INCLUDE_DIR}/sr2ap/src/ffi/config_ffi.rs.h")
         set(SR2AP_RUST_CXX_RUNTIME_HEADER "${SR2AP_RUST_CXX_INCLUDE_DIR}/rust/cxx.h")
 
         file(MAKE_DIRECTORY "${SR2AP_RUST_CXX_INCLUDE_DIR}")
@@ -50,7 +51,8 @@ if(WIN32 AND SR2AP_BUILD_RUST)
         add_custom_command(
                 OUTPUT
                 "${SR2AP_RUST_LIBRARY}"
-                "${SR2AP_RUST_CXX_HEADER}"
+                "${SR2AP_RUST_LOGGER_HEADER}"
+                "${SR2AP_RUST_CONFIG_HEADER}"
                 "${SR2AP_RUST_CXX_RUNTIME_HEADER}"
                 COMMAND ${CMAKE_COMMAND} -E env
                 "CARGO_TARGET_DIR=${SR2AP_RUST_TARGET_DIR}"
@@ -75,7 +77,8 @@ if(WIN32 AND SR2AP_BUILD_RUST)
         add_custom_target(sr2ap_rust_build
                 DEPENDS
                 "${SR2AP_RUST_LIBRARY}"
-                "${SR2AP_RUST_CXX_HEADER}"
+                "${SR2AP_RUST_LOGGER_HEADER}"
+                "${SR2AP_RUST_CONFIG_HEADER}"
                 "${SR2AP_RUST_CXX_RUNTIME_HEADER}"
         )
 
@@ -124,23 +127,19 @@ else()
         )
 endif()
 
-add_library(sr2ap_inih STATIC vendor/inih/ini.c)
-target_include_directories(sr2ap_inih PUBLIC vendor/inih)
-
 add_library(sr2ap_nlohmann_json INTERFACE)
 target_include_directories(sr2ap_nlohmann_json INTERFACE vendor/nlohmann-json)
 
 add_library(sr2ap_core STATIC
-        src/Config.cpp
         src/ArchipelagoProtocol.cpp
-        src/ReaderResult.cpp
+        src/ReaderResult.cpp    
         src/CollectibleDefinitions.cpp
         src/StatusSerialization.cpp
         src/ProgressionEventTracker.cpp
         src/RevisionJournal.cpp
 )
 target_include_directories(sr2ap_core PUBLIC include)
-target_link_libraries(sr2ap_core PRIVATE sr2ap_inih sr2ap_nlohmann_json)
+target_link_libraries(sr2ap_core PRIVATE sr2ap_nlohmann_json)
 target_compile_features(sr2ap_core PUBLIC cxx_std_17)
 
 if(WIN32)
@@ -155,6 +154,7 @@ if(WIN32)
                 src/dllmain.cpp
                 src/Plugin.cpp
                 src/Logger.cpp
+                src/Config.cpp
                 src/AtomicFile.cpp
                 src/ModuleInfo.cpp
                 src/Memory.cpp
@@ -196,6 +196,29 @@ if(WIN32)
         target_compile_options(SR2Archipelago PRIVATE /W4 /permissive-)
         target_link_options(SR2Archipelago PRIVATE /INCREMENTAL:NO)
         set_target_properties(SR2Archipelago PROPERTIES PREFIX "" SUFFIX ".asi")
+
+        set_source_files_properties(
+            "${SR2AP_RUST_LOGGER_HEADER}"
+            "${SR2AP_RUST_CONFIG_HEADER}"
+            "${SR2AP_RUST_CXX_RUNTIME_HEADER}"
+            PROPERTIES
+                    GENERATED TRUE
+                    HEADER_FILE_ONLY TRUE
+        )
+
+        target_sources(SR2Archipelago PRIVATE
+                "${SR2AP_RUST_LOGGER_HEADER}"
+                "${SR2AP_RUST_CONFIG_HEADER}"
+                "${SR2AP_RUST_CXX_RUNTIME_HEADER}"
+        )
+
+        source_group(
+                "Generated Rust Headers"
+                FILES
+                        "${SR2AP_RUST_LOGGER_HEADER}"
+                        "${SR2AP_RUST_CONFIG_HEADER}"
+                        "${SR2AP_RUST_CXX_RUNTIME_HEADER}"
+        )
 endif()
 
 if(SR2AP_BUILD_TESTS)
@@ -212,7 +235,6 @@ if(SR2AP_BUILD_TESTS)
                 tests/ArchipelagoProtocolTests.cpp
                 tests/BaselineTrackerTests.cpp
                 tests/CollectibleDefinitionsTests.cpp
-                tests/ConfigTests.cpp
                 tests/HandlerActivityTests.cpp
                 tests/ProgressionEventTrackerTests.cpp
                 tests/ReaderResultTests.cpp
