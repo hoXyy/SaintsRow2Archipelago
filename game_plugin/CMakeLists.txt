@@ -84,6 +84,8 @@ if(WIN32 AND SR2AP_BUILD_RUST)
                 "${SR2AP_RUST_LIBRARY}"
                 "${SR2AP_RUST_LOGGER_HEADER}"
                 "${SR2AP_RUST_CONFIG_HEADER}"
+                "${SR2AP_RUST_PROTOCOL_HEADER}"
+                "${SR2AP_RUST_REVISION_JOURNAL_HEADER}"
                 "${SR2AP_RUST_CXX_RUNTIME_HEADER}"
         )
 
@@ -149,12 +151,12 @@ if(WIN32 AND SR2AP_BUILD_RUST)
 endif()
 
 if(WIN32)
-        add_library(sr2ap_safetyhook STATIC
-                vendor/safetyhook/safetyhook.cpp
-                vendor/safetyhook/Zydis.c
-        )
-        target_include_directories(sr2ap_safetyhook PUBLIC vendor/safetyhook)
-        target_compile_features(sr2ap_safetyhook PUBLIC cxx_std_23)
+        include(FetchContent)
+        set(SAFETYHOOK_FETCH_ZYDIS ON CACHE BOOL "" FORCE)
+        set(SAFETYHOOK_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+        FetchContent_Declare(safetyhook GIT_REPOSITORY "https://github.com/cursey/safetyhook.git" GIT_TAG v0.7.0 GIT_SHALLOW TRUE)
+        FetchContent_MakeAvailable(safetyhook)
+
 
         add_library(SR2Archipelago SHARED
                 src/dllmain.cpp
@@ -184,7 +186,7 @@ if(WIN32)
         target_include_directories(SR2Archipelago PRIVATE include)
         target_link_libraries(SR2Archipelago PRIVATE
                 sr2ap_core
-                sr2ap_safetyhook
+                safetyhook::safetyhook
                 ntdll
                 userenv
                 ws2_32
