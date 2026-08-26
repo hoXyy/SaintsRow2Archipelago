@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import json
 import os
+import pkgutil
 from pathlib import Path
 from typing import Any
 
@@ -115,8 +116,20 @@ class SR2Context(CommonContext):
     def run_gui(self):
         from kvui import GameManager
 
+        icon_path = Path(user_path("saints_row_2", "client_icon.png"))
+        icon_data = pkgutil.get_data(__package__, "icon.png")
+        if icon_data is not None:
+            icon_path.parent.mkdir(parents=True, exist_ok=True)
+            if not icon_path.exists() or icon_path.read_bytes() != icon_data:
+                icon_path.write_bytes(icon_data)
+
         class SR2Manager(GameManager):
             base_title = "Saints Row 2 Client"
+
+            def __init__(self, ctx):
+                super().__init__(ctx)
+                if icon_data is not None:
+                    self.icon = str(icon_path)
 
         self.ui = SR2Manager(self)
         self.ui_task = asyncio.create_task(self.ui.async_run(), name="UI")
