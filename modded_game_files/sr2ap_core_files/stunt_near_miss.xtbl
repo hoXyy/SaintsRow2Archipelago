@@ -6,7 +6,7 @@
 			<Category>Entries</Category>
 			</_Editor>
 		<Max_Time_Between_Misses>5</Max_Time_Between_Misses>
-		<Max_Reward>0</Max_Reward>
+		<Max_Reward>0.1</Max_Reward>
 		<Minimum_Speed>40</Minimum_Speed>
 		</Near_Miss>
 	</Table>

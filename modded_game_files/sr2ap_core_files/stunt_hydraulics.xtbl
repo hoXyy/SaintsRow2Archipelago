@@ -8,7 +8,7 @@
 		<Max_Speed>15</Max_Speed>
 		<Min_Time>1.5</Min_Time>
 		<Max_Time>20</Max_Time>
-		<Max_Reward>0</Max_Reward>
+		<Max_Reward>0.1</Max_Reward>
 		<Tolerance_Time>2</Tolerance_Time>
 		<Reward_Factors>
 			<Height_Factor>5</Height_Factor>
