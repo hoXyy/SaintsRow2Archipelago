@@ -6,7 +6,7 @@
 			<Category>Entries</Category>
 			</_Editor>
 		<Max_Reward>120</Max_Reward>
-		<Respect_Per_Second>0</Respect_Per_Second>
+		<Respect_Per_Second>0.1</Respect_Per_Second>
 		<Minimum_Time>.3</Minimum_Time>
 		<Minimum_Speed>5</Minimum_Speed>
 		<Timeout>3.0</Timeout>
