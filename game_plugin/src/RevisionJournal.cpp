@@ -1,114 +1,111 @@
 #include "sr2ap/RevisionJournal.hpp"
 
-#include <cstdio>
-#include <fstream>
-#include <json.hpp>
-#include <limits>
+#include <cstdint>
 
-using json = nlohmann::json;
+#include "rust/cxx.h"
+#include "sr2ap/src/ffi/revision_journal_ffi.rs.h"
 
 namespace sr2ap {
 namespace {
-constexpr std::uint32_t journalVersion{1};
+::rust::Slice<const std::uint8_t> Bytes(const std::string_view value) {
+    return {reinterpret_cast<const std::uint8_t*>(value.data()), value.size()};
 }
 
-std::string RevisionJournal::SessionKey(const RevisionSession& session) {
-    return session.seedName + "|" + std::to_string(session.team) + "|" +
-           std::to_string(session.slot);
+std::string ToString(const ::rust::String& value) {
+    return {value.data(), value.size()};
 }
+}  // namespace
+
+class RevisionJournal::Implementation {
+   public:
+    Implementation() : journal{rust::revision_journal_new()} {
+    }
+
+    ::rust::Box<rust::RevisionJournal> journal;
+    std::string lastError;
+};
+
+RevisionJournal::RevisionJournal()
+    : implementation_{std::make_unique<Implementation>()} {
+}
+
+RevisionJournal::~RevisionJournal() = default;
 
 bool RevisionJournal::Load(const std::filesystem::path& path) {
-    sessions_.clear();
-    std::ifstream input(path);
-    if (!input) {
-        return !std::filesystem::exists(path);
-    }
-
-    const auto document = json::parse(input, nullptr, false);
-    if (document.is_discarded() || !document.is_object() ||
-        document.value("version", std::uint32_t{}) != journalVersion ||
-        !document.contains("sessions") || !document["sessions"].is_object()) {
+    const auto& native = path.native();
+    try {
+        rust::revision_journal_load(
+            *implementation_->journal,
+            {reinterpret_cast<const std::uint16_t*>(native.data()),
+             native.size()});
+        implementation_->lastError.clear();
+        return true;
+    } catch (const ::rust::Error& error) {
+        implementation_->lastError = error.what();
         return false;
     }
-
-    for (const auto& [sessionKey, value] : document["sessions"].items()) {
-        if (!value.is_object()) {
-            return false;
-        }
-        Revisions revisions;
-        for (const auto& [checksumText, nextIndexValue] : value.items()) {
-            try {
-                std::size_t consumed{};
-                const auto checksumValue =
-                    std::stoull(checksumText, &consumed, 16);
-                if (consumed != checksumText.size() ||
-                    checksumValue > std::numeric_limits<std::uint32_t>::max() ||
-                    !nextIndexValue.is_number_unsigned()) {
-                    return false;
-                }
-                revisions.emplace(static_cast<std::uint32_t>(checksumValue),
-                                  nextIndexValue.get<std::uint64_t>());
-            } catch (const std::exception&) {
-                return false;
-            }
-        }
-        sessions_.emplace(sessionKey, std::move(revisions));
-    }
-    return true;
 }
 
 std::string RevisionJournal::Serialize() const {
-    json sessionValues = json::object();
-    for (const auto& [sessionKey, revisions] : sessions_) {
-        json revisionValues = json::object();
-        for (const auto& [checksum, nextIndex] : revisions) {
-            char checksumText[9]{};
-            std::snprintf(checksumText, sizeof(checksumText), "%08X", checksum);
-            revisionValues[checksumText] = nextIndex;
-        }
-        sessionValues[sessionKey] = std::move(revisionValues);
+    try {
+        auto serialized =
+            rust::revision_journal_serialize(*implementation_->journal);
+        implementation_->lastError.clear();
+        return ToString(serialized);
+    } catch (const ::rust::Error& error) {
+        implementation_->lastError = error.what();
+        return {};
     }
-    return json{{"version", journalVersion},
-                {"sessions", std::move(sessionValues)}}
-        .dump(2);
+}
+
+std::string_view RevisionJournal::LastError() const noexcept {
+    return implementation_->lastError;
 }
 
 void RevisionJournal::Record(const RevisionSession& session,
                              const std::uint32_t checksum,
                              const std::uint64_t nextIndex) {
-    sessions_[SessionKey(session)][checksum] = nextIndex;
+    try {
+        rust::revision_journal_record(*implementation_->journal,
+                                      Bytes(session.seedName), session.team,
+                                      session.slot, checksum, nextIndex);
+        implementation_->lastError.clear();
+    } catch (const ::rust::Error& error) {
+        implementation_->lastError = error.what();
+    }
 }
 
 bool RevisionJournal::Acknowledge(const RevisionSession& session,
                                   const std::uint32_t checksum,
                                   const std::uint64_t nextIndex) {
-    const auto sessionIt = sessions_.find(SessionKey(session));
-    if (sessionIt == sessions_.end()) {
+    try {
+        const auto acknowledged = rust::revision_journal_acknowledge(
+            *implementation_->journal, Bytes(session.seedName), session.team,
+            session.slot, checksum, nextIndex);
+        implementation_->lastError.clear();
+        return acknowledged;
+    } catch (const ::rust::Error& error) {
+        implementation_->lastError = error.what();
         return false;
     }
-    const auto revisionIt = sessionIt->second.find(checksum);
-    if (revisionIt == sessionIt->second.end() ||
-        revisionIt->second != nextIndex) {
-        return false;
-    }
-    sessionIt->second.erase(revisionIt);
-    if (sessionIt->second.empty()) {
-        sessions_.erase(sessionIt);
-    }
-    return true;
 }
 
 std::vector<SaveRevision> RevisionJournal::Pending(
     const RevisionSession& session) const {
-    std::vector<SaveRevision> result;
-    const auto sessionIt = sessions_.find(SessionKey(session));
-    if (sessionIt == sessions_.end()) {
+    try {
+        const auto pending = rust::revision_journal_pending(
+            *implementation_->journal, Bytes(session.seedName), session.team,
+            session.slot);
+        std::vector<SaveRevision> result;
+        result.reserve(pending.size());
+        for (const auto& revision : pending) {
+            result.push_back({revision.checksum, revision.next_index});
+        }
+        implementation_->lastError.clear();
         return result;
+    } catch (const ::rust::Error& error) {
+        implementation_->lastError = error.what();
+        return {};
     }
-    result.reserve(sessionIt->second.size());
-    for (const auto& [checksum, nextIndex] : sessionIt->second) {
-        result.push_back({checksum, nextIndex});
-    }
-    return result;
 }
 }  // namespace sr2ap

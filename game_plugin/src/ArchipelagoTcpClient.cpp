@@ -1,18 +1,17 @@
 #include <ws2tcpip.h>
 
-#include <json.hpp>
 #include <sr2ap/ArchipelagoTcpClient.hpp>
 #include <sr2ap/Logger.hpp>
 #include <stdexcept>
 #include <string>
 #include <utility>
 
-using json = nlohmann::json;
-
 namespace sr2ap {
 namespace {
 constexpr auto reconnectDelay = std::chrono::seconds{2};
 constexpr std::size_t maxIncomingBuffer = 64 * 1024;
+constexpr std::string_view helloMessage{
+    R"({"game":"Saints Row 2","protocol":3,"type":"hello"})"};
 
 std::runtime_error WinsockError(const std::string_view operation) {
     return std::runtime_error{std::string{operation} + " failed, WSA error=" +
@@ -82,9 +81,7 @@ void ArchipelagoTcpClient::BeginConnect() {
         result == 0) {
         state_ = State::connected;
         LogInfo("Network", "Connected to client");
-        const json message = {
-            {"type", "hello"}, {"protocol", 3}, {"game", "Saints Row 2"}};
-        SendLine(message.dump());
+        SendLine(helloMessage);
         return;
     }
 
@@ -139,9 +136,7 @@ void ArchipelagoTcpClient::PollConnecting() {
 
     state_ = State::connected;
     LogInfo("Network", "Connected to AP client");
-    const json helloMessage = {
-        {"type", "hello"}, {"protocol", 3}, {"game", "Saints Row 2"}};
-    SendLine(helloMessage.dump());
+    SendLine(helloMessage);
 }
 
 void ArchipelagoTcpClient::ProcessIncoming() {

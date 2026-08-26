@@ -2,7 +2,7 @@
 
 #include <cstdint>
 #include <filesystem>
-#include <map>
+#include <memory>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -21,8 +21,15 @@ struct SaveRevision {
 
 class RevisionJournal {
    public:
+    RevisionJournal();
+    ~RevisionJournal();
+
+    RevisionJournal(const RevisionJournal&) = delete;
+    RevisionJournal& operator=(const RevisionJournal&) = delete;
+
     [[nodiscard]] bool Load(const std::filesystem::path& path);
     [[nodiscard]] std::string Serialize() const;
+    [[nodiscard]] std::string_view LastError() const noexcept;
 
     void Record(const RevisionSession& session, std::uint32_t checksum,
                 std::uint64_t nextIndex);
@@ -33,9 +40,7 @@ class RevisionJournal {
         const RevisionSession& session) const;
 
    private:
-    using Revisions = std::map<std::uint32_t, std::uint64_t>;
-    std::map<std::string, Revisions> sessions_;
-
-    [[nodiscard]] static std::string SessionKey(const RevisionSession& session);
+    class Implementation;
+    std::unique_ptr<Implementation> implementation_;
 };
 }  // namespace sr2ap

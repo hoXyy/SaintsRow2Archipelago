@@ -45,6 +45,42 @@ TEST(RevisionJournalTest, RejectsMalformedJournal) {
     }
     RevisionJournal journal;
     EXPECT_FALSE(journal.Load(path));
+    EXPECT_FALSE(journal.LastError().empty());
+    std::filesystem::remove(path);
+}
+
+TEST(RevisionJournalTest, FailedLoadPreservesExistingState) {
+    RevisionJournal journal;
+    const RevisionSession session{"seed", 0, 1};
+    journal.Record(session, 0x12345678, 17);
+
+    const auto path = std::filesystem::temp_directory_path() /
+                      "sr2ap_transactional_revision_journal_test.json";
+    {
+        std::ofstream output(path, std::ios::trunc);
+        output << R"({"version":1,"sessions":{"seed|0|1":{"not-hex":2}}})";
+    }
+
+    EXPECT_FALSE(journal.Load(path));
+    std::filesystem::remove(path);
+    const auto pending = journal.Pending(session);
+    ASSERT_EQ(pending.size(), 1U);
+    EXPECT_EQ(pending[0].checksum, 0x12345678U);
+    EXPECT_EQ(pending[0].nextIndex, 17U);
+}
+
+TEST(RevisionJournalTest, RejectsDuplicateNormalizedChecksums) {
+    const auto path = std::filesystem::temp_directory_path() /
+                      "sr2ap_duplicate_revision_journal_test.json";
+    {
+        std::ofstream output(path, std::ios::trunc);
+        output
+            << R"({"version":1,"sessions":{"seed|0|1":{"A":1,"0000000a":2}}})";
+    }
+
+    RevisionJournal journal;
+    EXPECT_FALSE(journal.Load(path));
+    EXPECT_NE(journal.LastError().find("duplicate"), std::string_view::npos);
     std::filesystem::remove(path);
 }
 }  // namespace sr2ap

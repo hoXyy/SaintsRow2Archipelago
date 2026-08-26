@@ -101,8 +101,9 @@ class SessionRuntime {
         revisionJournalAvailable_ = revisionJournal_.Load(revisionJournalPath_);
         if (!revisionJournalAvailable_) {
             LogError("SaveRevision",
-                     "Could not load durable revision journal; AP item "
-                     "delivery disabled");
+                     "Could not load durable revision journal: " +
+                         std::string(revisionJournal_.LastError()) +
+                         "; AP item delivery disabled");
         }
     }
 
@@ -199,14 +200,18 @@ class SessionRuntime {
     }
 
     bool PersistRevisionJournal() {
-        if (ReplaceFileAtomically(revisionJournalPath_,
-                                  revisionJournal_.Serialize())) {
+        const auto serialized = revisionJournal_.Serialize();
+        if (!serialized.empty() &&
+            ReplaceFileAtomically(revisionJournalPath_, serialized)) {
             return true;
         }
         revisionJournalAvailable_ = false;
-        LogError("SaveRevision",
-                 "Could not persist durable revision journal; AP item "
-                 "delivery disabled");
+        const auto detail = revisionJournal_.LastError();
+        LogError(
+            "SaveRevision",
+            "Could not persist durable revision journal" +
+                (detail.empty() ? std::string{} : ": " + std::string(detail)) +
+                "; AP item delivery disabled");
         return false;
     }
 
