@@ -35,6 +35,8 @@ if(WIN32 AND SR2AP_BUILD_RUST)
         set(SR2AP_RUST_LOGGER_HEADER "${SR2AP_RUST_CXX_INCLUDE_DIR}/sr2ap/src/ffi/logger_ffi.rs.h")
         set(SR2AP_RUST_CONFIG_HEADER "${SR2AP_RUST_CXX_INCLUDE_DIR}/sr2ap/src/ffi/config_ffi.rs.h")
         set(SR2AP_RUST_PROTOCOL_HEADER "${SR2AP_RUST_CXX_INCLUDE_DIR}/sr2ap/src/ffi/protocol_ffi.rs.h")
+        set(SR2AP_RUST_REVISION_JOURNAL_HEADER
+                "${SR2AP_RUST_CXX_INCLUDE_DIR}/sr2ap/src/ffi/revision_journal_ffi.rs.h")
         set(SR2AP_RUST_CXX_RUNTIME_HEADER "${SR2AP_RUST_CXX_INCLUDE_DIR}/rust/cxx.h")
 
         file(MAKE_DIRECTORY "${SR2AP_RUST_CXX_INCLUDE_DIR}")
@@ -55,6 +57,7 @@ if(WIN32 AND SR2AP_BUILD_RUST)
                 "${SR2AP_RUST_LOGGER_HEADER}"
                 "${SR2AP_RUST_CONFIG_HEADER}"
                 "${SR2AP_RUST_PROTOCOL_HEADER}"
+                "${SR2AP_RUST_REVISION_JOURNAL_HEADER}"
                 "${SR2AP_RUST_CXX_RUNTIME_HEADER}"
                 COMMAND ${CMAKE_COMMAND} -E env
                 "CARGO_TARGET_DIR=${SR2AP_RUST_TARGET_DIR}"
@@ -130,9 +133,6 @@ else()
         )
 endif()
 
-add_library(sr2ap_nlohmann_json INTERFACE)
-target_include_directories(sr2ap_nlohmann_json INTERFACE vendor/nlohmann-json)
-
 add_library(sr2ap_core STATIC
         src/ArchipelagoProtocol.cpp
         src/ReaderResult.cpp    
@@ -142,7 +142,6 @@ add_library(sr2ap_core STATIC
         src/RevisionJournal.cpp
 )
 target_include_directories(sr2ap_core PUBLIC include)
-target_link_libraries(sr2ap_core PRIVATE sr2ap_nlohmann_json)
 target_compile_features(sr2ap_core PUBLIC cxx_std_17)
 if(WIN32 AND SR2AP_BUILD_RUST)
         target_link_libraries(sr2ap_core PUBLIC sr2ap_rust)
@@ -185,7 +184,6 @@ if(WIN32)
         target_include_directories(SR2Archipelago PRIVATE include)
         target_link_libraries(SR2Archipelago PRIVATE
                 sr2ap_core
-                sr2ap_nlohmann_json
                 sr2ap_safetyhook
                 ntdll
                 userenv
@@ -208,6 +206,7 @@ if(WIN32)
             "${SR2AP_RUST_LOGGER_HEADER}"
             "${SR2AP_RUST_CONFIG_HEADER}"
             "${SR2AP_RUST_PROTOCOL_HEADER}"
+            "${SR2AP_RUST_REVISION_JOURNAL_HEADER}"
             "${SR2AP_RUST_CXX_RUNTIME_HEADER}"
             PROPERTIES
                     GENERATED TRUE
@@ -218,6 +217,7 @@ if(WIN32)
                 "${SR2AP_RUST_LOGGER_HEADER}"
                 "${SR2AP_RUST_CONFIG_HEADER}"
                 "${SR2AP_RUST_PROTOCOL_HEADER}"
+                "${SR2AP_RUST_REVISION_JOURNAL_HEADER}"
                 "${SR2AP_RUST_CXX_RUNTIME_HEADER}"
         )
 
@@ -227,6 +227,7 @@ if(WIN32)
                         "${SR2AP_RUST_LOGGER_HEADER}"
                         "${SR2AP_RUST_CONFIG_HEADER}"
                         "${SR2AP_RUST_PROTOCOL_HEADER}"
+                        "${SR2AP_RUST_REVISION_JOURNAL_HEADER}"
                         "${SR2AP_RUST_CXX_RUNTIME_HEADER}"
         )
 endif()

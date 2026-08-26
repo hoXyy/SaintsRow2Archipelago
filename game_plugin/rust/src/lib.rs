@@ -4,3 +4,4 @@ mod config;
 mod ffi;
 mod logger;
 mod protocol;
+mod revision_journal;
