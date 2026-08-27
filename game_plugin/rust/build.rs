@@ -6,6 +6,7 @@ fn main() {
         "src/ffi/config_ffi.rs",
         "src/ffi/protocol_ffi.rs",
         "src/ffi/revision_journal_ffi.rs",
+        "src/ffi/tcp_client_ffi.rs",
     ])
     .std("c++17")
     .cpp(true)
@@ -15,4 +16,5 @@ fn main() {
     println!("cargo::rerun-if-changed=src/ffi/config_ffi.rs");
     println!("cargo::rerun-if-changed=src/ffi/protocol_ffi.rs");
     println!("cargo::rerun-if-changed=src/ffi/revision_journal_ffi.rs");
+    println!("cargo::rerun-if-changed=src/ffi/tcp_client_ffi.rs");
 }
