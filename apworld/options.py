@@ -32,16 +32,16 @@ class IncludeSecretMission(Toggle):
     Whether to include the secret Ultor mission in the locations list.
     """
 
-    display_name = "Include secret Ultor mission"
+    display_name = "Include the Ultor mission 'Revelation'"
     default = 0
 
 
 class IncludeSecretMissionAsGoal(Toggle):
     """
-    Whether to include the secret Ultor mission as part of the completion goal.
+    Whether to include the Ultor mission 'Revelation' as part of the completion goal.
     """
 
-    display_name = "Include secret Ultor mission as goal"
+    display_name = "Include completing the Ultor mission 'Revelation' as a goal"
     default = 0
 
 
@@ -217,6 +217,18 @@ class BonusRespectPercentage(Range):
     default = 15
 
 
+class StyleLevelLocationCount(Range):
+    """
+    Amount of player style level locations to include.
+    """
+
+    display_name = "Style Level Location Count"
+    range_start = 0
+    range_end = 10
+
+    default = 10
+
+
 @dataclass
 class SR2Options(PerGameCommonOptions):
     required_gang_arcs: RequiredGangArcs
@@ -240,14 +252,16 @@ class SR2Options(PerGameCommonOptions):
     include_races: IncludeRaces
     trap_chance: TrapChance
     bonus_respect_percentage: BonusRespectPercentage
+    style_level_location_count: StyleLevelLocationCount
 
 
 option_groups = [
     OptionGroup("Goal Options", [RequiredGangArcs, IncludeSecretMissionAsGoal]),
-    OptionGroup("Extra Mission Location Options", [IncludeSecretMission]),
     OptionGroup(
-        "Activities Location Options",
+        "Location Options",
         [
+            StyleLevelLocationCount,
+            IncludeSecretMission,
             IncludeCrowdControl,
             IncludeChopShop,
             IncludeDemoDerby,
@@ -263,11 +277,6 @@ option_groups = [
             IncludeSewage,
             IncludeSnatch,
             IncludeTorch,
-        ],
-    ),
-    OptionGroup(
-        "Collectibles Location Options",
-        [
             IncludeCDs,
         ],
     ),

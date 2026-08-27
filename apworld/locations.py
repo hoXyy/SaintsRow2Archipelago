@@ -35,7 +35,7 @@ from .options import (
     BROTHERHOOD_ARC_NAME,
     ULTOR_EPILOGUE_ARC_NAME,
 )
-from .collectibles import CD_MAPPING, CD_IDS
+from .collectibles import CD_MAPPING, CD_IDS, STYLE_LEVEL_IDS, STYLE_LEVEL_LOCATIONS
 
 from .items import SR2Item
 
@@ -60,6 +60,7 @@ def create_locations(world: SR2World) -> None:
     create_mission_locations(world)
     create_activities_location(world)
     create_collectible_locations(world)
+    create_style_level_locations(world)
 
 
 def create_mission_locations(world: SR2World) -> None:
@@ -209,6 +210,23 @@ def create_collectible_locations(world: SR2World) -> None:
             )
 
 
+def create_style_level_locations(world: SR2World) -> None:
+    region = world.get_region("Stilwater")
+
+    for location in STYLE_LEVEL_LOCATIONS[
+        : world.options.style_level_location_count.value
+    ]:
+        region.locations.append(
+            SR2Location(
+                world.player,
+                location,
+                STYLE_LEVEL_IDS[location],
+                region,
+                respect_safe=True,
+            )
+        )
+
+
 def add_check_with_completion_event(
     world: SR2World, region: Region, mission: Mission | Stronghold
 ) -> None:
@@ -257,6 +275,7 @@ def generate_location_name_to_id() -> dict[str, int]:
         **mission_locations,
         **ACTIVITY_LEVEL_IDS,
         **CD_IDS,
+        **STYLE_LEVEL_IDS,
     }
 
 

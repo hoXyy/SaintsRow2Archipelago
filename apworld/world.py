@@ -147,5 +147,6 @@ class SR2World(World):
                 "chop_shop": bool(self.options.include_chop_shop.value),
                 "cds": bool(self.options.include_cds.value),
                 "races": bool(self.options.include_races.value),
+                "style_level": self.options.style_level_location_count > 0,
             },
         }

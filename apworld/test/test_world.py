@@ -39,6 +39,7 @@ class TestSlotData(SR2TestBase):
             "chop_shop": True,
             "hitman": True,
             "races": True,
+            "style_level": True,
         }
 
         self.assertEqual(slot_enabled_progression, expected_enabled_progression)
@@ -56,6 +57,7 @@ class TestSlotData(SR2TestBase):
             "chop_shop": True,
             "hitman": True,
             "races": True,
+            "style_level": True,
         }
 
         self.assertEqual(slot_enabled_progression, expected_enabled_progression)
@@ -73,6 +75,7 @@ class TestSlotData(SR2TestBase):
             "chop_shop": True,
             "hitman": True,
             "races": False,
+            "style_level": True,
         }
 
         self.assertEqual(slot_enabled_progression, expected_enabled_progression)
@@ -90,6 +93,7 @@ class TestSlotData(SR2TestBase):
             "chop_shop": False,
             "hitman": True,
             "races": True,
+            "style_level": True,
         }
 
         self.assertEqual(slot_enabled_progression, expected_enabled_progression)
@@ -107,6 +111,7 @@ class TestSlotData(SR2TestBase):
             "chop_shop": True,
             "hitman": False,
             "races": True,
+            "style_level": True,
         }
 
         self.assertEqual(slot_enabled_progression, expected_enabled_progression)
@@ -137,6 +142,25 @@ class TestSlotData(SR2TestBase):
             "chop_shop": True,
             "hitman": True,
             "races": True,
+            "style_level": True,
+        }
+
+        self.assertEqual(slot_enabled_progression, expected_enabled_progression)
+
+    def test_enabled_progression_no_style(self) -> None:
+        self.options = {"style_level_location_count": 0}
+        self.world_setup()
+        slot_data = self.world.fill_slot_data()
+        slot_enabled_progression = slot_data["enabled_progression"]
+
+        expected_enabled_progression = {
+            "missions": True,
+            "activities": True,
+            "cds": True,
+            "chop_shop": True,
+            "hitman": True,
+            "races": True,
+            "style_level": False,
         }
 
         self.assertEqual(slot_enabled_progression, expected_enabled_progression)
