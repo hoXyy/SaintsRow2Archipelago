@@ -10,7 +10,8 @@ enum class ProgressionKind {
     Mission,
     Activity,
     Racing,
-    Cd
+    Cd,
+    StyleLevel
 };
 
 struct ProgressionEvent {

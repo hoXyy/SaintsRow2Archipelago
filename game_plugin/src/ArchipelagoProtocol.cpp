@@ -38,6 +38,8 @@ std::uint8_t ToWireKind(const ProgressionKind kind) noexcept {
             return 4;
         case ProgressionKind::Cd:
             return 5;
+        case ProgressionKind::StyleLevel:
+            return 6;
     }
     return 0xFF;
 }
@@ -89,6 +91,7 @@ IncomingMessage ParseIncomingMessage(const std::string_view message) {
                 parsed.chop_shop,
                 parsed.cds,
                 parsed.races,
+                parsed.style_level,
             };
             break;
         case rust::IncomingMessageKind::SessionEnd:

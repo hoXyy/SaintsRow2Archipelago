@@ -298,13 +298,47 @@ bool ProgressionMonitor::UpdateCds(const CdSnapshot& snapshot) {
     return true;
 }
 
+bool ProgressionMonitor::UpdateStyleLevel(const StyleLevelSnapshot& snapshot) {
+    const auto eventUpdate = eventTracker_.Observe(snapshot);
+    if (snapshot.result != ReaderResult::Success) {
+        return HandleUnavailable(styleLevel_, snapshot.result,
+                                 lastStyleLevelResult_, "StyleLevel");
+    }
+
+    constexpr auto key = "player";
+    const auto update = styleLevel_.Observe({{key, snapshot.displayedLevel}});
+    if (update.kind == BaselineUpdateKind::Created) {
+        LogInfo("StyleLevel", "Baseline created: stored_level=" +
+                                  std::to_string(snapshot.storedLevel) +
+                                  " displayed_level=" +
+                                  std::to_string(snapshot.displayedLevel) +
+                                  " points=" + std::to_string(snapshot.points));
+    }
+    for (const auto& change : update.changes) {
+        const auto message =
+            "Level changed: " + std::to_string(change.previous) + " -> " +
+            std::to_string(change.current) +
+            " points=" + std::to_string(snapshot.points);
+        if (change.current > change.previous) {
+            LogInfo("StyleLevel", message);
+        } else {
+            LogWarning("StyleLevel", message);
+        }
+    }
+    for (const auto& event : eventUpdate.events) {
+        Emit(event);
+    }
+    lastStyleLevelResult_ = ReaderResult::Success;
+    return update.kind != BaselineUpdateKind::Unchanged;
+}
+
 void ProgressionMonitor::Poll() {
     const auto snapshot = GetProgressionSnapshot();
     const bool changed =
         UpdateHitman(snapshot.hitman) | UpdateChopShop(snapshot.chopShop) |
         UpdateMissions(snapshot.missions) |
         UpdateActivities(snapshot.activities) | UpdateRacing(snapshot.racing) |
-        UpdateCds(snapshot.cds);
+        UpdateCds(snapshot.cds) | UpdateStyleLevel(snapshot.styleLevel);
     if (changed && writeStatusFile_ &&
         !WriteProgressionStatus(statusPath_, snapshot)) {
         LogWarning("Status", "Unable to replace diagnostic status file");

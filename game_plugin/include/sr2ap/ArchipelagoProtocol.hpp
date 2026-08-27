@@ -41,6 +41,7 @@ struct SessionReadyMessage {
     bool chopShop{};
     bool cds{};
     bool races{};
+    bool styleLevel{};
 };
 
 enum class IncomingMessageKind {

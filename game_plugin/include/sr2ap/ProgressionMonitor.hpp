@@ -31,6 +31,7 @@ class ProgressionMonitor {
     bool UpdateActivities(const ActivitySnapshot& snapshot);
     bool UpdateRacing(const RacingSnapshot& snapshot);
     bool UpdateCds(const CdSnapshot& snapshot);
+    bool UpdateStyleLevel(const StyleLevelSnapshot& snapshot);
     void Emit(const ProgressionEvent& event) const;
 
     std::filesystem::path statusPath_;
@@ -44,6 +45,7 @@ class ProgressionMonitor {
     BaselineTracker<std::string_view, RacingMedal> racing_;
     std::unordered_set<std::uint32_t> cdBaseline_;
     bool cdBaselineValid_{};
+    BaselineTracker<std::string, std::uint32_t> styleLevel_;
     HitmanReadResult lastHitmanResult_{HitmanReadResult::ReaderUnavailable};
     ChopShopReadResult lastChopShopResult_{
         ChopShopReadResult::ReaderUnavailable};
@@ -52,5 +54,6 @@ class ProgressionMonitor {
         ActivityReadResult::ReaderUnavailable};
     ReaderResult lastRacingResult_{ReaderResult::ReaderUnavailable};
     CdReadResult lastCdResult_{CdReadResult::ReaderUnavailable};
+    ReaderResult lastStyleLevelResult_{ReaderResult::ReaderUnavailable};
 };
 }  // namespace sr2ap

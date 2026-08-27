@@ -22,6 +22,7 @@ class ProgressionEventTracker {
     ProgressionUpdate Observe(const ActivitySnapshot& snapshot);
     ProgressionUpdate Observe(const RacingSnapshot& snapshot);
     ProgressionUpdate Observe(const CdSnapshot& snapshot);
+    ProgressionUpdate Observe(const StyleLevelSnapshot& snapshot);
 
    private:
     BaselineTracker<std::string, bool> hitman_;
@@ -31,5 +32,6 @@ class ProgressionEventTracker {
     BaselineTracker<std::string_view, RacingMedal> racing_;
     std::unordered_set<std::uint32_t> cds_;
     bool cdsValid_{};
+    BaselineTracker<std::string, std::uint32_t> styleLevel_;
 };
 }  // namespace sr2ap

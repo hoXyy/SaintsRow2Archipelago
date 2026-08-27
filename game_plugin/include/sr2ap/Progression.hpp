@@ -6,6 +6,7 @@
 #include "sr2ap/Hitman.hpp"
 #include "sr2ap/Missions.hpp"
 #include "sr2ap/Racing.hpp"
+#include "sr2ap/StyleLevel.hpp"
 
 namespace sr2ap {
 struct ProgressionSnapshot {
@@ -15,6 +16,7 @@ struct ProgressionSnapshot {
     ActivitySnapshot activities;
     RacingSnapshot racing;
     CdSnapshot cds;
+    StyleLevelSnapshot styleLevel;
 };
 
 ProgressionSnapshot GetProgressionSnapshot();

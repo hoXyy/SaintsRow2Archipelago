@@ -96,4 +96,32 @@ TEST(ProgressionEventTrackerTest,
     EXPECT_TRUE(tracker.Observe(CdSnapshot{ReaderResult::Success, 50, {}})
                     .events.empty());
 }
+
+TEST(ProgressionEventTrackerTest,
+     StyleLevelEmitsBaselineChangesAndRecoversAfterLoading) {
+    ProgressionEventTracker tracker;
+    StyleLevelSnapshot snapshot{ReaderResult::Success, 2, 3, 500};
+
+    const auto baseline = tracker.Observe(snapshot);
+    ASSERT_EQ(baseline.events.size(), 1U);
+    EXPECT_EQ(baseline.events.front().kind, ProgressionKind::StyleLevel);
+    EXPECT_EQ(baseline.events.front().key, "player");
+    EXPECT_EQ(baseline.events.front().previous, 0U);
+    EXPECT_EQ(baseline.events.front().current, 3U);
+    EXPECT_TRUE(tracker.Observe(snapshot).events.empty());
+
+    snapshot.storedLevel = 3;
+    snapshot.displayedLevel = 4;
+    const auto changed = tracker.Observe(snapshot);
+    ASSERT_EQ(changed.events.size(), 1U);
+    EXPECT_EQ(changed.events.front().previous, 3U);
+    EXPECT_EQ(changed.events.front().current, 4U);
+
+    snapshot.result = ReaderResult::GameNotReady;
+    EXPECT_EQ(tracker.Observe(snapshot).kind, BaselineUpdateKind::Invalidated);
+    snapshot.result = ReaderResult::Success;
+    const auto recovered = tracker.Observe(snapshot);
+    ASSERT_EQ(recovered.events.size(), 1U);
+    EXPECT_EQ(recovered.events.front().current, 4U);
+}
 }  // namespace sr2ap

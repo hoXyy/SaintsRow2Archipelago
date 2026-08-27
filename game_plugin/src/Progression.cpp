@@ -2,8 +2,9 @@
 
 namespace sr2ap {
 ProgressionSnapshot GetProgressionSnapshot() {
-    return {GetHitmanSnapshot(),   GetChopShopSnapshot(), GetMissionSnapshot(),
-            GetActivitySnapshot(), GetRacingSnapshot(),   GetCdSnapshot()};
+    return {GetHitmanSnapshot(),    GetChopShopSnapshot(), GetMissionSnapshot(),
+            GetActivitySnapshot(),  GetRacingSnapshot(),   GetCdSnapshot(),
+            GetStyleLevelSnapshot()};
 }
 
 void LogProgressionSnapshot(const ProgressionSnapshot& snapshot, bool full) {
@@ -13,5 +14,6 @@ void LogProgressionSnapshot(const ProgressionSnapshot& snapshot, bool full) {
     LogActivitySnapshot(snapshot.activities, full);
     LogRacingSnapshot(snapshot.racing, full);
     LogCdSnapshot(snapshot.cds, full);
+    LogStyleLevelSnapshot(snapshot.styleLevel, full);
 }
 }  // namespace sr2ap

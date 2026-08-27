@@ -515,6 +515,8 @@ class SessionRuntime {
                 return sessionConfiguration_->cds;
             case ProgressionKind::Racing:
                 return sessionConfiguration_->races;
+            case ProgressionKind::StyleLevel:
+                return sessionConfiguration_->styleLevel;
         }
         return false;
     }
