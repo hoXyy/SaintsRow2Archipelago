@@ -27,6 +27,8 @@ The current location checks are:
     - each vehicle/target for Chop Shop/Hitman
     - each medal for Races
 - CDs
+- Style Level
+    - one location for each level
 
 The items in the pool are:
 - Respect and Bonus Respect
@@ -129,8 +131,7 @@ Open an **x86 Native Tools Command Prompt for VS**. Navigate to the `game_plugin
 
 - More checks:
     - other collectibles like tags and stunt jumps
-    - style level
-    - buyable items in liquid stores and fast food places?
+    - buyable items in liquor stores and fast food places?
 - In-game AP indicators ([ImGui](https://github.com/ocornut/imgui)-based?)
 - Better progression balancing
 - Deathlink
