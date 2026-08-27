@@ -13,10 +13,10 @@ bool WriteProgressionStatus(const std::filesystem::path& path,
                             const ChopShopSnapshot& chopShop,
                             const MissionSnapshot& missions,
                             const ActivitySnapshot& activities,
-                            const RacingSnapshot& racing,
-                            const CdSnapshot& cds) {
+                            const RacingSnapshot& racing, const CdSnapshot& cds,
+                            const StyleLevelSnapshot& styleLevel) {
     return ReplaceFileAtomically(
         path, SerializeProgressionStatus(hitman, chopShop, missions, activities,
-                                         racing, cds));
+                                         racing, cds, styleLevel));
 }
 }  // namespace sr2ap

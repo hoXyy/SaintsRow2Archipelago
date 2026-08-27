@@ -158,4 +158,25 @@ ProgressionUpdate ProgressionEventTracker::Observe(const CdSnapshot& snapshot) {
     }
     return update;
 }
+
+ProgressionUpdate ProgressionEventTracker::Observe(
+    const StyleLevelSnapshot& snapshot) {
+    if (snapshot.result != ReaderResult::Success) {
+        return InvalidateUnlessSuccessful(snapshot.result, styleLevel_);
+    }
+
+    constexpr auto key = "player";
+    const auto update = styleLevel_.Observe({{key, snapshot.displayedLevel}});
+    ProgressionUpdate result{update.kind, {}};
+    if (update.kind == BaselineUpdateKind::Created ||
+        update.kind == BaselineUpdateKind::IdentityChanged) {
+        result.events.push_back(
+            {ProgressionKind::StyleLevel, key, 0, snapshot.displayedLevel});
+    }
+    for (const auto& change : update.changes) {
+        result.events.push_back({ProgressionKind::StyleLevel, change.key,
+                                 change.previous, change.current});
+    }
+    return result;
+}
 }  // namespace sr2ap

@@ -41,6 +41,7 @@ pub struct IncomingMessage {
     pub chop_shop: bool,
     pub cds: bool,
     pub races: bool,
+    pub style_level: bool,
 }
 
 #[derive(Deserialize)]
@@ -89,6 +90,8 @@ struct EnabledProgression {
     chop_shop: bool,
     cds: bool,
     races: bool,
+    #[serde(default)]
+    style_level: bool,
 }
 
 #[derive(Deserialize)]
@@ -210,6 +213,7 @@ pub fn parse_incoming(input: &[u8]) -> IncomingMessage {
                     chop_shop: session.enabled_progression.chop_shop,
                     cds: session.enabled_progression.cds,
                     races: session.enabled_progression.races,
+                    style_level: session.enabled_progression.style_level,
                     ..IncomingMessage::default()
                 }
             }
@@ -244,6 +248,7 @@ pub fn serialize_progression_event(kind: u8, key: &str, previous: u32, current: 
         3 => "activity",
         4 => "racing",
         5 => "cd",
+        6 => "style_level",
         _ => "unknown",
     };
     serde_json::to_string(&ProgressionEvent {

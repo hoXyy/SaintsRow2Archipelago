@@ -35,6 +35,7 @@ pub(crate) mod bridge {
         chop_shop: bool,
         cds: bool,
         races: bool,
+        style_level: bool,
     }
 
     extern "Rust" {
@@ -93,6 +94,7 @@ fn protocol_parse_incoming(message: &[u8]) -> bridge::IncomingMessage {
         chop_shop: message.chop_shop,
         cds: message.cds,
         races: message.races,
+        style_level: message.style_level,
     }
 }
 

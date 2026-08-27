@@ -180,6 +180,7 @@ if(WIN32)
                 src/Cheats.cpp
                 src/Notoriety.cpp
                 src/Respect.cpp
+                src/StyleLevel.cpp
                 src/SaveRevisionMonitor.cpp
                 src/Unlockables.cpp
         )

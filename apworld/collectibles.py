@@ -54,3 +54,7 @@ CD_MAPPING: dict[str, str] = {
 CD_IDS = {
     **{name: 500 + i for i, name in enumerate(CD_MAPPING.values())},
 }
+
+STYLE_LEVEL_LOCATIONS = [f"Style Level - Level {i + 1}" for i in range(10)]
+
+STYLE_LEVEL_IDS = {**{name: 600 + i for i, name in enumerate(STYLE_LEVEL_LOCATIONS)}}

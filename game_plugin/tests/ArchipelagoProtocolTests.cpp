@@ -55,6 +55,15 @@ TEST(ArchipelagoProtocolTest,
     EXPECT_FALSE(session->chopShop);
     EXPECT_TRUE(session->cds);
     EXPECT_TRUE(session->races);
+    EXPECT_FALSE(session->styleLevel);
+
+    const auto withStyle = ParseSessionReadyMessage(R"({
+          "type":"session_ready","protocol":3,"seed_name":"seed","team":1,"slot":2,
+          "managed_unlockables":[],"managed_cheats":[],
+          "features":{"exclusive_respect":false,"block_vanilla_unlockables":false,"notoriety_traps":false},
+          "enabled_progression":{"missions":false,"activities":false,"hitman":false,"chop_shop":false,"cds":false,"races":false,"style_level":true}})");
+    ASSERT_TRUE(withStyle);
+    EXPECT_TRUE(withStyle->styleLevel);
 }
 
 TEST(ArchipelagoProtocolTest, RejectsIncompleteOrOversizedSessions) {
@@ -73,7 +82,8 @@ TEST(ArchipelagoProtocolTest, SerializesEveryProgressionCategory) {
         {ProgressionKind::Mission, "mission"},
         {ProgressionKind::Activity, "activity"},
         {ProgressionKind::Racing, "racing"},
-        {ProgressionKind::Cd, "cd"}};
+        {ProgressionKind::Cd, "cd"},
+        {ProgressionKind::StyleLevel, "style_level"}};
     for (const auto& [kind, category] : cases) {
         const auto json = SerializeProgressionEvent({kind, "key", 1, 3});
         EXPECT_NE(json.find(std::string{"\"category\":\""} + category + '"'),

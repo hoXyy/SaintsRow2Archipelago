@@ -4,13 +4,15 @@
 #include <unordered_set>
 #include <vector>
 
+#include "sr2ap/Addresses.hpp"
 #include "sr2ap/Status.hpp"
 
 namespace sr2ap {
 std::string SerializeProgressionStatus(const ProgressionSnapshot& snapshot) {
     return SerializeProgressionStatus(snapshot.hitman, snapshot.chopShop,
                                       snapshot.missions, snapshot.activities,
-                                      snapshot.racing, snapshot.cds);
+                                      snapshot.racing, snapshot.cds,
+                                      snapshot.styleLevel);
 }
 
 std::string SerializeProgressionStatus(const HitmanSnapshot& hitman,
@@ -18,7 +20,8 @@ std::string SerializeProgressionStatus(const HitmanSnapshot& hitman,
                                        const MissionSnapshot& missions,
                                        const ActivitySnapshot& activities,
                                        const RacingSnapshot& racing,
-                                       const CdSnapshot& cds) {
+                                       const CdSnapshot& cds,
+                                       const StyleLevelSnapshot& styleLevel) {
     std::ostringstream output;
     const auto hitmanComplete =
         std::count_if(hitman.targets.begin(), hitman.targets.end(),
@@ -119,6 +122,23 @@ std::string SerializeProgressionStatus(const HitmanSnapshot& hitman,
             output << definition->districtKey << '='
                    << (collected.count(definition->id) ? 1 : 0) << '\n';
         }
+    }
+
+    output << "\n[style_level]\nresult=" << ToString(styleLevel.result);
+    if (styleLevel.result == ReaderResult::Success) {
+        output << "\nstored_level=" << styleLevel.storedLevel
+               << "\ndisplayed_level=" << styleLevel.displayedLevel
+               << "\npoints=" << styleLevel.points
+               << "\ncurrent_minimum=" << styleLevel.currentMinimumPoints
+               << "\nnext_minimum=";
+        if (styleLevel.storedLevel + 1 < addresses::kExpectedStyleLevelCount) {
+            output << styleLevel.nextMinimumPoints;
+        } else {
+            output << "none";
+        }
+        output << "\nrespect_bonus=" << styleLevel.respectBonus << '\n';
+    } else {
+        output << '\n';
     }
     return output.str();
 }

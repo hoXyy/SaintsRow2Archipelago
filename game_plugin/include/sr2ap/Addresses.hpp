@@ -74,6 +74,15 @@ inline constexpr std::ptrdiff_t kNotorietySetRva = 0x0015F870;
 
 inline constexpr std::ptrdiff_t kPlayerGlobalRva = 0x01D703D4;
 inline constexpr std::size_t kPlayerRespectOffset = 0x1200;
+inline constexpr std::size_t kPlayerStyleLevelOffset = 0x1204;
+inline constexpr std::size_t kPlayerStylePointsOffset = 0x1208;
+inline constexpr std::ptrdiff_t kStyleLevelTableRva = 0x02129760;
+inline constexpr std::ptrdiff_t kStyleLevelCountRva = 0x02129764;
+inline constexpr std::size_t kStyleLevelEntryStride = 0x08;
+inline constexpr std::size_t kStyleLevelMinimumPointsOffset = 0x00;
+inline constexpr std::size_t kStyleLevelRespectBonusOffset = 0x04;
+// Ten XTable rows follow a zeroed level-zero entry created by the loader.
+inline constexpr std::uint32_t kExpectedStyleLevelCount = 11;
 // shamefully stolen from Juiced Patch
 inline constexpr std::ptrdiff_t kGameLoadedRva = 0x00A94D3E;
 inline constexpr std::ptrdiff_t kMenuStateRva = 0x00ABE860;

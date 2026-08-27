@@ -17,9 +17,11 @@ TEST(StatusSerializationTest, SerializesCountsFlagsAndSuccessfulEntries) {
         {{"car_pj", 13, 0x0EBCD323, RacingMedal::Gold, 81.994F, 0}}};
     const CdSnapshot cds{
         ReaderResult::Success, 50, {GetCdDefinitions().front().id}};
+    const StyleLevelSnapshot styleLevel{
+        ReaderResult::Success, 2, 3, 500, 250, 1000, 0.15F};
 
-    const auto text = SerializeProgressionStatus(hitman, chopShop, missions,
-                                                 activities, racing, cds);
+    const auto text = SerializeProgressionStatus(
+        hitman, chopShop, missions, activities, racing, cds, styleLevel);
     EXPECT_NE(text.find("target_count=2\ncomplete_count=1"), std::string::npos);
     EXPECT_NE(text.find("hit_a=1\nhit_b=0"), std::string::npos);
     EXPECT_NE(text.find("vehicle_count=1\nretrieved_count=1"),
@@ -33,12 +35,16 @@ TEST(StatusSerializationTest, SerializesCountsFlagsAndSuccessfulEntries) {
     EXPECT_NE(
         text.find(std::string{GetCdDefinitions().front().districtKey} + "=1"),
         std::string::npos);
+    EXPECT_NE(text.find("[style_level]\nresult=success\nstored_level=2\n"
+                        "displayed_level=3\npoints=500"),
+              std::string::npos);
 }
 
 TEST(StatusSerializationTest, HidesEntriesWhenReaderIsUnavailable) {
     const HitmanSnapshot hitman{ReaderResult::GameNotReady,
                                 {{"must_not_appear", 1, 1, true}}};
-    const auto text = SerializeProgressionStatus(hitman, {}, {}, {}, {}, {});
+    const auto text =
+        SerializeProgressionStatus(hitman, {}, {}, {}, {}, {}, {});
     EXPECT_NE(text.find("game_ready=0"), std::string::npos);
     EXPECT_NE(text.find("result=game_not_ready"), std::string::npos);
     EXPECT_EQ(text.find("must_not_appear="), std::string::npos);
@@ -46,7 +52,7 @@ TEST(StatusSerializationTest, HidesEntriesWhenReaderIsUnavailable) {
 
 TEST(StatusSerializationTest, EmitsCdDefinitionsInStableAlphabeticalOrder) {
     CdSnapshot cds{ReaderResult::Success, 50, {}};
-    const auto text = SerializeProgressionStatus({}, {}, {}, {}, {}, cds);
+    const auto text = SerializeProgressionStatus({}, {}, {}, {}, {}, cds, {});
     EXPECT_LT(text.find("adept_way_1="), text.find("amberbrook_1="));
     EXPECT_LT(text.find("amberbrook_1="), text.find("athos_bay_1="));
 }
