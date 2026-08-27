@@ -82,7 +82,7 @@ StyleLevelSnapshot GetStyleLevelSnapshot() {
         }
     }
 
-    snapshot.displayedLevel = snapshot.storedLevel + 1;
+    snapshot.displayedLevel = snapshot.storedLevel;
     snapshot.result = ReaderResult::Success;
     return snapshot;
 }
