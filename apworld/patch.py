@@ -6,6 +6,7 @@ from typing import Set, TYPE_CHECKING
 import xml.etree.ElementTree as XmlTree
 import zipfile
 from importlib.resources import files
+import bsdiff4
 
 from worlds.Files import APPlayerContainer
 import Utils
@@ -28,8 +29,8 @@ MISSION_GLOBALS_LUA_FILE_NAME = "mission_globals.lua"
 VANILLA_MISSION_GLOBALS_LUA_FILE = GAME_FILES_DIR.joinpath(
     MISSION_GLOBALS_LUA_FILE_NAME
 )
-MODIFIED_MISSION_GLOBALS_LUA_FILE = GAME_FILES_DIR.joinpath(
-    "mission_globals_no_bh01_call.lua"
+MODIFIED_MISSION_GLOBALS_PATCH_FILE = GAME_FILES_DIR.joinpath(
+    "mission_globals_no_bh01_call.patch"
 )
 
 PATCHED_FILES_OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "patched_game_files")
@@ -89,14 +90,10 @@ class SR2PatchContainer(APPlayerContainer):
 def generate_patched_game_files(world: "SR2World", output_directory: str) -> None:
     enabled_arcs = world.options.required_gang_arcs.value
     curr_timestamp = datetime.strftime(datetime.now(UTC), "%d%b%Y-%H%M%S")
-    missions_globals_file_path = (
-        MODIFIED_MISSION_GLOBALS_LUA_FILE
-        if not BROTHERHOOD_ARC_NAME in enabled_arcs
-        else VANILLA_MISSION_GLOBALS_LUA_FILE
-    )
 
-    missions_global_file_content = missions_globals_file_path.read_text(
-        encoding="utf-8"
+    missions_global_file_content = VANILLA_MISSION_GLOBALS_LUA_FILE.read_bytes()
+    patched_missions_global_file_content = bsdiff4.patch(
+        missions_global_file_content, MODIFIED_MISSION_GLOBALS_PATCH_FILE.read_bytes()
     )
 
     patch_file_name = (
@@ -112,7 +109,11 @@ def generate_patched_game_files(world: "SR2World", output_directory: str) -> Non
 
     patch_files = {
         MISSIONS_TABLE_FILE_NAME: generate_patched_mission_chains_file(enabled_arcs),
-        MISSION_GLOBALS_LUA_FILE_NAME: missions_global_file_content,  # this file needs to be included even if it's unmodified in case someone has a modified version installed already
+        MISSION_GLOBALS_LUA_FILE_NAME: (
+            patched_missions_global_file_content
+            if not BROTHERHOOD_ARC_NAME in enabled_arcs
+            else missions_global_file_content
+        ),  # this file needs to be included even if it's unmodified in case someone has a modified version installed already
     }
 
     for language in TEXT_LANGUAGES:
