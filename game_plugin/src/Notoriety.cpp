@@ -6,6 +6,7 @@
 #include <string>
 
 #include "sr2ap/Addresses.hpp"
+#include "sr2ap/Cheats.hpp"
 #include "sr2ap/Logger.hpp"
 #include "sr2ap/Memory.hpp"
 #include "sr2ap/ModuleInfo.hpp"
@@ -24,6 +25,7 @@ constexpr std::array<NotorietyTrap, 4> supportedTraps{{
     {"Trap: Max Samedi Notoriety", 2},
 }};
 constexpr float maximumNotorietyLevel{5.0F};
+constexpr float noNotoriety{0.0F};
 
 const NotorietyTrap* FindTrap(const std::string_view itemName) {
     const auto found = std::find_if(
@@ -62,7 +64,8 @@ struct NotorietyController::Implementation {
         setAddress = 0;
     }
 
-    bool ActivateReceivedItem(const std::string_view itemName) const {
+    bool ActivateReceivedItem(const std::string_view itemName,
+                              CheatController& gameThreadDispatcher) const {
         const auto* const trap = FindTrap(itemName);
         if (!trap) {
             return false;
@@ -76,13 +79,44 @@ struct NotorietyController::Implementation {
             return false;
         }
 
-        const auto setNotoriety =
-            reinterpret_cast<void(__cdecl*)(int, float)>(setAddress);
-        setNotoriety(trap->faction_id, maximumNotorietyLevel);
-        LogInfo("Notoriety", "Activated trap item=" + std::string{itemName} +
-                                 " faction=" +
-                                 std::to_string(trap->faction_id) + " level=5");
-        return true;
+        const auto nativeSetAddress = setAddress;
+        const int factionId = trap->faction_id;
+        const bool isPolice = factionId == 3;
+        std::string ownedItemName{itemName};
+
+        const bool queued = gameThreadDispatcher.DispatchOnGameThread(
+            [nativeSetAddress, factionId, isPolice,
+             itemName = std::move(ownedItemName)] {
+                const auto setNotoriety =
+                    reinterpret_cast<void(__cdecl*)(int, float)>(
+                        nativeSetAddress);
+
+                // trap doesn't work if the player already has notoriety, so
+                // need to set
+                // it to 0 before setting it to max for police just need to set
+                // the police notoriety to 0, but for a gang need to set all
+                // gang notoriety to 0 first
+                if (isPolice) {
+                    setNotoriety(factionId, noNotoriety);
+                } else {
+                    setNotoriety(0, noNotoriety);
+                    setNotoriety(1, noNotoriety);
+                    setNotoriety(2, noNotoriety);
+                }
+
+                setNotoriety(factionId, maximumNotorietyLevel);
+
+                LogInfo("Notoriety",
+                        "Activated trap item=" + itemName + " faction=" +
+                            std::to_string(factionId) + " level=5");
+            });
+
+        if (!queued) {
+            LogWarning("Notoriety", "Unable to queue trap for game thread: " +
+                                        std::string{itemName});
+        }
+
+        return queued;
     }
 
     std::uintptr_t setAddress{};
@@ -106,7 +140,9 @@ void NotorietyController::Remove() {
 }
 
 bool NotorietyController::ActivateReceivedItem(
-    const std::string_view itemName) const {
-    return implementation_ && implementation_->ActivateReceivedItem(itemName);
+    const std::string_view itemName,
+    CheatController& gameThreadDispatcher) const {
+    return implementation_ && implementation_->ActivateReceivedItem(
+                                  itemName, gameThreadDispatcher);
 }
 }  // namespace sr2ap
