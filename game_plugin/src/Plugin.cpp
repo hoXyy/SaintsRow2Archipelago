@@ -333,9 +333,11 @@ class SessionRuntime {
         const bool notorietyRequested = session.notorietyTraps;
         const bool respectRequested = session.exclusiveRespect;
         const bool unlockablesRequested = !session.managedUnlockables.empty();
+        const bool gameThreadDispatchRequested =
+            cheatsRequested || notorietyRequested;
 
-        cheatsInstalled_ =
-            cheatsRequested && cheats_.Install(session.managedCheats);
+        cheatsInstalled_ = gameThreadDispatchRequested &&
+                           cheats_.Install(session.managedCheats);
         notorietyInstalled_ = notorietyRequested && notoriety_.Install();
         respectInstalled_ =
             respectRequested && saveMonitoringInstalled_ && respect_.Install();
@@ -344,10 +346,12 @@ class SessionRuntime {
             unlockables_.Install(session.blockVanillaUnlockables,
                                  session.managedUnlockables);
 
-        const bool failed = (cheatsRequested && !cheatsInstalled_) ||
-                            (notorietyRequested && !notorietyInstalled_) ||
-                            (respectRequested && !respectInstalled_) ||
-                            (unlockablesRequested && !unlockablesInstalled_);
+        const bool failed =
+            (gameThreadDispatchRequested && !cheatsInstalled_) ||
+            (notorietyRequested && !notorietyInstalled_) ||
+            (respectRequested && !respectInstalled_) ||
+            (unlockablesRequested && !unlockablesInstalled_);
+
         if (!failed) {
             return true;
         }
@@ -458,10 +462,11 @@ class SessionRuntime {
             return;
         }
 
-        const bool accepted = cheats_.ActivateReceivedItem(item.name) ||
-                              notoriety_.ActivateReceivedItem(item.name) ||
-                              respect_.ActivateReceivedItem(item.name) ||
-                              unlockables_.QueueReceivedItem(item.name);
+        const bool accepted =
+            cheats_.ActivateReceivedItem(item.name) ||
+            notoriety_.ActivateReceivedItem(item.name, cheats_) ||
+            respect_.ActivateReceivedItem(item.name) ||
+            unlockables_.QueueReceivedItem(item.name);
         if (accepted) {
             ++nextItemIndex_;
         } else {

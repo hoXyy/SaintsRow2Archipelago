@@ -133,11 +133,6 @@ const CheatDefinition* FindCheat(const std::string_view itemName) {
 struct CheatController::Implementation {
     static constexpr std::size_t saveFlagSize{12};
 
-    struct PendingActivation {
-        std::uintptr_t record;
-        std::uint32_t count;
-    };
-
     Implementation() = default;
 
     ~Implementation() {
@@ -148,6 +143,20 @@ struct CheatController::Implementation {
     Implementation& operator=(const Implementation&) = delete;
     Implementation(Implementation&&) = delete;
     Implementation& operator=(Implementation&&) = delete;
+
+    bool DispatchOnGameThread(GameThreadTask task) {
+        if (!task) {
+            return false;
+        }
+
+        std::lock_guard<std::mutex> lock(pendingMutex);
+        if (!installed) {
+            return false;
+        }
+
+        pendingTasks.push_back(std::move(task));
+        return true;
+    }
 
     bool Install(const std::vector<std::string>& managedItems) {
         const auto game = InspectSupportedGameModule();
@@ -276,7 +285,8 @@ struct CheatController::Implementation {
         if (!installed) {
             return false;
         }
-        const auto* definition = FindCheat(itemName);
+
+        const auto* const definition = FindCheat(itemName);
         if (!definition || managedItemNames.find(std::string{itemName}) ==
                                managedItemNames.end()) {
             return false;
@@ -289,9 +299,11 @@ struct CheatController::Implementation {
             definition->index >= count) {
             return false;
         }
+
         const auto record = gameBase + addresses::kCheatTableRva +
                             static_cast<std::uintptr_t>(definition->index) *
                                 addresses::kCheatRecordSize;
+
         std::uint32_t phoneCodePointer{};
         std::uint32_t callback{};
 
@@ -311,13 +323,26 @@ struct CheatController::Implementation {
             return false;
         }
 
-        {
-            std::lock_guard<std::mutex> lock(pendingMutex);
-            pendingActivations.push_back({record, definition->activations});
+        const auto function = activateAddress;
+        const auto activationCount = definition->activations;
+
+        const bool queued = DispatchOnGameThread([function, record,
+                                                  activationCount] {
+            for (std::uint32_t index = 0; index < activationCount; ++index) {
+                InvokeActivate(function, record);
+            }
+        });
+
+        if (!queued) {
+            LogWarning("Cheats",
+                       "Failed to queue received item for game thread: " +
+                           std::string{itemName});
+            return false;
         }
 
         LogDebug("Cheats", "Queued received item for game thread: " +
                                std::string{itemName});
+
         return true;
     }
 
@@ -333,28 +358,25 @@ struct CheatController::Implementation {
         }
         active.store(nullptr, std::memory_order_release);
         std::lock_guard<std::mutex> lock(pendingMutex);
-        pendingActivations.clear();
+        pendingTasks.clear();
     }
 
-    void DrainPendingActivations() {
-        std::vector<PendingActivation> pending;
+    void DrainPendingTasks() {
+        std::vector<GameThreadTask> tasks;
         {
             std::lock_guard<std::mutex> lock(pendingMutex);
-            pending.swap(pendingActivations);
+            tasks.swap(pendingTasks);
         }
-        for (const auto& activation : pending) {
-            for (std::uint32_t index = 0; index < activation.count; ++index) {
-                InvokeActivate(activateAddress, activation.record);
-            }
+        for (const auto& task : tasks) {
+            task();
         }
     }
 
     static void FrameHook(safetyhook::Context&) {
         auto* const self = active.load(std::memory_order_acquire);
-        if (!self) {
-            return;
+        if (self) {
+            self->DrainPendingTasks();
         }
-        self->DrainPendingActivations();
     }
 
     static void InvokeActivate(const std::uintptr_t function,
@@ -392,7 +414,7 @@ struct CheatController::Implementation {
     bool ownsSaveFlagPatch{};
     safetyhook::MidHook frameHook;
     std::mutex pendingMutex;
-    std::vector<PendingActivation> pendingActivations;
+    std::vector<GameThreadTask> pendingTasks;
     std::unordered_set<std::string> managedItemNames;
     bool installed{};
     inline static std::atomic<Implementation*> active{};
@@ -428,5 +450,10 @@ bool CheatController::ActivateReceivedItem(const std::string_view itemName) {
 
 bool CheatController::SupportsItem(const std::string_view itemName) {
     return FindCheat(itemName) != nullptr;
+}
+
+bool CheatController::DispatchOnGameThread(GameThreadTask task) {
+    return implementation_ &&
+           implementation_->DispatchOnGameThread(std::move(task));
 }
 }  // namespace sr2ap

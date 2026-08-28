@@ -4,6 +4,8 @@
 #include <string_view>
 
 namespace sr2ap {
+class CheatController;
+
 class NotorietyController {
    public:
     NotorietyController();
@@ -14,7 +16,8 @@ class NotorietyController {
 
     bool Install();
     void Remove();
-    bool ActivateReceivedItem(std::string_view itemName) const;
+    bool ActivateReceivedItem(std::string_view itemName,
+                              CheatController& gameThreadDispatcher) const;
 
    private:
     struct Implementation;
