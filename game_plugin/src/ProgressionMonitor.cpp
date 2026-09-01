@@ -1,10 +1,9 @@
 #include "sr2ap/ProgressionMonitor.hpp"
 
 #include <algorithm>
-#include <iomanip>
-#include <sstream>
 
 #include "sr2ap/Collectibles.hpp"
+#include "sr2ap/Helpers.hpp"
 #include "sr2ap/Logger.hpp"
 #include "sr2ap/Status.hpp"
 
@@ -42,13 +41,6 @@ void LogBooleanChanges(
             LogWarning(subsystem, message);
         }
     }
-}
-
-std::string Hex(std::uint32_t value) {
-    std::ostringstream stream;
-    stream << "0x" << std::uppercase << std::hex << std::setw(8)
-           << std::setfill('0') << value;
-    return stream.str();
 }
 }  // namespace
 

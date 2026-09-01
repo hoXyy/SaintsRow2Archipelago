@@ -145,6 +145,7 @@ add_library(sr2ap_core STATIC
         src/StatusSerialization.cpp
         src/ProgressionEventTracker.cpp
         src/RevisionJournal.cpp
+        src/Helpers.cpp
 )
 target_include_directories(sr2ap_core PUBLIC include)
 target_compile_features(sr2ap_core PUBLIC cxx_std_17)
