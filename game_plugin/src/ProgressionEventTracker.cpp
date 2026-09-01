@@ -17,53 +17,59 @@ std::unordered_map<Key, Value> MakeState(const std::vector<Entry>& entries,
     return state;
 }
 
-template <class Result, class Tracker>
-ProgressionUpdate InvalidateUnlessSuccessful(const Result result,
-                                             Tracker& tracker) {
+template <class Result, class Key, class Value>
+ProgressionUpdate<Key, Value> InvalidateUnlessSuccessful(
+    Result result, BaselineTracker<Key, Value>& tracker) {
     if (result == ReaderResult::Success) {
         return {};
     }
-    return {tracker.Invalidate().kind, {}};
+
+    return {tracker.Invalidate(), {}};
 }
 
 template <class Entry>
-ProgressionUpdate ObserveBooleans(const ReaderResult result,
-                                  const std::vector<Entry>& entries,
-                                  std::string Entry::* key, bool Entry::* value,
-                                  const ProgressionKind kind,
-                                  BaselineTracker<std::string, bool>& tracker,
-                                  const bool emitCompletedBaseline) {
+BooleanProgressionUpdate ObserveBooleans(
+    ReaderResult result, const std::vector<Entry>& entries,
+    std::string Entry::* key, bool Entry::* value, ProgressionKind kind,
+    BaselineTracker<std::string, bool>& tracker, bool emitCompletedBaseline) {
     if (result != ReaderResult::Success) {
         return InvalidateUnlessSuccessful(result, tracker);
     }
-    const auto update = tracker.Observe(MakeState(entries, key, value));
-    ProgressionUpdate resultUpdate{update.kind, {}};
+
+    auto baseline = tracker.Observe(MakeState(entries, key, value));
+    std::vector<ProgressionEvent> events;
+
     if (emitCompletedBaseline &&
-        (update.kind == BaselineUpdateKind::Created ||
-         update.kind == BaselineUpdateKind::IdentityChanged)) {
+        (baseline.kind == BaselineUpdateKind::Created ||
+         baseline.kind == BaselineUpdateKind::IdentityChanged)) {
         for (const auto& entry : entries) {
             if (entry.*value) {
-                resultUpdate.events.push_back({kind, entry.*key, 0, 1});
+                events.push_back({kind, entry.*key, 0, 1});
             }
         }
     }
-    for (const auto& change : update.changes) {
-        resultUpdate.events.push_back({kind, change.key,
-                                       change.previous ? 1U : 0U,
-                                       change.current ? 1U : 0U});
+
+    for (const auto& change : baseline.changes) {
+        events.push_back({
+            kind,
+            change.key,
+            change.previous ? 1U : 0U,
+            change.current ? 1U : 0U,
+        });
     }
-    return resultUpdate;
+
+    return {std::move(baseline), std::move(events)};
 }
 }  // namespace
 
-ProgressionUpdate ProgressionEventTracker::Observe(
+BooleanProgressionUpdate ProgressionEventTracker::Observe(
     const HitmanSnapshot& snapshot) {
     return ObserveBooleans(
         snapshot.result, snapshot.targets, &HitmanTargetStatus::locationTag,
         &HitmanTargetStatus::complete, ProgressionKind::Hitman, hitman_, false);
 }
 
-ProgressionUpdate ProgressionEventTracker::Observe(
+BooleanProgressionUpdate ProgressionEventTracker::Observe(
     const ChopShopSnapshot& snapshot) {
     return ObserveBooleans(snapshot.result, snapshot.vehicles,
                            &ChopShopVehicleStatus::targetTag,
@@ -71,14 +77,14 @@ ProgressionUpdate ProgressionEventTracker::Observe(
                            ProgressionKind::ChopShop, chopShop_, false);
 }
 
-ProgressionUpdate ProgressionEventTracker::Observe(
+BooleanProgressionUpdate ProgressionEventTracker::Observe(
     const MissionSnapshot& snapshot) {
     return ObserveBooleans(snapshot.result, snapshot.missions,
                            &MissionStatus::missionId, &MissionStatus::complete,
                            ProgressionKind::Mission, missions_, true);
 }
 
-ProgressionUpdate ProgressionEventTracker::Observe(
+ActivityProgressionUpdate ProgressionEventTracker::Observe(
     const ActivitySnapshot& snapshot) {
     if (snapshot.result != ReaderResult::Success) {
         return InvalidateUnlessSuccessful(snapshot.result, activities_);
@@ -86,7 +92,7 @@ ProgressionUpdate ProgressionEventTracker::Observe(
     const auto update = activities_.Observe(
         MakeState(snapshot.instances, &ActivityInstanceStatus::instanceTag,
                   &ActivityInstanceStatus::completionFlags));
-    ProgressionUpdate result{update.kind, {}};
+    ActivityProgressionUpdate result{update, {}};
     if (update.kind == BaselineUpdateKind::Created ||
         update.kind == BaselineUpdateKind::IdentityChanged) {
         for (const auto& instance : snapshot.instances) {
@@ -104,13 +110,13 @@ ProgressionUpdate ProgressionEventTracker::Observe(
     return result;
 }
 
-ProgressionUpdate ProgressionEventTracker::Observe(
+RacingProgressionUpdate ProgressionEventTracker::Observe(
     const RacingSnapshot& snapshot) {
     if (snapshot.result != ReaderResult::Success)
         return InvalidateUnlessSuccessful(snapshot.result, racing_);
     const auto update = racing_.Observe(
         MakeState(snapshot.races, &RaceStatus::name, &RaceStatus::medal));
-    ProgressionUpdate result{update.kind, {}};
+    RacingProgressionUpdate result{update, {}};
     if (update.kind == BaselineUpdateKind::Created ||
         update.kind == BaselineUpdateKind::IdentityChanged) {
         for (const auto& race : snapshot.races) {
@@ -128,38 +134,80 @@ ProgressionUpdate ProgressionEventTracker::Observe(
     return result;
 }
 
-ProgressionUpdate ProgressionEventTracker::Observe(const CdSnapshot& snapshot) {
+CdProgressionUpdate ProgressionEventTracker::Observe(
+    const CdSnapshot& snapshot) {
     if (snapshot.result != ReaderResult::Success) {
         if (!cdsValid_) {
             return {};
         }
+
         cds_.clear();
         cdsValid_ = false;
-        return {BaselineUpdateKind::Invalidated, {}};
+
+        CdProgressionUpdate result;
+        result.baseline.kind = BaselineUpdateKind::Invalidated;
+        return result;
     }
-    const std::unordered_set<std::uint32_t> current(
-        snapshot.collectedIds.begin(), snapshot.collectedIds.end());
+
+    std::unordered_set<std::uint32_t> current{
+        snapshot.collectedIds.begin(),
+        snapshot.collectedIds.end(),
+    };
+
     if (!cdsValid_) {
-        cds_ = current;
+        cds_ = std::move(current);
         cdsValid_ = true;
-        return {BaselineUpdateKind::Created, {}};
+
+        CdProgressionUpdate result;
+        result.baseline.kind = BaselineUpdateKind::Created;
+        return result;
     }
-    ProgressionUpdate update;
+
+    CdProgressionUpdate result;
+
+    // Newly collected CDs
     for (const auto id : current) {
-        if (cds_.count(id) == 0) {
-            const auto* key = FindCdDistrictKey(id);
-            update.events.push_back(
-                {ProgressionKind::Cd, key ? key : "unknown", 0, 1});
+        if (cds_.count(id) != 0) {
+            continue;
         }
+
+        result.baseline.changes.push_back({
+            id,
+            false,
+            true,
+        });
+
+        const auto* key = FindCdDistrictKey(id);
+        result.events.push_back({
+            ProgressionKind::Cd,
+            key ? key : "unknown",
+            0,
+            1,
+        });
     }
-    if (current != cds_) {
-        update.kind = BaselineUpdateKind::Changed;
-        cds_ = current;
+
+    // CDs removed by loading an older save or other state rollback
+    for (const auto id : cds_) {
+        if (current.count(id) != 0) {
+            continue;
+        }
+
+        result.baseline.changes.push_back({
+            id,
+            true,
+            false,
+        });
     }
-    return update;
+
+    if (!result.baseline.changes.empty()) {
+        result.baseline.kind = BaselineUpdateKind::Changed;
+    }
+
+    cds_ = std::move(current);
+    return result;
 }
 
-ProgressionUpdate ProgressionEventTracker::Observe(
+StyleLevelProgressionUpdate ProgressionEventTracker::Observe(
     const StyleLevelSnapshot& snapshot) {
     if (snapshot.result != ReaderResult::Success) {
         return InvalidateUnlessSuccessful(snapshot.result, styleLevel_);
@@ -167,7 +215,7 @@ ProgressionUpdate ProgressionEventTracker::Observe(
 
     constexpr auto key = "player";
     const auto update = styleLevel_.Observe({{key, snapshot.displayedLevel}});
-    ProgressionUpdate result{update.kind, {}};
+    StyleLevelProgressionUpdate result{update, {}};
     if (update.kind == BaselineUpdateKind::Created ||
         update.kind == BaselineUpdateKind::IdentityChanged) {
         result.events.push_back(

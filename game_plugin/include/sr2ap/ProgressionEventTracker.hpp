@@ -9,20 +9,29 @@
 #include "sr2ap/ProgressionEventSink.hpp"
 
 namespace sr2ap {
+template <class Key, class Value>
 struct ProgressionUpdate {
-    BaselineUpdateKind kind{BaselineUpdateKind::Unchanged};
+    BaselineUpdate<Key, Value> baseline;
     std::vector<ProgressionEvent> events;
 };
 
+using BooleanProgressionUpdate = ProgressionUpdate<std::string, bool>;
+using ActivityProgressionUpdate = ProgressionUpdate<std::string, std::uint8_t>;
+using RacingProgressionUpdate =
+    ProgressionUpdate<std::string_view, RacingMedal>;
+using CdProgressionUpdate = ProgressionUpdate<std::uint32_t, bool>;
+using StyleLevelProgressionUpdate =
+    ProgressionUpdate<std::string, std::uint32_t>;
+
 class ProgressionEventTracker {
    public:
-    ProgressionUpdate Observe(const HitmanSnapshot& snapshot);
-    ProgressionUpdate Observe(const ChopShopSnapshot& snapshot);
-    ProgressionUpdate Observe(const MissionSnapshot& snapshot);
-    ProgressionUpdate Observe(const ActivitySnapshot& snapshot);
-    ProgressionUpdate Observe(const RacingSnapshot& snapshot);
-    ProgressionUpdate Observe(const CdSnapshot& snapshot);
-    ProgressionUpdate Observe(const StyleLevelSnapshot& snapshot);
+    BooleanProgressionUpdate Observe(const HitmanSnapshot& snapshot);
+    BooleanProgressionUpdate Observe(const ChopShopSnapshot& snapshot);
+    BooleanProgressionUpdate Observe(const MissionSnapshot& snapshot);
+    ActivityProgressionUpdate Observe(const ActivitySnapshot& snapshot);
+    RacingProgressionUpdate Observe(const RacingSnapshot& snapshot);
+    CdProgressionUpdate Observe(const CdSnapshot& snapshot);
+    StyleLevelProgressionUpdate Observe(const StyleLevelSnapshot& snapshot);
 
    private:
     BaselineTracker<std::string, bool> hitman_;
