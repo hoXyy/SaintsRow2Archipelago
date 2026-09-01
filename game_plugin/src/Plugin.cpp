@@ -3,8 +3,6 @@
 #include <windows.h>
 
 #include <atomic>
-#include <iomanip>
-#include <sstream>
 
 #include "sr2ap/ArchipelagoProtocol.hpp"
 #include "sr2ap/ArchipelagoTcpClient.hpp"
@@ -12,6 +10,7 @@
 #include "sr2ap/Cheats.hpp"
 #include "sr2ap/Config.hpp"
 #include "sr2ap/GameState.hpp"
+#include "sr2ap/Helpers.hpp"
 #include "sr2ap/Logger.hpp"
 #include "sr2ap/ModuleInfo.hpp"
 #include "sr2ap/Notoriety.hpp"
@@ -56,13 +55,6 @@ std::string Narrow(const std::filesystem::path& path) {
                         nullptr, nullptr);
     result.resize(static_cast<std::size_t>(needed - 1));
     return result;
-}
-
-std::string Hex(std::uintptr_t value, int width = 8) {
-    std::ostringstream stream;
-    stream << "0x" << std::uppercase << std::hex << std::setw(width)
-           << std::setfill('0') << value;
-    return stream.str();
 }
 
 void ReportModule(const char* subsystem, const ModuleInfo& info) {

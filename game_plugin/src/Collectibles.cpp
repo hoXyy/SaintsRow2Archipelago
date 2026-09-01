@@ -2,25 +2,15 @@
 
 #include <windows.h>
 
-#include <iomanip>
-#include <sstream>
 #include <unordered_set>
 
 #include "sr2ap/Addresses.hpp"
+#include "sr2ap/Helpers.hpp"
 #include "sr2ap/Logger.hpp"
 #include "sr2ap/Memory.hpp"
 #include "sr2ap/ModuleInfo.hpp"
 
 namespace sr2ap {
-namespace {
-
-std::string HexId(std::uint32_t value) {
-    std::ostringstream stream;
-    stream << "0x" << std::uppercase << std::hex << std::setw(8)
-           << std::setfill('0') << value;
-    return stream.str();
-}
-}  // namespace
 
 CdSnapshot GetCdSnapshot() {
     CdSnapshot snapshot;
@@ -99,7 +89,7 @@ void LogCdSnapshot(const CdSnapshot& snapshot, bool full) {
         for (const auto id : snapshot.collectedIds) {
             const auto key = FindCdDistrictKey(id);
             LogInfo("CDs", std::string(key ? key : "unknown") +
-                               " id=" + HexId(id) + " complete=1");
+                               " id=" + Hex(id) + " complete=1");
         }
     }
 }
