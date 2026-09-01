@@ -3,7 +3,6 @@
 #include <algorithm>
 #include <iomanip>
 #include <sstream>
-#include <unordered_map>
 
 #include "sr2ap/Collectibles.hpp"
 #include "sr2ap/Logger.hpp"
@@ -11,22 +10,12 @@
 
 namespace sr2ap {
 namespace {
-template <class Entry, class Key, class Value>
-std::unordered_map<Key, Value> MakeState(const std::vector<Entry>& entries,
-                                         Key Entry::* key,
-                                         Value Entry::* value) {
-    std::unordered_map<Key, Value> state;
-    for (const auto& entry : entries) {
-        state.emplace(entry.*key, entry.*value);
-    }
-    return state;
-}
 
-template <class Tracker, class Result>
-bool HandleUnavailable(Tracker& tracker, Result result, Result& previous,
+template <class Result>
+bool HandleUnavailable(BaselineUpdateKind kind, Result result, Result& previous,
                        const char* subsystem) {
-    const bool invalidated =
-        tracker.Invalidate().kind == BaselineUpdateKind::Invalidated;
+    const bool invalidated = kind == BaselineUpdateKind::Invalidated;
+
     if (invalidated) {
         LogInfo(subsystem,
                 std::string(
@@ -36,6 +25,7 @@ bool HandleUnavailable(Tracker& tracker, Result result, Result& previous,
         LogDebug(subsystem,
                  std::string("Polling waiting result=") + ToString(result));
     }
+
     previous = result;
     return invalidated;
 }
@@ -90,18 +80,19 @@ void ProgressionMonitor::Emit(const ProgressionEvent& event) const {
 }
 
 bool ProgressionMonitor::UpdateHitman(const HitmanSnapshot& snapshot) {
-    const auto eventUpdate = eventTracker_.Observe(snapshot);
+    const auto observation = eventTracker_.Observe(snapshot);
+    const auto& update = observation.baseline;
+
     if (snapshot.result != HitmanReadResult::Success) {
-        return HandleUnavailable(hitman_, snapshot.result, lastHitmanResult_,
-                                 "Hitman");
+        return HandleUnavailable(update.kind, snapshot.result,
+                                 lastHitmanResult_, "Hitman");
     }
-    const auto update = hitman_.Observe(
-        MakeState(snapshot.targets, &HitmanTargetStatus::locationTag,
-                  &HitmanTargetStatus::complete));
+
     if (update.kind == BaselineUpdateKind::Created) {
         const auto complete =
             std::count_if(snapshot.targets.begin(), snapshot.targets.end(),
                           [](const auto& target) { return target.complete; });
+
         LogInfo("Hitman", "Baseline created: targets=" +
                               std::to_string(snapshot.targets.size()) +
                               " complete=" + std::to_string(complete));
@@ -109,7 +100,7 @@ bool ProgressionMonitor::UpdateHitman(const HitmanSnapshot& snapshot) {
         LogInfo("Hitman", "Target identity changed; baseline recreated");
     }
 
-    for (const auto& event : eventUpdate.events) {
+    for (const auto& event : observation.events) {
         Emit(event);
     }
 
@@ -119,42 +110,44 @@ bool ProgressionMonitor::UpdateHitman(const HitmanSnapshot& snapshot) {
 }
 
 bool ProgressionMonitor::UpdateChopShop(const ChopShopSnapshot& snapshot) {
-    const auto eventUpdate = eventTracker_.Observe(snapshot);
+    const auto observation = eventTracker_.Observe(snapshot);
+    const auto& update = observation.baseline;
+
     if (snapshot.result != ChopShopReadResult::Success) {
-        return HandleUnavailable(chopShop_, snapshot.result,
+        return HandleUnavailable(update.kind, snapshot.result,
                                  lastChopShopResult_, "ChopShop");
     }
-    const auto update = chopShop_.Observe(
-        MakeState(snapshot.vehicles, &ChopShopVehicleStatus::targetTag,
-                  &ChopShopVehicleStatus::retrieved));
+
     if (update.kind == BaselineUpdateKind::Created) {
-        const auto retrieved = std::count_if(
+        const auto complete = std::count_if(
             snapshot.vehicles.begin(), snapshot.vehicles.end(),
             [](const auto& vehicle) { return vehicle.retrieved; });
+
         LogInfo("ChopShop", "Baseline created: vehicles=" +
                                 std::to_string(snapshot.vehicles.size()) +
-                                " retrieved=" + std::to_string(retrieved));
+                                " retrieved=" + std::to_string(complete));
     } else if (update.kind == BaselineUpdateKind::IdentityChanged) {
         LogInfo("ChopShop", "Vehicle identity changed; baseline recreated");
     }
-    for (const auto& event : eventUpdate.events) {
+
+    for (const auto& event : observation.events) {
         Emit(event);
     }
+
     LogBooleanChanges("ChopShop", update.changes);
     lastChopShopResult_ = ChopShopReadResult::Success;
     return update.kind != BaselineUpdateKind::Unchanged;
 }
 
 bool ProgressionMonitor::UpdateMissions(const MissionSnapshot& snapshot) {
-    const auto eventUpdate = eventTracker_.Observe(snapshot);
+    const auto observation = eventTracker_.Observe(snapshot);
+    const auto& update = observation.baseline;
+
     if (snapshot.result != MissionReadResult::Success) {
-        return HandleUnavailable(missions_, snapshot.result, lastMissionResult_,
-                                 "Missions");
+        return HandleUnavailable(update.kind, snapshot.result,
+                                 lastMissionResult_, "Missions");
     }
 
-    const auto update = missions_.Observe(MakeState(snapshot.missions,
-                                                    &MissionStatus::missionId,
-                                                    &MissionStatus::complete));
     if (update.kind == BaselineUpdateKind::Created) {
         LogInfo("Missions", "Baseline created: missions=" +
                                 std::to_string(snapshot.missions.size()));
@@ -162,7 +155,7 @@ bool ProgressionMonitor::UpdateMissions(const MissionSnapshot& snapshot) {
         LogInfo("Missions", "Mission identity changed; baseline recreated");
     }
 
-    for (const auto& event : eventUpdate.events) {
+    for (const auto& event : observation.events) {
         Emit(event);
     }
 
@@ -172,14 +165,14 @@ bool ProgressionMonitor::UpdateMissions(const MissionSnapshot& snapshot) {
 }
 
 bool ProgressionMonitor::UpdateActivities(const ActivitySnapshot& snapshot) {
-    const auto eventUpdate = eventTracker_.Observe(snapshot);
+    const auto observation = eventTracker_.Observe(snapshot);
+    const auto& update = observation.baseline;
+
     if (snapshot.result != ActivityReadResult::Success) {
-        return HandleUnavailable(activities_, snapshot.result,
+        return HandleUnavailable(update.kind, snapshot.result,
                                  lastActivityResult_, "Activities");
     }
-    const auto update = activities_.Observe(
-        MakeState(snapshot.instances, &ActivityInstanceStatus::instanceTag,
-                  &ActivityInstanceStatus::completionFlags));
+
     if (update.kind == BaselineUpdateKind::Created) {
         LogInfo("Activities", "Baseline created: instances=" +
                                   std::to_string(snapshot.instances.size()));
@@ -206,26 +199,30 @@ bool ProgressionMonitor::UpdateActivities(const ActivitySnapshot& snapshot) {
             LogWarning("Activities", message);
         }
     }
-    for (const auto& event : eventUpdate.events) {
+
+    for (const auto& event : observation.events) {
         Emit(event);
     }
+
     lastActivityResult_ = ActivityReadResult::Success;
     return update.kind != BaselineUpdateKind::Unchanged;
 }
 
 bool ProgressionMonitor::UpdateRacing(const RacingSnapshot& snapshot) {
-    const auto eventUpdate = eventTracker_.Observe(snapshot);
+    const auto observation = eventTracker_.Observe(snapshot);
+    const auto& update = observation.baseline;
+
     if (snapshot.result != ReaderResult::Success)
-        return HandleUnavailable(racing_, snapshot.result, lastRacingResult_,
-                                 "Racing");
-    const auto update = racing_.Observe(
-        MakeState(snapshot.races, &RaceStatus::name, &RaceStatus::medal));
+        return HandleUnavailable(update.kind, snapshot.result,
+                                 lastRacingResult_, "Racing");
+
     if (update.kind == BaselineUpdateKind::Created) {
         LogInfo("Racing", "Baseline created: races=" +
                               std::to_string(snapshot.races.size()));
     } else if (update.kind == BaselineUpdateKind::IdentityChanged) {
         LogInfo("Racing", "Race identity changed; baseline recreated");
     }
+
     for (const auto& change : update.changes) {
         const auto message = "Medal changed: " + std::string{change.key} + " " +
                              ToString(change.previous) + " -> " +
@@ -238,75 +235,58 @@ bool ProgressionMonitor::UpdateRacing(const RacingSnapshot& snapshot) {
         else
             LogWarning("Racing", message);
     }
-    for (const auto& event : eventUpdate.events)
+
+    for (const auto& event : observation.events) {
         Emit(event);
+    }
+
     lastRacingResult_ = ReaderResult::Success;
     return update.kind != BaselineUpdateKind::Unchanged;
 }
 
 bool ProgressionMonitor::UpdateCds(const CdSnapshot& snapshot) {
-    const auto eventUpdate = eventTracker_.Observe(snapshot);
+    const auto observation = eventTracker_.Observe(snapshot);
+    const auto& update = observation.baseline;
+
     if (snapshot.result != CdReadResult::Success) {
-        const bool invalidated = cdBaselineValid_;
-        if (invalidated) {
-            LogInfo(
-                "CDs",
-                std::string(
-                    "Progression unavailable; baseline invalidated result=") +
-                    ToString(snapshot.result));
-            cdBaseline_.clear();
-            cdBaselineValid_ = false;
-        } else if (snapshot.result != lastCdResult_) {
-            LogDebug("CDs", std::string("Polling waiting result=") +
-                                ToString(snapshot.result));
-        }
-        lastCdResult_ = snapshot.result;
-        return invalidated;
+        return HandleUnavailable(update.kind, snapshot.result, lastCdResult_,
+                                 "CDs");
     }
-    const std::unordered_set<std::uint32_t> current(
-        snapshot.collectedIds.begin(), snapshot.collectedIds.end());
-    if (!cdBaselineValid_) {
-        cdBaseline_ = current;
-        cdBaselineValid_ = true;
+
+    if (update.kind == BaselineUpdateKind::Created) {
         LogInfo("CDs", "Baseline created: collected=" +
                            std::to_string(snapshot.collectedIds.size()) + "/" +
                            std::to_string(snapshot.target));
-        lastCdResult_ = CdReadResult::Success;
-        return true;
     }
-    if (current == cdBaseline_) {
-        lastCdResult_ = CdReadResult::Success;
-        return false;
-    }
-    for (const auto id : current) {
-        if (cdBaseline_.find(id) == cdBaseline_.end()) {
-            const auto key = FindCdDistrictKey(id);
+
+    for (const auto& change : update.changes) {
+        const auto* key = FindCdDistrictKey(change.key);
+
+        if (change.current) {
             LogInfo("CDs", "Collected: " + std::string(key ? key : "unknown") +
-                               " id=" + Hex(id));
+                               " id=" + Hex(change.key));
+        } else {
+            LogWarning("CDs", "Collection removed: " + Hex(change.key));
         }
     }
-    for (const auto id : cdBaseline_) {
-        if (current.find(id) == current.end()) {
-            LogWarning("CDs", "Collection removed: " + Hex(id));
-        }
-    }
-    cdBaseline_ = current;
-    for (const auto& event : eventUpdate.events) {
+
+    for (const auto& event : observation.events) {
         Emit(event);
     }
+
     lastCdResult_ = CdReadResult::Success;
-    return true;
+    return update.kind != BaselineUpdateKind::Unchanged;
 }
 
 bool ProgressionMonitor::UpdateStyleLevel(const StyleLevelSnapshot& snapshot) {
-    const auto eventUpdate = eventTracker_.Observe(snapshot);
+    const auto observation = eventTracker_.Observe(snapshot);
+    const auto& update = observation.baseline;
+
     if (snapshot.result != ReaderResult::Success) {
-        return HandleUnavailable(styleLevel_, snapshot.result,
+        return HandleUnavailable(update.kind, snapshot.result,
                                  lastStyleLevelResult_, "StyleLevel");
     }
 
-    constexpr auto key = "player";
-    const auto update = styleLevel_.Observe({{key, snapshot.displayedLevel}});
     if (update.kind == BaselineUpdateKind::Created) {
         LogInfo("StyleLevel", "Baseline created: stored_level=" +
                                   std::to_string(snapshot.storedLevel) +
@@ -314,6 +294,7 @@ bool ProgressionMonitor::UpdateStyleLevel(const StyleLevelSnapshot& snapshot) {
                                   std::to_string(snapshot.displayedLevel) +
                                   " points=" + std::to_string(snapshot.points));
     }
+
     for (const auto& change : update.changes) {
         const auto message =
             "Level changed: " + std::to_string(change.previous) + " -> " +
@@ -325,20 +306,26 @@ bool ProgressionMonitor::UpdateStyleLevel(const StyleLevelSnapshot& snapshot) {
             LogWarning("StyleLevel", message);
         }
     }
-    for (const auto& event : eventUpdate.events) {
+
+    for (const auto& event : observation.events) {
         Emit(event);
     }
+
     lastStyleLevelResult_ = ReaderResult::Success;
     return update.kind != BaselineUpdateKind::Unchanged;
 }
 
 void ProgressionMonitor::Poll() {
     const auto snapshot = GetProgressionSnapshot();
-    const bool changed =
-        UpdateHitman(snapshot.hitman) | UpdateChopShop(snapshot.chopShop) |
-        UpdateMissions(snapshot.missions) |
-        UpdateActivities(snapshot.activities) | UpdateRacing(snapshot.racing) |
-        UpdateCds(snapshot.cds) | UpdateStyleLevel(snapshot.styleLevel);
+    bool changed = false;
+    changed |= UpdateHitman(snapshot.hitman);
+    changed |= UpdateChopShop(snapshot.chopShop);
+    changed |= UpdateMissions(snapshot.missions);
+    changed |= UpdateActivities(snapshot.activities);
+    changed |= UpdateRacing(snapshot.racing);
+    changed |= UpdateCds(snapshot.cds);
+    changed |= UpdateStyleLevel(snapshot.styleLevel);
+
     if (changed && writeStatusFile_ &&
         !WriteProgressionStatus(statusPath_, snapshot)) {
         LogWarning("Status", "Unable to replace diagnostic status file");

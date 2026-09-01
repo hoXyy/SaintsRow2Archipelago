@@ -23,12 +23,14 @@ TEST(ProgressionEventTrackerTest,
     HitmanSnapshot snapshot{ReaderResult::Success, {{"target", 1, 1, false}}};
     tracker.Observe(snapshot);
     snapshot.result = ReaderResult::GameNotReady;
-    EXPECT_EQ(tracker.Observe(snapshot).kind, BaselineUpdateKind::Invalidated);
-    EXPECT_EQ(tracker.Observe(snapshot).kind, BaselineUpdateKind::Unchanged);
+    EXPECT_EQ(tracker.Observe(snapshot).baseline.kind,
+              BaselineUpdateKind::Invalidated);
+    EXPECT_EQ(tracker.Observe(snapshot).baseline.kind,
+              BaselineUpdateKind::Unchanged);
     snapshot.result = ReaderResult::Success;
     snapshot.targets.front().complete = true;
     const auto recovered = tracker.Observe(snapshot);
-    EXPECT_EQ(recovered.kind, BaselineUpdateKind::Created);
+    EXPECT_EQ(recovered.baseline.kind, BaselineUpdateKind::Created);
     EXPECT_TRUE(recovered.events.empty());
 }
 
@@ -53,7 +55,7 @@ TEST(ProgressionEventTrackerTest, IdentityChangeRecreatesMissionBaseline) {
     tracker.Observe(MissionSnapshot{ReaderResult::Success, {{"old", false}}});
     const auto update = tracker.Observe(
         MissionSnapshot{ReaderResult::Success, {{"new", true}}});
-    EXPECT_EQ(update.kind, BaselineUpdateKind::IdentityChanged);
+    EXPECT_EQ(update.baseline.kind, BaselineUpdateKind::IdentityChanged);
     ASSERT_EQ(update.events.size(), 1U);
     EXPECT_EQ(update.events.front().key, "new");
 }
@@ -114,11 +116,14 @@ TEST(ProgressionEventTrackerTest,
     snapshot.displayedLevel = 4;
     const auto changed = tracker.Observe(snapshot);
     ASSERT_EQ(changed.events.size(), 1U);
+    ASSERT_EQ(changed.baseline.changes.size(), 1U);
+    EXPECT_EQ(changed.baseline.changes.front().key, "player");
     EXPECT_EQ(changed.events.front().previous, 3U);
     EXPECT_EQ(changed.events.front().current, 4U);
 
     snapshot.result = ReaderResult::GameNotReady;
-    EXPECT_EQ(tracker.Observe(snapshot).kind, BaselineUpdateKind::Invalidated);
+    EXPECT_EQ(tracker.Observe(snapshot).baseline.kind,
+              BaselineUpdateKind::Invalidated);
     snapshot.result = ReaderResult::Success;
     const auto recovered = tracker.Observe(snapshot);
     ASSERT_EQ(recovered.events.size(), 1U);

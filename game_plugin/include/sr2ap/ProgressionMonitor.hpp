@@ -4,9 +4,7 @@
 #include <filesystem>
 #include <functional>
 #include <string>
-#include <unordered_set>
 
-#include "sr2ap/BaselineTracker.hpp"
 #include "sr2ap/Progression.hpp"
 #include "sr2ap/ProgressionEventSink.hpp"
 #include "sr2ap/ProgressionEventTracker.hpp"
@@ -38,14 +36,6 @@ class ProgressionMonitor {
     ProgressionEventSink eventSink_;
     bool writeStatusFile_;
     ProgressionEventTracker eventTracker_;
-    BaselineTracker<std::string, bool> hitman_;
-    BaselineTracker<std::string, bool> chopShop_;
-    BaselineTracker<std::string, bool> missions_;
-    BaselineTracker<std::string, std::uint8_t> activities_;
-    BaselineTracker<std::string_view, RacingMedal> racing_;
-    std::unordered_set<std::uint32_t> cdBaseline_;
-    bool cdBaselineValid_{};
-    BaselineTracker<std::string, std::uint32_t> styleLevel_;
     HitmanReadResult lastHitmanResult_{HitmanReadResult::ReaderUnavailable};
     ChopShopReadResult lastChopShopResult_{
         ChopShopReadResult::ReaderUnavailable};
