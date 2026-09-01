@@ -77,6 +77,42 @@ bool SafeCopy(const void* address, void* destination, std::size_t size) {
            copied == size;
 }
 
+MemoryWriteResult WriteExecutableMemory(void* destination,
+                                        std::span<const std::uint8_t> bytes) {
+    if (!destination || bytes.empty()) {
+        return MemoryWriteResult{.bytesWritten = false,
+                                 .cacheFlushed = false,
+                                 .protectionRestored = false};
+    }
+
+    DWORD previousProtection{};
+    if (!VirtualProtect(destination, bytes.size(), PAGE_EXECUTE_READWRITE,
+                        &previousProtection)) {
+        return MemoryWriteResult{.bytesWritten = false,
+                                 .cacheFlushed = false,
+                                 .protectionRestored = false};
+    }
+
+    SIZE_T written{};
+    const bool bytesWritten =
+        WriteProcessMemory(GetCurrentProcess(), destination, bytes.data(),
+                           bytes.size(), &written) != FALSE &&
+        written == bytes.size();
+
+    const bool flushSucceeded =
+        bytesWritten && FlushInstructionCache(GetCurrentProcess(), destination,
+                                              bytes.size()) != FALSE;
+
+    DWORD ignoredProtection{};
+    const bool restoreSucceeded =
+        VirtualProtect(destination, bytes.size(), previousProtection,
+                       &ignoredProtection) != FALSE;
+
+    return MemoryWriteResult{.bytesWritten = bytesWritten,
+                             .cacheFlushed = flushSucceeded,
+                             .protectionRestored = restoreSucceeded};
+}
+
 std::optional<std::string> ReadFixedString(std::uintptr_t address,
                                            std::size_t capacity) {
     std::string buffer(capacity, '\0');

@@ -18,23 +18,6 @@ namespace sr2ap {
 namespace {
 constexpr std::size_t kCallSize{5};
 
-bool WriteByte(void* destination, std::uint8_t value) {
-    DWORD oldProtection{};
-    if (!VirtualProtect(destination, 1, PAGE_EXECUTE_READWRITE,
-                        &oldProtection)) {
-        return false;
-    }
-    SIZE_T written{};
-    const bool copied = WriteProcessMemory(GetCurrentProcess(), destination,
-                                           &value, 1, &written) &&
-                        written == 1;
-    if (copied) {
-        FlushInstructionCache(GetCurrentProcess(), destination, 1);
-    }
-    DWORD ignored{};
-    return VirtualProtect(destination, 1, oldProtection, &ignored) && copied;
-}
-
 std::optional<std::uintptr_t> CallTarget(std::uintptr_t address) {
     std::array<std::uint8_t, kCallSize> bytes{};
     if (!SafeCopy(reinterpret_cast<const void*>(address), bytes.data(),
@@ -100,8 +83,10 @@ struct SaveRevisionMonitor::Implementation {
         handlerActivity.Start();
         active.store(this, std::memory_order_release);
         installed = true;
-        if (!WriteByte(reinterpret_cast<void*>(loadCall), 0xCC) ||
-            !WriteByte(reinterpret_cast<void*>(saveCall), 0xCC)) {
+        if (!WriteExecutableMemory(reinterpret_cast<void*>(loadCall),
+                                   std::array<uint8_t, 1>{0xCC}) ||
+            !WriteExecutableMemory(reinterpret_cast<void*>(saveCall),
+                                   std::array<uint8_t, 1>{0xCC})) {
             Remove();
             return false;
         }
@@ -154,7 +139,8 @@ struct SaveRevisionMonitor::Implementation {
         std::uint8_t value{};
         if (!SafeCopy(reinterpret_cast<const void*>(address), &value, 1) ||
             value != 0xCC ||
-            !WriteByte(reinterpret_cast<void*>(address), 0xE8)) {
+            !WriteExecutableMemory(reinterpret_cast<void*>(address),
+                                   std::array<uint8_t, 1>{0xE8})) {
             LogWarning("SaveRevision", std::string("Could not restore ") +
                                            name + " call probe");
         }

@@ -6,7 +6,6 @@
 #include <array>
 #include <atomic>
 #include <cstdint>
-#include <cstring>
 #include <mutex>
 #include <safetyhook.hpp>
 #include <string>
@@ -232,11 +231,16 @@ struct CheatController::Implementation {
         if (actualSaveFlag == expectedSaveFlag) {
             originalSaveFlag = actualSaveFlag;
 
-            if (!WriteCode(nops)) {
-                return false;
+            const auto saveFlagNopWriteResult = WriteExecutableMemory(
+                reinterpret_cast<void*>(saveFlagAddress), nops);
+
+            if (saveFlagNopWriteResult.bytesWritten) {
+                ownsSaveFlagPatch = true;
             }
 
-            ownsSaveFlagPatch = true;
+            if (!saveFlagNopWriteResult) {
+                return false;
+            }
         } else if (actualSaveFlag != nops) {
             return false;
         }
@@ -246,11 +250,6 @@ struct CheatController::Implementation {
     }
 
     void Remove() {
-        if (!installed) {
-            DisableFrameHook();
-            return;
-        }
-
         DisableFrameHook();
 
         if (ownsSaveFlagPatch) {
@@ -269,7 +268,8 @@ struct CheatController::Implementation {
                 return;
             }
 
-            if (!WriteCode(originalSaveFlag)) {
+            if (!WriteExecutableMemory(reinterpret_cast<void*>(saveFlagAddress),
+                                       originalSaveFlag)) {
                 LogError("Cheats",
                          "Failed to restore cheat save-flag instructions");
                 ownsSaveFlagPatch = false;
@@ -277,6 +277,7 @@ struct CheatController::Implementation {
                 return;
             }
         }
+
         ownsSaveFlagPatch = false;
         installed = false;
     }
@@ -388,22 +389,6 @@ struct CheatController::Implementation {
                 call function
                 pop esi
         }
-    }
-
-    bool WriteCode(const std::array<std::uint8_t, 12>& bytes) const {
-        auto* const destination = reinterpret_cast<void*>(saveFlagAddress);
-        DWORD previousProtection{};
-        if (!VirtualProtect(destination, bytes.size(), PAGE_EXECUTE_READWRITE,
-                            &previousProtection)) {
-            return false;
-        }
-
-        std::memcpy(destination, bytes.data(), bytes.size());
-        FlushInstructionCache(GetCurrentProcess(), destination, bytes.size());
-        DWORD ignoredProtection{};
-        VirtualProtect(destination, bytes.size(), previousProtection,
-                       &ignoredProtection);
-        return true;
     }
 
     std::uintptr_t gameBase{};
