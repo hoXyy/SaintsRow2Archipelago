@@ -40,25 +40,6 @@ constexpr std::array<BlockedWriter, 3> kBlockedWriters{{
      addresses::kRespectAddWriteRva,
      {0x89, 0x91, 0x00, 0x12, 0x00, 0x00}},
 }};
-
-bool WriteMemory(void* destination, const void* source, std::size_t size) {
-    DWORD previousProtection{};
-    if (!VirtualProtect(destination, size, PAGE_EXECUTE_READWRITE,
-                        &previousProtection)) {
-        return false;
-    }
-    SIZE_T written{};
-    const bool copied = WriteProcessMemory(GetCurrentProcess(), destination,
-                                           source, size, &written) &&
-                        written == size;
-    if (copied) {
-        FlushInstructionCache(GetCurrentProcess(), destination, size);
-    }
-    DWORD ignoredProtection{};
-    const bool restored = VirtualProtect(destination, size, previousProtection,
-                                         &ignoredProtection) != FALSE;
-    return copied && restored;
-}
 }  // namespace
 
 struct RespectController::Implementation {
@@ -124,26 +105,37 @@ struct RespectController::Implementation {
         Instruction breakpoint{};
         breakpoint.fill(0x90);
         breakpoint.front() = 0xCC;
-        if (!WriteMemory(reinterpret_cast<void*>(saveLoadAddress),
-                         breakpoint.data(), breakpoint.size())) {
+
+        const auto saveLoadAddressWriteResult = WriteExecutableMemory(
+            reinterpret_cast<void*>(saveLoadAddress), breakpoint);
+
+        if (saveLoadAddressWriteResult.bytesWritten) {
+            saveLoadPatched = true;
+        }
+
+        if (!saveLoadAddressWriteResult) {
             LogError("Respect", "Failed to intercept writer=save_load");
             Remove();
             return false;
         }
-        saveLoadPatched = true;
 
         Instruction nops{};
         nops.fill(0x90);
         for (std::size_t index = 0; index < kBlockedWriters.size(); ++index) {
-            if (!WriteMemory(reinterpret_cast<void*>(
-                                 gameBase + kBlockedWriters[index].rva),
-                             nops.data(), nops.size())) {
+            const auto writeResult = WriteExecutableMemory(
+                reinterpret_cast<void*>(gameBase + kBlockedWriters[index].rva),
+                nops);
+
+            if (writeResult.bytesWritten) {
+                patchedCount = index + 1;
+            }
+
+            if (!writeResult) {
                 LogError("Respect", std::string("Failed to block writer=") +
                                         kBlockedWriters[index].name);
                 Remove();
                 return false;
             }
-            patchedCount = index + 1;
         }
 
         installed = true;
@@ -308,8 +300,8 @@ struct RespectController::Implementation {
                         kBlockedWriters[site].name);
                 continue;
             }
-            if (!WriteMemory(address, kBlockedWriters[site].expected.data(),
-                             kBlockedWriters[site].expected.size())) {
+            if (!WriteExecutableMemory(address,
+                                       kBlockedWriters[site].expected)) {
                 LogError("Respect", std::string("Failed to restore writer=") +
                                         kBlockedWriters[site].name);
             }
@@ -331,8 +323,7 @@ struct RespectController::Implementation {
             actual != breakpoint) {
             LogWarning("Respect",
                        "Writer changed; not restoring writer=save_load");
-        } else if (!WriteMemory(address, kSaveLoadWriter.data(),
-                                kSaveLoadWriter.size())) {
+        } else if (!WriteExecutableMemory(address, kSaveLoadWriter)) {
             LogError("Respect", "Failed to restore writer=save_load");
         }
         saveLoadPatched = false;
