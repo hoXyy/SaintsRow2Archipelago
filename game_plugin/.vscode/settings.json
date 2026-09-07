@@ -1,0 +1,8 @@
+{
+    "rust-analyzer.linkedProjects": [
+        "rust/Cargo.toml"
+    ],
+    "clangd.arguments": [
+        "--compile-commands-dir=build"
+    ]
+}
