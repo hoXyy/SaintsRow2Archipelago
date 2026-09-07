@@ -63,6 +63,8 @@ if(WIN32 AND SR2AP_BUILD_RUST)
                 "${SR2AP_RUST_CXX_RUNTIME_HEADER}"
                 COMMAND ${CMAKE_COMMAND} -E env
                 "CARGO_TARGET_DIR=${SR2AP_RUST_TARGET_DIR}"
+                "CXX_i686_pc_windows_msvc=${CMAKE_CXX_COMPILER}"
+                "AR_i686_pc_windows_msvc=${CMAKE_AR}"
                 "CXXFLAGS=$<$<CONFIG:Debug>:/MTd /D_ITERATOR_DEBUG_LEVEL=2>"
                 "${CARGO_EXECUTABLE}" build
                 --locked

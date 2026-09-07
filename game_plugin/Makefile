@@ -1,13 +1,12 @@
 BUILD_TYPE ?= Release
 JOBS ?= 4
 PROJECT_VERSION ?= dev
+BUILD_DIR ?= build
 
 ifeq ($(OS),Windows_NT)
 CMAKE ?= cmake
-BUILD_DIR ?= build-msvc-win
 else
 CMAKE ?= msvc-x86-cmake
-BUILD_DIR ?= build-msvc-linux
 endif
 
 .PHONY: all configure build test clean rebuild format
