@@ -1,0 +1,16 @@
+CompileFlags:
+  Compiler: clang-cl
+  Add:
+    - "--target=i686-pc-windows-msvc"
+
+    - "/imsvc"
+    - "/opt/msvc/VC/Tools/MSVC/14.51.36231/include"
+
+    - "/imsvc"
+    - "/opt/msvc/Windows Kits/10/Include/10.0.26100.0/ucrt"
+
+    - "/imsvc"
+    - "/opt/msvc/Windows Kits/10/Include/10.0.26100.0/shared"
+
+    - "/imsvc"
+    - "/opt/msvc/Windows Kits/10/Include/10.0.26100.0/um"
