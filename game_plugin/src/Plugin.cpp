@@ -118,23 +118,28 @@ DWORD WINAPI PluginThread(void* parameter) {
                 session.SendProgression(event);
             },
             config.writeStatusFile);
+
+        const auto game = InspectSupportedGameModule();
+
         while (!shutdownRequested.load(std::memory_order_acquire)) {
+            const auto gameContext = ReadGameContext(game ? &*game : nullptr);
+
             if (saveRevisionInstalled) {
                 saveRevisions.Poll();
             }
 
-            const auto readiness = GetGameReadiness();
-            session.UpdateReadiness(readiness);
+            session.UpdateReadiness(gameContext.readiness);
 
             if (config.enableHotkeys) {
                 if (Pressed(config.moduleReportHotkey, moduleDown)) {
                     ReportAllModules(plugin);
                 }
                 if (Pressed(config.snapshotHotkey, snapshotDown)) {
-                    progression.CaptureManualSnapshot(config.logFullSnapshots);
+                    progression.CaptureManualSnapshot(config.logFullSnapshots,
+                                                      gameContext);
                 }
                 if (Pressed(config.addressDumpHotkey, dumpDown)) {
-                    progression.DumpCompactSnapshot();
+                    progression.DumpCompactSnapshot(gameContext);
                 }
             }
             const auto now = GetTickCount64();
@@ -142,10 +147,10 @@ DWORD WINAPI PluginThread(void* parameter) {
                 (session.CommunicationsActive() || config.writeStatusFile) &&
                 now >= nextPoll) {
                 nextPoll = now + config.pollingIntervalMs;
-                progression.Poll();
+                progression.Poll(gameContext);
             }
 
-            session.PollNetwork();
+            session.PollNetwork(gameContext);
             session.UpdateControllers();
 
             Sleep(50);

@@ -7,34 +7,36 @@
 #include "Addresses.hpp"
 #include "Memory.hpp"
 #include "ModuleInfo.hpp"
-#include "features/Hitman.hpp"
 
 namespace sr2ap {
-bool IsGameplayLoaded(const GameReadiness value) noexcept {
-    return value == GameReadiness::GameplayReady ||
-           value == GameReadiness::GameplayInteractive;
-}
 
-bool IsGameplayInteractive(const GameReadiness value) noexcept {
-    return value == GameReadiness::GameplayInteractive;
-}
-
-GameReadiness GetGameReadiness() {
-    const auto hitmanResult = GetHitmanSnapshot().result;
-    switch (hitmanResult) {
-        case HitmanReadResult::Success:
-            break;
-        case HitmanReadResult::UnsupportedVersion:
-            return GameReadiness::UnsupportedExecutable;
-        case HitmanReadResult::GameNotReady:
-            return GameReadiness::MainMenu;
-        default:
-            return GameReadiness::GameplayUnavailable;
+GameReadiness DetermineGameReadiness(std::uint8_t gameLoaded,
+                                     std::uint8_t menuState,
+                                     std::uint8_t cutsceneActive,
+                                     std::uint32_t player) {
+    if (menuState == addresses::kLoadingMenuState) {
+        return GameReadiness::Loading;
     }
 
-    const auto game = InspectSupportedGameModule();
+    if (gameLoaded == 0) {
+        return GameReadiness::MainMenu;
+    }
+
+    if ((menuState == addresses::kGameplayMenuState ||
+         menuState == addresses::kGameplayBusyState) &&
+        cutsceneActive == 0 && player != 0) {
+        return GameReadiness::GameplayInteractive;
+    }
+
+    return GameReadiness::GameplayReady;
+}
+
+GameContext ReadGameContext(const ModuleInfo* game) {
+    GameContext context;
+    context.module = game;
+
     if (!game) {
-        return GameReadiness::UnsupportedExecutable;
+        return context;
     }
 
     std::uint8_t gameLoaded{};
@@ -53,19 +55,23 @@ GameReadiness GetGameReadiness() {
         !SafeCopy(reinterpret_cast<const void*>(game->base +
                                                 addresses::kPlayerGlobalRva),
                   &player, sizeof(player))) {
-        return GameReadiness::GameplayUnavailable;
+        context.readiness = GameReadiness::GameplayUnavailable;
+        return context;
     }
 
-    if (menuState == addresses::kLoadingMenuState) {
-        return GameReadiness::Loading;
-    }
-    if (gameLoaded != 0 &&
-        (menuState == addresses::kGameplayMenuState ||
-         menuState == addresses::kGameplayBusyState) &&
-        cutsceneActive == 0 && player != 0) {
-        return GameReadiness::GameplayInteractive;
-    }
-    return GameReadiness::GameplayReady;
+    context.readiness =
+        DetermineGameReadiness(gameLoaded, menuState, cutsceneActive, player);
+
+    return context;
+};
+
+bool IsGameplayLoaded(const GameReadiness value) noexcept {
+    return value == GameReadiness::GameplayReady ||
+           value == GameReadiness::GameplayInteractive;
+}
+
+bool IsGameplayInteractive(const GameReadiness value) noexcept {
+    return value == GameReadiness::GameplayInteractive;
 }
 
 const char* ToString(GameReadiness value) {

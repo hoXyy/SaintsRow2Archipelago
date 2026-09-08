@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+#include "game/GameState.hpp"
 #include "util/ReaderResult.hpp"
 
 namespace sr2ap {
@@ -15,6 +16,6 @@ struct StyleLevelSnapshot {
     float respectBonus{};
 };
 
-StyleLevelSnapshot GetStyleLevelSnapshot();
+StyleLevelSnapshot GetStyleLevelSnapshot(const GameContext& context);
 void LogStyleLevelSnapshot(const StyleLevelSnapshot& snapshot, bool full);
 }  // namespace sr2ap

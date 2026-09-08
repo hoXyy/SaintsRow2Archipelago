@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <vector>
 
+#include "game/GameState.hpp"
 #include "util/ReaderResult.hpp"
 
 namespace sr2ap {
@@ -19,7 +20,7 @@ struct CdDefinition {
     const char* districtKey;
 };
 
-CdSnapshot GetCdSnapshot();
+CdSnapshot GetCdSnapshot(const GameContext& context);
 const std::vector<CdDefinition>& GetCdDefinitions();
 const char* FindCdDistrictKey(std::uint32_t id);
 void LogCdSnapshot(const CdSnapshot& snapshot, bool full);

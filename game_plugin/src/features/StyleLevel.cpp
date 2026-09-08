@@ -4,29 +4,33 @@
 #include <sstream>
 
 #include "game/Addresses.hpp"
+#include "game/GameState.hpp"
 #include "game/Memory.hpp"
 #include "game/ModuleInfo.hpp"
 #include "util/Logger.hpp"
+#include "util/ReaderResult.hpp"
 
 namespace sr2ap {
-StyleLevelSnapshot GetStyleLevelSnapshot() {
+StyleLevelSnapshot GetStyleLevelSnapshot(const GameContext& context) {
     StyleLevelSnapshot snapshot;
-    const auto game = InspectSupportedGameModule();
-    if (!game) {
+
+    if (!context.IsSupported()) {
         snapshot.result = ReaderResult::UnsupportedVersion;
         return snapshot;
     }
 
+    const ModuleInfo& game = *context.module;
+
     std::uint32_t player{};
     std::uint32_t table{};
     std::uint32_t count{};
-    if (!SafeCopy(reinterpret_cast<const void*>(game->base +
+    if (!SafeCopy(reinterpret_cast<const void*>(game.base +
                                                 addresses::kPlayerGlobalRva),
                   &player, sizeof(player)) ||
-        !SafeCopy(reinterpret_cast<const void*>(game->base +
+        !SafeCopy(reinterpret_cast<const void*>(game.base +
                                                 addresses::kStyleLevelTableRva),
                   &table, sizeof(table)) ||
-        !SafeCopy(reinterpret_cast<const void*>(game->base +
+        !SafeCopy(reinterpret_cast<const void*>(game.base +
                                                 addresses::kStyleLevelCountRva),
                   &count, sizeof(count))) {
         snapshot.result = ReaderResult::InvalidPointer;

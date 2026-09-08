@@ -6,6 +6,7 @@
 #include "Progression.hpp"
 #include "ProgressionEventSink.hpp"
 #include "ProgressionEventTracker.hpp"
+#include "game/GameState.hpp"
 
 namespace sr2ap {
 using ProgressionEventSink = std::function<void(const ProgressionEvent&)>;
@@ -16,9 +17,9 @@ class ProgressionMonitor {
                                 ProgressionEventSink eventSink = {},
                                 bool writeStatusFile = false);
 
-    void CaptureManualSnapshot(bool full) const;
-    void DumpCompactSnapshot() const;
-    void Poll();
+    void CaptureManualSnapshot(bool full, GameContext context) const;
+    void DumpCompactSnapshot(GameContext context) const;
+    void Poll(GameContext context);
 
    private:
     bool UpdateHitman(const HitmanSnapshot& snapshot);

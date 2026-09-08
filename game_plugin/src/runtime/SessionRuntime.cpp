@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 
+#include "game/GameState.hpp"
 #include "game/SaveRevisionMonitor.hpp"
 #include "rust/cxx.h"
 #include "util/Logger.hpp"
@@ -107,10 +108,10 @@ void SessionRuntime::Connect(std::uint16_t port) {
     rust::session_connect(*session_, port);
 }
 
-void SessionRuntime::PollNetwork() {
+void SessionRuntime::PollNetwork(const GameContext& context) {
     for (;;) {
         const auto request = rust::session_next_request(
-            *session_, IsGameplayInteractive(GetGameReadiness()));
+            *session_, IsGameplayInteractive(context.readiness));
         if (request.kind == rust::GameplayRequestKind::None) {
             return;
         }

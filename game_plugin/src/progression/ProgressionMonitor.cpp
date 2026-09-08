@@ -4,6 +4,7 @@
 
 #include "Status.hpp"
 #include "features/Collectibles.hpp"
+#include "game/GameState.hpp"
 #include "util/Helpers.hpp"
 #include "util/Logger.hpp"
 
@@ -52,17 +53,18 @@ ProgressionMonitor::ProgressionMonitor(std::filesystem::path statusPath,
       writeStatusFile_{writeStatusFile} {
 }
 
-void ProgressionMonitor::CaptureManualSnapshot(bool full) const {
-    const auto snapshot = GetProgressionSnapshot();
+void ProgressionMonitor::CaptureManualSnapshot(bool full,
+                                               GameContext context) const {
+    const auto snapshot = GetProgressionSnapshot(context);
     LogProgressionSnapshot(snapshot, full);
     if (!WriteProgressionStatus(statusPath_, snapshot)) {
         LogWarning("Status", "Unable to replace diagnostic status file");
     }
 }
 
-void ProgressionMonitor::DumpCompactSnapshot() const {
+void ProgressionMonitor::DumpCompactSnapshot(GameContext context) const {
     LogInfo("Diagnostics", "F9 compact progression status; installed_hooks=0");
-    LogProgressionSnapshot(GetProgressionSnapshot(), false);
+    LogProgressionSnapshot(GetProgressionSnapshot(context), false);
 }
 
 void ProgressionMonitor::Emit(const ProgressionEvent& event) const {
@@ -309,8 +311,8 @@ bool ProgressionMonitor::UpdateStyleLevel(const StyleLevelSnapshot& snapshot) {
     return update.kind != BaselineUpdateKind::Unchanged;
 }
 
-void ProgressionMonitor::Poll() {
-    const auto snapshot = GetProgressionSnapshot();
+void ProgressionMonitor::Poll(GameContext context) {
+    const auto snapshot = GetProgressionSnapshot(context);
     bool changed = false;
     changed |= UpdateHitman(snapshot.hitman);
     changed |= UpdateChopShop(snapshot.chopShop);
