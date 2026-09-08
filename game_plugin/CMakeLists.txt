@@ -149,12 +149,10 @@ else()
 endif()
 
 add_library(sr2ap_core STATIC
-        src/ArchipelagoProtocol.cpp
         src/ReaderResult.cpp    
         src/CollectibleDefinitions.cpp
         src/StatusSerialization.cpp
         src/ProgressionEventTracker.cpp
-        src/RevisionJournal.cpp
         src/Helpers.cpp
 )
 target_include_directories(sr2ap_core PUBLIC src/include)
@@ -191,7 +189,6 @@ if(WIN32)
                 src/Activities.cpp
                 src/Racing.cpp
                 src/Collectibles.cpp
-                src/ArchipelagoTcpClient.cpp
                 src/Cheats.cpp
                 src/Notoriety.cpp
                 src/Respect.cpp
@@ -267,13 +264,11 @@ if(SR2AP_BUILD_TESTS)
         FetchContent_MakeAvailable(googletest)
 
         add_executable(sr2ap_tests
-                tests/ArchipelagoProtocolTests.cpp
                 tests/BaselineTrackerTests.cpp
                 tests/CollectibleDefinitionsTests.cpp
                 tests/HandlerActivityTests.cpp
                 tests/ProgressionEventTrackerTests.cpp
                 tests/ReaderResultTests.cpp
-                tests/RevisionJournalTests.cpp
                 tests/StatusSerializationTests.cpp
         )
         target_link_libraries(sr2ap_tests PRIVATE sr2ap_core GTest::gtest_main)
