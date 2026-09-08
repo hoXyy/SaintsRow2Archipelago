@@ -42,6 +42,7 @@ if(WIN32 AND SR2AP_BUILD_RUST)
         set(SR2AP_RUST_PROTOCOL_HEADER "${SR2AP_RUST_CXX_INCLUDE_DIR}/sr2ap/src/ffi/protocol_ffi.rs.h")
         set(SR2AP_RUST_REVISION_JOURNAL_HEADER
                 "${SR2AP_RUST_CXX_INCLUDE_DIR}/sr2ap/src/ffi/revision_journal_ffi.rs.h")
+        set(SR2AP_RUST_SESSION_HEADER "${SR2AP_RUST_CXX_INCLUDE_DIR}/sr2ap/src/ffi/session_ffi.rs.h")
         set(SR2AP_RUST_TCP_CLIENT_HEADER "${SR2AP_RUST_CXX_INCLUDE_DIR}/sr2ap/src/ffi/tcp_client_ffi.rs.h")
         set(SR2AP_RUST_CXX_RUNTIME_HEADER "${SR2AP_RUST_CXX_INCLUDE_DIR}/rust/cxx.h")
 
@@ -65,6 +66,7 @@ if(WIN32 AND SR2AP_BUILD_RUST)
                 "${SR2AP_RUST_PROTOCOL_HEADER}"
                 "${SR2AP_RUST_REVISION_JOURNAL_HEADER}"
                 "${SR2AP_RUST_TCP_CLIENT_HEADER}"
+                "${SR2AP_RUST_SESSION_HEADER}"
                 "${SR2AP_RUST_CXX_RUNTIME_HEADER}"
                 COMMAND ${CMAKE_COMMAND} -E env
                 "CARGO_TARGET_DIR=${SR2AP_RUST_TARGET_DIR}"
@@ -96,6 +98,7 @@ if(WIN32 AND SR2AP_BUILD_RUST)
                 "${SR2AP_RUST_PROTOCOL_HEADER}"
                 "${SR2AP_RUST_REVISION_JOURNAL_HEADER}"
                 "${SR2AP_RUST_TCP_CLIENT_HEADER}"
+                "${SR2AP_RUST_SESSION_HEADER}"
                 "${SR2AP_RUST_CXX_RUNTIME_HEADER}"
         )
 
@@ -113,7 +116,7 @@ if(WIN32 AND SR2AP_BUILD_RUST)
 endif()
 
 file(GLOB_RECURSE SR2AP_FORMAT_SOURCES CONFIGURE_DEPENDS
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/include/*.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/*.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp"
 )
@@ -172,6 +175,7 @@ if(WIN32)
         add_library(SR2Archipelago SHARED
                 src/dllmain.cpp
                 src/Plugin.cpp
+                src/runtime/SessionRuntime.cpp
                 src/Logger.cpp
                 src/Config.cpp
                 src/AtomicFile.cpp
@@ -222,6 +226,7 @@ if(WIN32)
             "${SR2AP_RUST_PROTOCOL_HEADER}"
             "${SR2AP_RUST_REVISION_JOURNAL_HEADER}"
             "${SR2AP_RUST_TCP_CLIENT_HEADER}"
+            "${SR2AP_RUST_SESSION_HEADER}"
             "${SR2AP_RUST_CXX_RUNTIME_HEADER}"
             PROPERTIES
                     GENERATED TRUE
@@ -234,6 +239,7 @@ if(WIN32)
                 "${SR2AP_RUST_PROTOCOL_HEADER}"
                 "${SR2AP_RUST_REVISION_JOURNAL_HEADER}"
                 "${SR2AP_RUST_TCP_CLIENT_HEADER}"
+                "${SR2AP_RUST_SESSION_HEADER}"
                 "${SR2AP_RUST_CXX_RUNTIME_HEADER}"
         )
 
@@ -245,6 +251,7 @@ if(WIN32)
                         "${SR2AP_RUST_PROTOCOL_HEADER}"
                         "${SR2AP_RUST_REVISION_JOURNAL_HEADER}"
                         "${SR2AP_RUST_TCP_CLIENT_HEADER}"
+                        "${SR2AP_RUST_SESSION_HEADER}"
                         "${SR2AP_RUST_CXX_RUNTIME_HEADER}"
         )
 endif()
