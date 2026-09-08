@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "sr2ap/ProgressionEventTracker.hpp"
+#include "progression/ProgressionEventTracker.hpp"
 
 namespace sr2ap {
 TEST(ProgressionEventTrackerTest, HitmanBaselineDoesNotEmitAndChangesEmitOnce) {

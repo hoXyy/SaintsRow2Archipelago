@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "sr2ap/Status.hpp"
+#include "progression/Status.hpp"
 
 namespace sr2ap {
 TEST(StatusSerializationTest, SerializesCountsFlagsAndSuccessfulEntries) {

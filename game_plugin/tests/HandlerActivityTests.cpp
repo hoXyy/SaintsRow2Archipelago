@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "sr2ap/HandlerActivity.hpp"
+#include "util/HandlerActivity.hpp"
 
 namespace sr2ap {
 TEST(HandlerActivityTest, CountsConcurrentLeases) {

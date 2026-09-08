@@ -1,6 +1,6 @@
 #include <windows.h>
 
-#include "sr2ap/Plugin.hpp"
+#include "Plugin.hpp"
 
 BOOL APIENTRY DllMain(HMODULE module, DWORD reason, LPVOID) {
     if (reason == DLL_PROCESS_ATTACH) {

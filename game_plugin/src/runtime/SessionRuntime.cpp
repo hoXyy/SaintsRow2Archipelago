@@ -5,9 +5,9 @@
 #include <string>
 #include <vector>
 
+#include "game/SaveRevisionMonitor.hpp"
 #include "rust/cxx.h"
-#include "sr2ap/Logger.hpp"
-#include "sr2ap/SaveRevisionMonitor.hpp"
+#include "util/Logger.hpp"
 
 namespace sr2ap {
 namespace {
