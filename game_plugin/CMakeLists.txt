@@ -149,13 +149,13 @@ else()
 endif()
 
 add_library(sr2ap_core STATIC
-        src/ReaderResult.cpp    
-        src/CollectibleDefinitions.cpp
-        src/StatusSerialization.cpp
-        src/ProgressionEventTracker.cpp
-        src/Helpers.cpp
+        src/util/ReaderResult.cpp    
+        src/features/CollectibleDefinitions.cpp
+        src/progression/StatusSerialization.cpp
+        src/progression/ProgressionEventTracker.cpp
+        src/util/Helpers.cpp
 )
-target_include_directories(sr2ap_core PUBLIC src/include)
+target_include_directories(sr2ap_core PUBLIC src)
 target_compile_features(sr2ap_core PUBLIC cxx_std_17)
 if(WIN32 AND SR2AP_BUILD_RUST)
         target_link_libraries(sr2ap_core PUBLIC sr2ap_rust)
@@ -174,29 +174,29 @@ if(WIN32)
                 src/dllmain.cpp
                 src/Plugin.cpp
                 src/runtime/SessionRuntime.cpp
-                src/Logger.cpp
-                src/Config.cpp
-                src/AtomicFile.cpp
-                src/ModuleInfo.cpp
-                src/Memory.cpp
-                src/GameState.cpp
-                src/Hitman.cpp
-                src/ChopShop.cpp
-                src/Missions.cpp
-                src/Status.cpp
-                src/Progression.cpp
-                src/ProgressionMonitor.cpp
-                src/Activities.cpp
-                src/Racing.cpp
-                src/Collectibles.cpp
-                src/Cheats.cpp
-                src/Notoriety.cpp
-                src/Respect.cpp
-                src/StyleLevel.cpp
-                src/SaveRevisionMonitor.cpp
-                src/Unlockables.cpp
+                src/util/Logger.cpp
+                src/util/Config.cpp
+                src/util/AtomicFile.cpp
+                src/game/ModuleInfo.cpp
+                src/game/Memory.cpp
+                src/game/GameState.cpp
+                src/features/Hitman.cpp
+                src/features/ChopShop.cpp
+                src/features/Missions.cpp
+                src/progression/Status.cpp
+                src/progression/Progression.cpp
+                src/progression/ProgressionMonitor.cpp
+                src/features/Activities.cpp
+                src/features/Racing.cpp
+                src/features/Collectibles.cpp
+                src/features/Cheats.cpp
+                src/features/Notoriety.cpp
+                src/features/Respect.cpp
+                src/features/StyleLevel.cpp
+                src/game/SaveRevisionMonitor.cpp
+                src/features/Unlockables.cpp
         )
-        target_include_directories(SR2Archipelago PRIVATE src/include)
+        target_include_directories(SR2Archipelago PRIVATE src)
         target_link_libraries(SR2Archipelago PRIVATE
                 sr2ap_core
                 safetyhook::safetyhook

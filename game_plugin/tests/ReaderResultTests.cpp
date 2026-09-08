@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "sr2ap/ReaderResult.hpp"
+#include "util/ReaderResult.hpp"
 
 namespace sr2ap {
 TEST(ReaderResultTest, ConvertsEveryValueToItsProtocolName) {

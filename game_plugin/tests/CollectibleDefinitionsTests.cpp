@@ -3,7 +3,7 @@
 #include <string>
 #include <unordered_set>
 
-#include "sr2ap/Collectibles.hpp"
+#include "features/Collectibles.hpp"
 
 namespace sr2ap {
 TEST(CollectibleDefinitionsTest, ContainsFiftyUniqueRoundTrippableDefinitions) {

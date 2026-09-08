@@ -1,17 +1,17 @@
-#include "sr2ap/Plugin.hpp"
+#include "Plugin.hpp"
 
 #include <windows.h>
 
 #include <atomic>
 
+#include "game/GameState.hpp"
+#include "game/ModuleInfo.hpp"
+#include "game/SaveRevisionMonitor.hpp"
+#include "progression/ProgressionMonitor.hpp"
 #include "runtime/SessionRuntime.hpp"
-#include "sr2ap/Config.hpp"
-#include "sr2ap/GameState.hpp"
-#include "sr2ap/Helpers.hpp"
-#include "sr2ap/Logger.hpp"
-#include "sr2ap/ModuleInfo.hpp"
-#include "sr2ap/ProgressionMonitor.hpp"
-#include "sr2ap/SaveRevisionMonitor.hpp"
+#include "util/Config.hpp"
+#include "util/Helpers.hpp"
+#include "util/Logger.hpp"
 
 #ifndef SR2AP_VERSION
 #define SR2AP_VERSION "dev"

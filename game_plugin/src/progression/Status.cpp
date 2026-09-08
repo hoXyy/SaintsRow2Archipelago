@@ -1,0 +1,22 @@
+#include "Status.hpp"
+
+#include "util/AtomicFile.hpp"
+
+namespace sr2ap {
+bool WriteProgressionStatus(const std::filesystem::path& path,
+                            const ProgressionSnapshot& snapshot) {
+    return ReplaceFileAtomically(path, SerializeProgressionStatus(snapshot));
+}
+
+bool WriteProgressionStatus(const std::filesystem::path& path,
+                            const HitmanSnapshot& hitman,
+                            const ChopShopSnapshot& chopShop,
+                            const MissionSnapshot& missions,
+                            const ActivitySnapshot& activities,
+                            const RacingSnapshot& racing, const CdSnapshot& cds,
+                            const StyleLevelSnapshot& styleLevel) {
+    return ReplaceFileAtomically(
+        path, SerializeProgressionStatus(hitman, chopShop, missions, activities,
+                                         racing, cds, styleLevel));
+}
+}  // namespace sr2ap

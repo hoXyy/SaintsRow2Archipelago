@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include "sr2ap/BaselineTracker.hpp"
+#include "progression/BaselineTracker.hpp"
 
 namespace sr2ap {
 TEST(BaselineTrackerTest, TracksChangesAndIdentity) {
