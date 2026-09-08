@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 
+#include "game/GameState.hpp"
 #include "util/ReaderResult.hpp"
 
 namespace sr2ap {
@@ -21,7 +22,7 @@ struct HitmanSnapshot {
     std::vector<HitmanTargetStatus> targets;
 };
 
-HitmanSnapshot GetHitmanSnapshot();
+HitmanSnapshot GetHitmanSnapshot(const GameContext& context);
 void LogHitmanSnapshot(const HitmanSnapshot& snapshot, bool full);
 bool WriteHitmanStatus(const std::filesystem::path& path,
                        const HitmanSnapshot& snapshot);

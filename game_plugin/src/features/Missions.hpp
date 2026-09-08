@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 
+#include "game/GameState.hpp"
 #include "util/ReaderResult.hpp"
 
 namespace sr2ap {
@@ -18,6 +19,6 @@ struct MissionSnapshot {
     std::vector<MissionStatus> missions;
 };
 
-MissionSnapshot GetMissionSnapshot();
+MissionSnapshot GetMissionSnapshot(const GameContext& context);
 void LogMissionSnapshot(const MissionSnapshot& snapshot, bool full);
 }  // namespace sr2ap

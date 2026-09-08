@@ -5,6 +5,7 @@
 #include <unordered_set>
 
 #include "game/Addresses.hpp"
+#include "game/GameState.hpp"
 #include "game/Memory.hpp"
 #include "game/ModuleInfo.hpp"
 #include "util/Helpers.hpp"
@@ -12,18 +13,19 @@
 
 namespace sr2ap {
 
-CdSnapshot GetCdSnapshot() {
+CdSnapshot GetCdSnapshot(const GameContext& context) {
     CdSnapshot snapshot;
-    const auto game = InspectSupportedGameModule();
 
-    if (!game) {
+    if (!context.IsSupported()) {
         snapshot.result = CdReadResult::UnsupportedVersion;
         return snapshot;
     }
 
+    const ModuleInfo& game = *context.module;
+
     std::uint32_t manager{};
     if (!SafeCopy(reinterpret_cast<const void*>(
-                      game->base + addresses::kCollectibleManagerRva),
+                      game.base + addresses::kCollectibleManagerRva),
                   &manager, sizeof(manager)) ||
         !manager) {
         snapshot.result = CdReadResult::ManagerUnavailable;

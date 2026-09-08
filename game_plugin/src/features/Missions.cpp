@@ -5,11 +5,12 @@
 #include <array>
 #include <sstream>
 
-#include "Hitman.hpp"
 #include "game/Addresses.hpp"
+#include "game/GameState.hpp"
 #include "game/Memory.hpp"
 #include "game/ModuleInfo.hpp"
 #include "util/Logger.hpp"
+#include "util/ReaderResult.hpp"
 
 namespace sr2ap {
 namespace {
@@ -74,22 +75,23 @@ constexpr std::array<const char*, 56> kBaseGameMissions{"tss01",
 using MissionCompletedFunction = bool(__thiscall*)(const char*);
 }  // namespace
 
-MissionSnapshot GetMissionSnapshot() {
+MissionSnapshot GetMissionSnapshot(const GameContext& context) {
     MissionSnapshot snapshot;
-    const auto game = InspectSupportedGameModule();
-    if (!game) {
-        snapshot.result = MissionReadResult::UnsupportedVersion;
+
+    if (!context.IsSupported()) {
+        snapshot.result = ReaderResult::UnsupportedVersion;
         return snapshot;
     }
 
-    // The hitman stuff is the "Game is ready" gate since that was the first
-    // thing implemented lol
-    if (GetHitmanSnapshot().result != HitmanReadResult::Success) {
-        snapshot.result = MissionReadResult::GameNotReady;
+    if (!context.IsLoaded()) {
+        snapshot.result = ReaderResult::GameNotReady;
         return snapshot;
     }
-    const auto address = game->base + addresses::kMissionCompletedQueryRva;
-    if (!IsInsideModule(game->handle, reinterpret_cast<const void*>(address)) ||
+
+    const ModuleInfo& game = *context.module;
+
+    const auto address = game.base + addresses::kMissionCompletedQueryRva;
+    if (!IsInsideModule(game.handle, reinterpret_cast<const void*>(address)) ||
         !IsExecutableAddress(reinterpret_cast<const void*>(address)) ||
         DetectDetour(reinterpret_cast<const void*>(address)) !=
             DetourKind::None) {

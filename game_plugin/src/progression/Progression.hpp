@@ -7,6 +7,7 @@
 #include "features/Missions.hpp"
 #include "features/Racing.hpp"
 #include "features/StyleLevel.hpp"
+#include "game/GameState.hpp"
 
 namespace sr2ap {
 struct ProgressionSnapshot {
@@ -19,6 +20,6 @@ struct ProgressionSnapshot {
     StyleLevelSnapshot styleLevel;
 };
 
-ProgressionSnapshot GetProgressionSnapshot();
+ProgressionSnapshot GetProgressionSnapshot(const GameContext& context);
 void LogProgressionSnapshot(const ProgressionSnapshot& snapshot, bool full);
 }  // namespace sr2ap

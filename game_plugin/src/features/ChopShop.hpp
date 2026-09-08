@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 
+#include "game/GameState.hpp"
 #include "util/ReaderResult.hpp"
 
 namespace sr2ap {
@@ -23,6 +24,6 @@ struct ChopShopSnapshot {
     std::vector<ChopShopVehicleStatus> vehicles;
 };
 
-ChopShopSnapshot GetChopShopSnapshot();
+ChopShopSnapshot GetChopShopSnapshot(const GameContext& context);
 void LogChopShopSnapshot(const ChopShopSnapshot& snapshot, bool full);
 }  // namespace sr2ap

@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 
+#include "game/GameState.hpp"
 #include "util/ReaderResult.hpp"
 
 namespace sr2ap {
@@ -21,6 +22,6 @@ struct ActivitySnapshot {
     std::vector<ActivityInstanceStatus> instances;
 };
 
-ActivitySnapshot GetActivitySnapshot();
+ActivitySnapshot GetActivitySnapshot(const GameContext& context);
 void LogActivitySnapshot(const ActivitySnapshot& snapshot, bool full);
 }  // namespace sr2ap

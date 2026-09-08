@@ -8,8 +8,8 @@
 #include <sstream>
 #include <unordered_set>
 
-#include "Hitman.hpp"
 #include "game/Addresses.hpp"
+#include "game/GameState.hpp"
 #include "game/Memory.hpp"
 #include "game/ModuleInfo.hpp"
 #include "util/Logger.hpp"
@@ -41,24 +41,28 @@ bool ReadTag(std::uintptr_t address, std::string& result) {
 }
 }  // namespace
 
-ActivitySnapshot GetActivitySnapshot() {
+ActivitySnapshot GetActivitySnapshot(const GameContext& context) {
     ActivitySnapshot snapshot;
-    const auto game = InspectSupportedGameModule();
-    if (!game) {
+
+    if (!context.IsSupported()) {
         snapshot.result = ActivityReadResult::UnsupportedVersion;
         return snapshot;
     }
-    if (GetHitmanSnapshot().result != HitmanReadResult::Success) {
-        snapshot.result = ActivityReadResult::GameNotReady;
+
+    if (!context.IsLoaded()) {
+        snapshot.result = ReaderResult::GameNotReady;
         return snapshot;
     }
+
+    const ModuleInfo& game = *context.module;
+
     std::uint32_t componentCount{}, progressionCount{};
     if (!SafeCopy(reinterpret_cast<const void*>(
-                      game->base + addresses::kActivityComponentCountRva),
+                      game.base + addresses::kActivityComponentCountRva),
                   &componentCount, sizeof(componentCount)) ||
         componentCount == 0 || componentCount > kMaximumTableRows ||
         !SafeCopy(reinterpret_cast<const void*>(
-                      game->base + addresses::kActivityProgressionCountRva),
+                      game.base + addresses::kActivityProgressionCountRva),
                   &progressionCount, sizeof(progressionCount)) ||
         progressionCount == 0 || progressionCount > kMaximumTableRows) {
         snapshot.result = ActivityReadResult::ManagerUnavailable;
@@ -66,7 +70,7 @@ ActivitySnapshot GetActivitySnapshot() {
     }
     std::unordered_set<std::string> identities;
     for (std::uint32_t index = 0; index < componentCount; ++index) {
-        const auto component = game->base +
+        const auto component = game.base +
                                addresses::kActivityComponentTableRva +
                                static_cast<std::uintptr_t>(index) *
                                    addresses::kActivityComponentStride;
@@ -108,7 +112,7 @@ ActivitySnapshot GetActivitySnapshot() {
         std::uint8_t flags{};
         bool found = false;
         for (std::uint32_t row = 0; row < progressionCount; ++row) {
-            const auto entry = game->base +
+            const auto entry = game.base +
                                addresses::kActivityProgressionTableRva +
                                static_cast<std::uintptr_t>(row) *
                                    addresses::kActivityProgressionEntryStride;

@@ -7,6 +7,7 @@
 #include <cctype>
 
 #include "game/Addresses.hpp"
+#include "game/GameState.hpp"
 #include "game/Memory.hpp"
 #include "game/ModuleInfo.hpp"
 #include "util/Logger.hpp"
@@ -42,16 +43,23 @@ bool ReadTargetTag(std::uintptr_t address, std::string& result) {
 }
 }  // namespace
 
-ChopShopSnapshot GetChopShopSnapshot() {
+ChopShopSnapshot GetChopShopSnapshot(const GameContext& context) {
     ChopShopSnapshot snapshot;
-    const auto game = InspectSupportedGameModule();
-    if (!game || !ValidateReaderCode(*game)) {
+
+    if (!context.IsSupported()) {
+        snapshot.result = ChopShopReadResult::UnsupportedVersion;
+        return snapshot;
+    }
+
+    const ModuleInfo& game = *context.module;
+
+    if (!ValidateReaderCode(game)) {
         snapshot.result = ChopShopReadResult::UnsupportedVersion;
         return snapshot;
     }
     std::uint32_t root{};
     if (!SafeCopy(reinterpret_cast<const void*>(
-                      game->base + addresses::kChopShopRootGlobalRva),
+                      game.base + addresses::kChopShopRootGlobalRva),
                   &root, sizeof(root)) ||
         !root) {
         snapshot.result = ChopShopReadResult::GameNotReady;

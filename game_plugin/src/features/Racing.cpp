@@ -3,28 +3,32 @@
 #include <cmath>
 #include <sstream>
 
-#include "Hitman.hpp"
 #include "game/Addresses.hpp"
+#include "game/GameState.hpp"
 #include "game/Memory.hpp"
 #include "game/ModuleInfo.hpp"
 #include "util/Logger.hpp"
+#include "util/ReaderResult.hpp"
 
 namespace sr2ap {
-RacingSnapshot GetRacingSnapshot() {
+RacingSnapshot GetRacingSnapshot(const GameContext& context) {
     RacingSnapshot snapshot;
-    const auto game = InspectSupportedGameModule();
-    if (!game) {
+
+    if (!context.IsSupported()) {
         snapshot.result = ReaderResult::UnsupportedVersion;
         return snapshot;
     }
-    if (GetHitmanSnapshot().result != HitmanReadResult::Success) {
+
+    if (!context.IsLoaded()) {
         snapshot.result = ReaderResult::GameNotReady;
         return snapshot;
     }
 
+    const ModuleInfo& game = *context.module;
+
     std::uint32_t count{};
     if (!SafeCopy(reinterpret_cast<const void*>(
-                      game->base + addresses::kRacingRecordCountRva),
+                      game.base + addresses::kRacingRecordCountRva),
                   &count, sizeof(count)) ||
         count != kRaceDefinitions.size()) {
         snapshot.result = ReaderResult::ManagerUnavailable;
@@ -34,7 +38,7 @@ RacingSnapshot GetRacingSnapshot() {
     snapshot.races.reserve(kRaceDefinitions.size());
     for (std::uint32_t index = 0; index < count; ++index) {
         const auto record =
-            game->base + addresses::kRacingRecordTableRva +
+            game.base + addresses::kRacingRecordTableRva +
             static_cast<std::uintptr_t>(index) * addresses::kRacingRecordStride;
         std::uint32_t identityHash{};
         std::uint32_t rawMedal{};

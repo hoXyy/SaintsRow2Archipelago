@@ -24,7 +24,7 @@ class SessionRuntime {
 
     bool InstallSaveMonitoring(SaveRevisionMonitor& monitor, bool enabled);
     void Connect(std::uint16_t port);
-    void PollNetwork();
+    void PollNetwork(const GameContext& context);
     void UpdateReadiness(GameReadiness current);
     void SendProgression(const ProgressionEvent& event);
     bool CommunicationsActive() const noexcept;

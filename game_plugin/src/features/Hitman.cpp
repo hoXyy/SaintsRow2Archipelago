@@ -9,6 +9,7 @@
 #include <sstream>
 
 #include "game/Addresses.hpp"
+#include "game/GameState.hpp"
 #include "game/Memory.hpp"
 #include "game/ModuleInfo.hpp"
 #include "util/AtomicFile.hpp"
@@ -48,20 +49,22 @@ bool ReadLocation(std::uintptr_t address, std::string& result) {
 }
 }  // namespace
 
-HitmanSnapshot GetHitmanSnapshot() {
+HitmanSnapshot GetHitmanSnapshot(const GameContext& context) {
     HitmanSnapshot snapshot;
-    const auto game = InspectSupportedGameModule();
 
-    if (!game) {
-        snapshot.result = HitmanReadResult::UnsupportedVersion;
-        return snapshot;
-    }
-    if (!ValidateReaderCode(*game)) {
+    if (!context.IsSupported()) {
         snapshot.result = HitmanReadResult::UnsupportedVersion;
         return snapshot;
     }
 
-    const auto table = game->base + addresses::kHitmanListTableCandidateRva;
+    const ModuleInfo& game = *context.module;
+
+    if (!ValidateReaderCode(game)) {
+        snapshot.result = HitmanReadResult::UnsupportedVersion;
+        return snapshot;
+    }
+
+    const auto table = game.base + addresses::kHitmanListTableCandidateRva;
     for (std::uint32_t listIndex = 0; listIndex < addresses::kHitmanListCount;
          ++listIndex) {
         std::uint32_t rowBase{};
@@ -74,7 +77,7 @@ HitmanSnapshot GetHitmanSnapshot() {
             snapshot.targets.clear();
             return snapshot;
         }
-        if (!IsInsideModule(game->handle,
+        if (!IsInsideModule(game.handle,
                             reinterpret_cast<const void*>(rowBase))) {
             snapshot.result = HitmanReadResult::InvalidPointer;
             snapshot.targets.clear();

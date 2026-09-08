@@ -5,6 +5,7 @@
 #include <string_view>
 #include <vector>
 
+#include "game/GameState.hpp"
 #include "util/ReaderResult.hpp"
 
 namespace sr2ap {
@@ -85,6 +86,6 @@ struct RacingSnapshot {
     return 0;
 }
 
-RacingSnapshot GetRacingSnapshot();
+RacingSnapshot GetRacingSnapshot(const GameContext& context);
 void LogRacingSnapshot(const RacingSnapshot& snapshot, bool full);
 }  // namespace sr2ap
