@@ -19,7 +19,7 @@ const MAX_LINE_LENGTH: usize = 64 * 1024;
 const OUTGOING_QUEUE_CAPACITY: usize = 128;
 const RECONNECT_DELAY: Duration = Duration::from_secs(2);
 
-enum NetworkEvent {
+pub(crate) enum NetworkEvent {
     Connected,
     Disconnected,
     Line(String),
@@ -97,6 +97,18 @@ impl TcpClient {
                 NetworkEvent::Line(line) => handle_line(&line),
             }
         }
+    }
+
+    pub(crate) fn drain_events(&mut self) -> Vec<NetworkEvent> {
+        let events: Vec<_> = self.events.try_iter().collect();
+        for event in &events {
+            match event {
+                NetworkEvent::Connected => self.connected = true,
+                NetworkEvent::Disconnected => self.connected = false,
+                NetworkEvent::Line(_) => {}
+            }
+        }
+        events
     }
 
     pub(crate) fn is_connected(&self) -> bool {
