@@ -57,9 +57,4 @@ void ReportAllModules(HMODULE plugin) {
         ReportModule("Plugin", *self);
     }
 }
-
-bool IsDeliveryReady(const DeliveryContextState state) {
-    return state == DeliveryContextState::provisional ||
-           state == DeliveryContextState::activeRevision;
-}
 }  // namespace sr2ap
