@@ -1,4 +1,3 @@
-//! Journal ownership and durable replacement. A persistence failure disables delivery.
 use crate::protocol::IncomingMessage;
 use crate::revision_journal::{RevisionJournal, SaveRevision};
 use std::{

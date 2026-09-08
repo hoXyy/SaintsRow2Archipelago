@@ -1,4 +1,3 @@
-//! Save-scoped delivery cursor. Controller acceptance is required before advancing it.
 #[derive(Debug, Default, PartialEq, Eq)]
 pub(super) enum Context {
     #[default]

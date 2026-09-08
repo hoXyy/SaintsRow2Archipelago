@@ -1,5 +1,3 @@
-//! Session rules run on the plugin thread. At most one synchronous gameplay request
-//! is outstanding; C++ must report its result before processing another network event.
 mod delivery;
 mod revision_sync;
 
@@ -229,7 +227,6 @@ impl SessionRuntime {
                     log::info!(target: "Session", "Authenticated AP session resumed");
                     self.begin_sync();
                 } else {
-                    // Only policy fields are copied for the boundary; the full configuration stays here.
                     let policy = IncomingMessage {
                         managed_cheats: message.managed_cheats.clone(),
                         managed_unlockables: message.managed_unlockables.clone(),
