@@ -113,7 +113,7 @@ if(WIN32 AND SR2AP_BUILD_RUST)
 endif()
 
 file(GLOB_RECURSE SR2AP_FORMAT_SOURCES CONFIGURE_DEPENDS
-        "${CMAKE_CURRENT_SOURCE_DIR}/include/*.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/include/*.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp"
 )
@@ -154,7 +154,7 @@ add_library(sr2ap_core STATIC
         src/RevisionJournal.cpp
         src/Helpers.cpp
 )
-target_include_directories(sr2ap_core PUBLIC include)
+target_include_directories(sr2ap_core PUBLIC src/include)
 target_compile_features(sr2ap_core PUBLIC cxx_std_17)
 if(WIN32 AND SR2AP_BUILD_RUST)
         target_link_libraries(sr2ap_core PUBLIC sr2ap_rust)
@@ -195,7 +195,7 @@ if(WIN32)
                 src/SaveRevisionMonitor.cpp
                 src/Unlockables.cpp
         )
-        target_include_directories(SR2Archipelago PRIVATE include)
+        target_include_directories(SR2Archipelago PRIVATE src/include)
         target_link_libraries(SR2Archipelago PRIVATE
                 sr2ap_core
                 safetyhook::safetyhook
