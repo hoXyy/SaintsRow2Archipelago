@@ -4,7 +4,6 @@
 
 #include <array>
 #include <atomic>
-#include <cstring>
 #include <string>
 #include <utility>
 
@@ -17,18 +16,6 @@
 namespace sr2ap {
 namespace {
 constexpr std::size_t kCallSize{5};
-
-std::optional<std::uintptr_t> CallTarget(std::uintptr_t address) {
-    std::array<std::uint8_t, kCallSize> bytes{};
-    if (!SafeCopy(reinterpret_cast<const void*>(address), bytes.data(),
-                  bytes.size()) ||
-        bytes[0] != 0xE8) {
-        return std::nullopt;
-    }
-    std::int32_t displacement{};
-    std::memcpy(&displacement, bytes.data() + 1, sizeof(displacement));
-    return address + kCallSize + displacement;
-}
 
 std::optional<std::uint32_t> ReadChecksum(std::uintptr_t object) {
     std::array<char, 8> kind{};
@@ -68,8 +55,8 @@ struct SaveRevisionMonitor::Implementation {
         saveCall = base + addresses::kSaveWriteOpenCallRva;
         loadTarget = base + addresses::kSaveLoadAllRva;
         saveTarget = base + addresses::kCFileOpenRva;
-        if (CallTarget(loadCall) != loadTarget ||
-            CallTarget(saveCall) != saveTarget) {
+        if (ResolveRelativeCallTarget(loadCall) != loadTarget ||
+            ResolveRelativeCallTarget(saveCall) != saveTarget) {
             LogError("SaveRevision", "Unexpected save/load call targets");
             return false;
         }

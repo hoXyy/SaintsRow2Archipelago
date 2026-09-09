@@ -30,6 +30,8 @@ std::optional<std::string> ReadFixedString(std::uintptr_t address,
                                            std::size_t capacity);
 std::optional<std::vector<std::uint8_t>> CaptureBytes(const void* address,
                                                       std::size_t size);
+std::optional<std::uintptr_t> ResolveRelativeCallTarget(
+    std::uintptr_t address);
 enum class DetourKind {
     None,
     RelativeJump,
