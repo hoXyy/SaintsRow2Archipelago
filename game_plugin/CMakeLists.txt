@@ -200,6 +200,7 @@ if(WIN32)
         target_link_libraries(SR2Archipelago PRIVATE
                 sr2ap_core
                 safetyhook::safetyhook
+                Zydis
                 ntdll
                 userenv
                 ws2_32

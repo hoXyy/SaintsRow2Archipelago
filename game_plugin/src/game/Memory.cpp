@@ -1,11 +1,16 @@
 #include "Memory.hpp"
 
-#include <cstring>
+#include <Zydis/Zydis.h>
+
+#include <array>
+#include <limits>
 
 #include "ModuleInfo.hpp"
 
 namespace sr2ap {
 namespace {
+constexpr std::size_t kDecodeBufferSize{ZYDIS_MAX_INSTRUCTION_LENGTH + 1};
+
 bool HasAccess(DWORD protect, bool executable) {
     if ((protect & (PAGE_GUARD | PAGE_NOACCESS)) != 0) {
         return false;
@@ -19,6 +24,24 @@ bool HasAccess(DWORD protect, bool executable) {
     return basic == PAGE_READONLY || basic == PAGE_READWRITE ||
            basic == PAGE_WRITECOPY || basic == PAGE_EXECUTE_READ ||
            basic == PAGE_EXECUTE_READWRITE || basic == PAGE_EXECUTE_WRITECOPY;
+}
+
+bool DecodeInstruction(const std::uint8_t* bytes, std::size_t size,
+                       ZydisDecodedInstruction& instruction,
+                       ZydisDecodedOperand (&operands)
+                           [ZYDIS_MAX_OPERAND_COUNT]) {
+    ZydisDecoder decoder{};
+    return ZYAN_SUCCESS(ZydisDecoderInit(
+               &decoder, ZYDIS_MACHINE_MODE_LEGACY_32,
+               ZYDIS_STACK_WIDTH_32)) &&
+           ZYAN_SUCCESS(ZydisDecoderDecodeFull(&decoder, bytes, size,
+                                               &instruction, operands));
+}
+
+const ZydisDecodedOperand* FirstVisibleOperand(
+    const ZydisDecodedInstruction& instruction,
+    const ZydisDecodedOperand (&operands)[ZYDIS_MAX_OPERAND_COUNT]) {
+    return instruction.operand_count_visible == 0 ? nullptr : &operands[0];
 }
 }  // namespace
 
@@ -139,28 +162,74 @@ std::optional<std::vector<std::uint8_t>> CaptureBytes(const void* address,
     return result;
 }
 
+std::optional<std::uintptr_t> ResolveRelativeCallTarget(
+    std::uintptr_t address) {
+    std::array<std::uint8_t, ZYDIS_MAX_INSTRUCTION_LENGTH> bytes{};
+    if (!SafeCopy(reinterpret_cast<const void*>(address), bytes.data(),
+                  bytes.size())) {
+        return std::nullopt;
+    }
+
+    ZydisDecodedInstruction instruction{};
+    ZydisDecodedOperand operands[ZYDIS_MAX_OPERAND_COUNT]{};
+    if (!DecodeInstruction(bytes.data(), bytes.size(), instruction, operands) ||
+        instruction.mnemonic != ZYDIS_MNEMONIC_CALL) {
+        return std::nullopt;
+    }
+
+    const auto* const operand = FirstVisibleOperand(instruction, operands);
+    if (!operand || operand->type != ZYDIS_OPERAND_TYPE_IMMEDIATE ||
+        !operand->imm.is_relative) {
+        return std::nullopt;
+    }
+
+    ZyanU64 target{};
+    if (!ZYAN_SUCCESS(ZydisCalcAbsoluteAddress(
+            &instruction, operand, static_cast<ZyanU64>(address), &target)) ||
+        target > std::numeric_limits<std::uintptr_t>::max()) {
+        return std::nullopt;
+    }
+    return static_cast<std::uintptr_t>(target);
+}
+
 DetourKind DetectDetour(const void* address) {
-    std::uint8_t bytes[6]{};
-    if (!SafeCopy(address, bytes, sizeof(bytes))) {
+    std::array<std::uint8_t, kDecodeBufferSize> bytes{};
+    if (!SafeCopy(address, bytes.data(), bytes.size())) {
         return DetourKind::Unknown;
     }
 
-    if (bytes[0] == 0xE9 || bytes[0] == 0xEB) {
-        return DetourKind::RelativeJump;
+    ZydisDecodedInstruction instruction{};
+    ZydisDecodedOperand operands[ZYDIS_MAX_OPERAND_COUNT]{};
+    if (!DecodeInstruction(bytes.data(), bytes.size(), instruction, operands)) {
+        return DetourKind::Unknown;
     }
 
-    if (bytes[0] == 0xE8) {
+    const auto* const operand = FirstVisibleOperand(instruction, operands);
+    if (instruction.mnemonic == ZYDIS_MNEMONIC_CALL && operand &&
+        operand->type == ZYDIS_OPERAND_TYPE_IMMEDIATE &&
+        operand->imm.is_relative) {
         return DetourKind::RelativeCall;
     }
 
-    if (bytes[0] == 0xFF &&
-        (bytes[1] == 0x25 || bytes[1] == 0xE0 || bytes[1] == 0xE1 ||
-         bytes[1] == 0xE2 || bytes[1] == 0xE3)) {
+    if (instruction.mnemonic == ZYDIS_MNEMONIC_JMP && operand) {
+        if (operand->type == ZYDIS_OPERAND_TYPE_IMMEDIATE &&
+            operand->imm.is_relative) {
+            return DetourKind::RelativeJump;
+        }
         return DetourKind::IndirectJump;
     }
 
-    if (bytes[0] == 0x68 && bytes[5] == 0xC3) {
-        return DetourKind::PushReturn;
+    if (instruction.mnemonic == ZYDIS_MNEMONIC_PUSH && operand &&
+        operand->type == ZYDIS_OPERAND_TYPE_IMMEDIATE &&
+        instruction.length < bytes.size()) {
+        ZydisDecodedInstruction next{};
+        ZydisDecodedOperand nextOperands[ZYDIS_MAX_OPERAND_COUNT]{};
+        if (DecodeInstruction(bytes.data() + instruction.length,
+                              bytes.size() - instruction.length, next,
+                              nextOperands) &&
+            next.mnemonic == ZYDIS_MNEMONIC_RET) {
+            return DetourKind::PushReturn;
+        }
     }
 
     return DetourKind::None;
