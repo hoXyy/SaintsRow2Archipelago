@@ -252,6 +252,7 @@ class TestClientGoal(unittest.IsolatedAsyncioTestCase):
         ctx = SimpleNamespace(
             finished_game=False,
             slot_data={"goal_locations": [16, 31]},
+            checked_locations=set(),
             locations_checked={16, 31},
             send_msgs=AsyncMock(),
         )
@@ -272,6 +273,7 @@ class TestClientGoal(unittest.IsolatedAsyncioTestCase):
         ctx = SimpleNamespace(
             finished_game=False,
             slot_data={"goal_locations": [16, 31]},
+            checked_locations=set(),
             locations_checked={16},
             send_msgs=AsyncMock(),
         )
@@ -285,6 +287,7 @@ class TestClientGoal(unittest.IsolatedAsyncioTestCase):
         ctx = SimpleNamespace(
             finished_game=True,
             slot_data={"goal_locations": [16]},
+            checked_locations=set(),
             locations_checked={16},
             send_msgs=AsyncMock(),
         )
@@ -292,6 +295,41 @@ class TestClientGoal(unittest.IsolatedAsyncioTestCase):
         await send_goal_if_complete(ctx)
 
         ctx.send_msgs.assert_not_awaited()
+
+    async def test_goal_uses_server_and_locally_checked_locations(self) -> None:
+        ctx = SimpleNamespace(
+            finished_game=False,
+            slot_data={"goal_locations": [16, 31, 46, 54]},
+            checked_locations={16, 31, 46, 100, 101},
+            locations_checked={54, 102},
+            send_msgs=AsyncMock(),
+        )
+
+        await send_goal_if_complete(ctx)
+
+        self.assertTrue(ctx.finished_game)
+        ctx.send_msgs.assert_awaited_once_with(
+            [
+                {
+                    "cmd": "StatusUpdate",
+                    "status": ClientStatus.CLIENT_GOAL,
+                }
+            ]
+        )
+
+    async def test_goal_sent_when_every_goal_was_already_server_checked(self) -> None:
+        ctx = SimpleNamespace(
+            finished_game=False,
+            slot_data={"goal_locations": [16, 31, 46, 54]},
+            checked_locations={16, 31, 46, 54},
+            locations_checked=set(),
+            send_msgs=AsyncMock(),
+        )
+
+        await send_goal_if_complete(ctx)
+
+        self.assertTrue(ctx.finished_game)
+        ctx.send_msgs.assert_awaited_once()
 
 
 class TestSessionReady(unittest.IsolatedAsyncioTestCase):
