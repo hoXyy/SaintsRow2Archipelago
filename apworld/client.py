@@ -279,7 +279,8 @@ async def send_goal_if_complete(ctx: SR2Context) -> None:
         logger.error("Ignored invalid SR2 goal location data")
         return
 
-    if not goal_locations.issubset(ctx.locations_checked):
+    completed_locations = ctx.checked_locations | ctx.locations_checked
+    if not goal_locations.issubset(completed_locations):
         return
 
     ctx.finished_game = True
