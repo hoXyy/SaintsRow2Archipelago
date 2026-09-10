@@ -4,6 +4,8 @@
 
 #include <array>
 #include <atomic>
+#include <cstddef>
+#include <safetyhook.hpp>
 #include <string>
 #include <utility>
 
@@ -15,20 +17,25 @@
 
 namespace sr2ap {
 namespace {
-constexpr std::size_t kCallSize{5};
+struct SaveHeader {
+    std::uint32_t checksum{};
+    std::array<std::byte, 8> reserved{};
+    std::array<char, 8> kind{};
+};
+
+static_assert(offsetof(SaveHeader, kind) == 0x0C);
+static_assert(sizeof(SaveHeader) == 0x14);
+
+constexpr std::array kCitySaveKind{'s', 'r', '2', '_', 'c', 'i', 't', 'y'};
 
 std::optional<std::uint32_t> ReadChecksum(std::uintptr_t object) {
-    std::array<char, 8> kind{};
-    std::uint32_t checksum{};
-    if (!object ||
-        !SafeCopy(reinterpret_cast<const void*>(object), &checksum,
-                  sizeof(checksum)) ||
-        !SafeCopy(reinterpret_cast<const void*>(object + 0x0C), kind.data(),
-                  kind.size()) ||
-        std::memcmp(kind.data(), "sr2_city", kind.size()) != 0) {
+    SaveHeader header{};
+    if (!object || !SafeCopy(reinterpret_cast<const void*>(object), &header,
+                             sizeof(header)) ||
+        header.kind != kCitySaveKind) {
         return std::nullopt;
     }
-    return checksum;
+    return header.checksum;
 }
 }  // namespace
 
@@ -50,11 +57,10 @@ struct SaveRevisionMonitor::Implementation {
         if (!game) {
             return false;
         }
-        base = game->base;
-        loadCall = base + addresses::kSaveLoadInternalCallRva;
-        saveCall = base + addresses::kSaveWriteOpenCallRva;
-        loadTarget = base + addresses::kSaveLoadAllRva;
-        saveTarget = base + addresses::kCFileOpenRva;
+        const auto loadCall = game->base + addresses::kSaveLoadInternalCallRva;
+        const auto saveCall = game->base + addresses::kSaveWriteOpenCallRva;
+        const auto loadTarget = game->base + addresses::kSaveLoadAllRva;
+        const auto saveTarget = game->base + addresses::kCFileOpenRva;
         if (ResolveRelativeCallTarget(loadCall) != loadTarget ||
             ResolveRelativeCallTarget(saveCall) != saveTarget) {
             LogError("SaveRevision", "Unexpected save/load call targets");
@@ -63,20 +69,39 @@ struct SaveRevisionMonitor::Implementation {
         loaded = std::move(onLoaded);
         saved = std::move(onSaved);
         loadStarting = std::move(onLoadStarting);
-        handler = AddVectoredExceptionHandler(1, &HandleException);
-        if (!handler) {
+
+        auto pendingLoadHook = safetyhook::MidHook::create(
+            reinterpret_cast<void*>(loadCall), &LoadCallHook,
+            safetyhook::MidHook::StartDisabled);
+        if (!pendingLoadHook) {
+            LogError("SaveRevision", "Could not create load-call hook");
             return false;
         }
-        handlerActivity.Start();
-        active.store(this, std::memory_order_release);
-        installed = true;
-        if (!WriteExecutableMemory(reinterpret_cast<void*>(loadCall),
-                                   std::array<uint8_t, 1>{0xCC}) ||
-            !WriteExecutableMemory(reinterpret_cast<void*>(saveCall),
-                                   std::array<uint8_t, 1>{0xCC})) {
+
+        auto pendingSaveHook = safetyhook::MidHook::create(
+            reinterpret_cast<void*>(saveCall), &SaveCallHook,
+            safetyhook::MidHook::StartDisabled);
+        if (!pendingSaveHook) {
+            LogError("SaveRevision", "Could not create save-call hook");
+            return false;
+        }
+
+        loadHook = std::move(*pendingLoadHook);
+        saveHook = std::move(*pendingSaveHook);
+        hookActivity.Start();
+
+        if (const auto enabled = loadHook.enable(); !enabled) {
+            LogError("SaveRevision", "Could not enable load-call hook");
             Remove();
             return false;
         }
+        if (const auto enabled = saveHook.enable(); !enabled) {
+            LogError("SaveRevision", "Could not enable save-call hook");
+            Remove();
+            return false;
+        }
+
+        active.store(this, std::memory_order_release);
         return true;
     }
 
@@ -97,6 +122,13 @@ struct SaveRevisionMonitor::Implementation {
                 saved(saveChecksum.load(std::memory_order_relaxed));
             }
         }
+        const auto failures =
+            callbackFailures.exchange(0, std::memory_order_acq_rel);
+        if (failures != 0) {
+            LogError("SaveRevision",
+                     "Exceptions suppressed inside load-call hook=" +
+                         std::to_string(failures));
+        }
     }
 
     std::optional<std::uint32_t> CurrentChecksum() const {
@@ -105,96 +137,83 @@ struct SaveRevisionMonitor::Implementation {
     }
 
     void Remove() {
-        if (installed) {
-            RestoreCall(loadCall, "load");
-            RestoreCall(saveCall, "save");
-            installed = false;
-        }
-        handlerActivity.Stop();
-        while (!handlerActivity.IsIdle()) {
-            Sleep(0);
-        }
         active.store(nullptr, std::memory_order_release);
-        if (handler) {
-            RemoveVectoredExceptionHandler(handler);
-            handler = nullptr;
+        DisableHook(saveHook, "save");
+        DisableHook(loadHook, "load");
+
+        hookActivity.Stop();
+        while (!hookActivity.IsIdle()) {
+            SwitchToThread();
         }
+
+        saveHook.reset();
+        loadHook.reset();
     }
 
    private:
-    void RestoreCall(std::uintptr_t address, const char* name) {
-        std::uint8_t value{};
-        if (!SafeCopy(reinterpret_cast<const void*>(address), &value, 1) ||
-            value != 0xCC ||
-            !WriteExecutableMemory(reinterpret_cast<void*>(address),
-                                   std::array<uint8_t, 1>{0xE8})) {
-            LogWarning("SaveRevision", std::string("Could not restore ") +
-                                           name + " call probe");
+    static void DisableHook(safetyhook::MidHook& hook, const char* name) {
+        if (!hook || !hook.enabled()) {
+            return;
+        }
+        if (const auto disabled = hook.disable(); !disabled) {
+            LogError("SaveRevision",
+                     std::string("Could not disable ") + name + "-call hook");
         }
     }
 
-    static LONG CALLBACK HandleException(EXCEPTION_POINTERS* exception) {
-        auto* self = active.load(std::memory_order_acquire);
-        auto handlerLease = handlerActivity.Acquire();
-        if (!self || !handlerLease || !exception ||
-            !exception->ExceptionRecord || !exception->ContextRecord ||
-            exception->ExceptionRecord->ExceptionCode != EXCEPTION_BREAKPOINT) {
-            return EXCEPTION_CONTINUE_SEARCH;
+    static void LoadCallHook(safetyhook::Context& context) noexcept {
+        auto hookLease = hookActivity.Acquire();
+        auto* const self = active.load(std::memory_order_acquire);
+        if (!hookLease || !self) {
+            return;
         }
-        const auto address = reinterpret_cast<std::uintptr_t>(
-            exception->ExceptionRecord->ExceptionAddress);
-        if (address != self->loadCall && address != self->saveCall) {
-            return EXCEPTION_CONTINUE_SEARCH;
-        }
-        auto* context = exception->ContextRecord;
-        if (address == self->loadCall) {
+
+        try {
             if (self->loadStarting) {
                 self->loadStarting(
                     static_cast<std::uint32_t>(GetCurrentThreadId()));
             }
-            self->saveObject.store(context->Eax, std::memory_order_relaxed);
-            if (const auto checksum = ReadChecksum(context->Eax)) {
-                self->loadChecksum.store(*checksum, std::memory_order_relaxed);
-                self->loadSequence.fetch_add(1, std::memory_order_release);
-            }
-        } else if (const auto checksum = ReadChecksum(
-                       self->saveObject.load(std::memory_order_relaxed))) {
+        } catch (...) {
+            self->callbackFailures.fetch_add(1, std::memory_order_release);
+        }
+
+        self->saveObject.store(context.eax, std::memory_order_relaxed);
+        if (const auto checksum = ReadChecksum(context.eax)) {
+            self->loadChecksum.store(*checksum, std::memory_order_relaxed);
+            self->loadSequence.fetch_add(1, std::memory_order_release);
+        }
+    }
+
+    static void SaveCallHook(safetyhook::Context&) noexcept {
+        auto hookLease = hookActivity.Acquire();
+        auto* const self = active.load(std::memory_order_acquire);
+        if (!hookLease || !self) {
+            return;
+        }
+
+        if (const auto checksum = ReadChecksum(
+                self->saveObject.load(std::memory_order_relaxed))) {
             self->saveChecksum.store(*checksum, std::memory_order_relaxed);
             self->saveSequence.fetch_add(1, std::memory_order_release);
         }
-        const auto oldStack = static_cast<std::uintptr_t>(context->Esp);
-        const auto newStack = oldStack - sizeof(std::uint32_t);
-        const auto returnAddress =
-            static_cast<std::uint32_t>(address + kCallSize);
-        SIZE_T written{};
-        if (!WriteProcessMemory(
-                GetCurrentProcess(), reinterpret_cast<void*>(newStack),
-                &returnAddress, sizeof(returnAddress), &written) ||
-            written != sizeof(returnAddress)) {
-            return EXCEPTION_CONTINUE_SEARCH;
-        }
-        context->Esp = static_cast<DWORD>(newStack);
-        context->Eip = static_cast<DWORD>(
-            address == self->loadCall ? self->loadTarget : self->saveTarget);
-        return EXCEPTION_CONTINUE_EXECUTION;
     }
 
     inline static std::atomic<Implementation*> active{};
-    inline static HandlerActivity handlerActivity;
+    inline static HandlerActivity hookActivity;
     Callback loaded;
     Callback saved;
     LoadStartingCallback loadStarting;
-    std::atomic<std::uintptr_t> saveObject;
-    std::atomic<std::uint32_t> loadChecksum;
-    std::atomic<std::uint32_t> saveChecksum;
-    std::atomic<std::uint32_t> currentChecksum;
-    std::atomic<std::uint64_t> loadSequence;
-    std::atomic<std::uint64_t> saveSequence;
+    safetyhook::MidHook loadHook;
+    safetyhook::MidHook saveHook;
+    std::atomic<std::uintptr_t> saveObject{};
+    std::atomic<std::uint32_t> loadChecksum{};
+    std::atomic<std::uint32_t> saveChecksum{};
+    std::atomic<std::uint32_t> currentChecksum{};
+    std::atomic<std::uint64_t> loadSequence{};
+    std::atomic<std::uint64_t> saveSequence{};
+    std::atomic<std::uint32_t> callbackFailures{};
     std::uint64_t reportedLoad{};
     std::uint64_t reportedSave{};
-    std::uintptr_t base{}, loadCall{}, saveCall{}, loadTarget{}, saveTarget{};
-    void* handler{};
-    bool installed{};
 };
 
 SaveRevisionMonitor::SaveRevisionMonitor() = default;
