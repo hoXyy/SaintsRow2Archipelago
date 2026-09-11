@@ -4,7 +4,6 @@
 
 #include <array>
 #include <limits>
-#include <optional>
 
 #include "ModuleInfo.hpp"
 
