@@ -40,38 +40,35 @@ RacingSnapshot GetRacingSnapshot(const GameContext& context) {
         const auto record =
             game.base + addresses::kRacingRecordTableRva +
             static_cast<std::uintptr_t>(index) * addresses::kRacingRecordStride;
-        std::uint32_t identityHash{};
-        std::uint32_t rawMedal{};
-        float bestTime{};
-        std::uint32_t raceClass{};
-        if (!SafeCopy(reinterpret_cast<const void*>(
-                          record + addresses::kRacingRecordIdentityHashOffset),
-                      &identityHash, sizeof(identityHash)) ||
-            !SafeCopy(reinterpret_cast<const void*>(
-                          record + addresses::kRacingRecordMedalOffset),
-                      &rawMedal, sizeof(rawMedal)) ||
-            !SafeCopy(reinterpret_cast<const void*>(
-                          record + addresses::kRacingRecordBestTimeOffset),
-                      &bestTime, sizeof(bestTime)) ||
-            !SafeCopy(reinterpret_cast<const void*>(
-                          record + addresses::kRacingRecordClassOffset),
-                      &raceClass, sizeof(raceClass))) {
+
+        auto identityHash = ReadMemory<std::uint32_t>(
+            record + addresses::kRacingRecordIdentityHashOffset);
+        auto rawMedal = ReadMemory<std::uint32_t>(
+            record + addresses::kRacingRecordMedalOffset);
+        auto bestTime =
+            ReadMemory<float>(record + addresses::kRacingRecordBestTimeOffset);
+        auto raceClass = ReadMemory<std::uint32_t>(
+            record + addresses::kRacingRecordClassOffset);
+
+        if (!identityHash || !rawMedal || !bestTime || !raceClass) {
             snapshot.result = ReaderResult::InvalidPointer;
             snapshot.races.clear();
             return snapshot;
         }
+
         const auto& definition = kRaceDefinitions[index];
-        if (identityHash != definition.identityHash ||
-            raceClass != definition.raceClass || rawMedal > 4 ||
-            !std::isfinite(bestTime) || bestTime < 0.0F ||
-            (rawMedal == 0 && bestTime != 0.0F)) {
+        if (*identityHash != definition.identityHash ||
+            *raceClass != definition.raceClass || *rawMedal > 4 ||
+            !std::isfinite(*bestTime) || *bestTime < 0.0F ||
+            (*rawMedal == 0 && *bestTime != 0.0F)) {
             snapshot.result = ReaderResult::InvalidData;
             snapshot.races.clear();
             return snapshot;
         }
-        snapshot.races.push_back({definition.name, index, identityHash,
-                                  static_cast<RacingMedal>(rawMedal), bestTime,
-                                  raceClass});
+
+        snapshot.races.push_back({definition.name, index, *identityHash,
+                                  static_cast<RacingMedal>(*rawMedal),
+                                  *bestTime, *raceClass});
     }
     snapshot.result = ReaderResult::Success;
     return snapshot;

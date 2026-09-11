@@ -67,27 +67,27 @@ struct RespectController::Implementation {
         gameBase = game->base;
 
         const auto saveLoadAddress = gameBase + addresses::kRespectLoadWriteRva;
-        Instruction saveLoadActual{};
+        std::optional<Instruction> saveLoadActual =
+            ReadMemoryIntoArray<std::uint8_t, kInstructionSize>(
+                saveLoadAddress);
         if (!IsInsideModule(game->handle,
                             reinterpret_cast<const void*>(saveLoadAddress)) ||
             !IsExecutableAddress(
                 reinterpret_cast<const void*>(saveLoadAddress)) ||
-            !SafeCopy(reinterpret_cast<const void*>(saveLoadAddress),
-                      saveLoadActual.data(), saveLoadActual.size()) ||
-            saveLoadActual != kSaveLoadWriter) {
+            !saveLoadActual || *saveLoadActual != kSaveLoadWriter) {
             LogError("Respect", "Unexpected bytes at writer=save_load");
             return false;
         }
 
         for (const auto& writer : kBlockedWriters) {
             const auto address = gameBase + writer.rva;
-            Instruction actual{};
+            std::optional<Instruction> actual =
+                ReadMemoryIntoArray<std::uint8_t, kInstructionSize>(address);
+
             if (!IsInsideModule(game->handle,
                                 reinterpret_cast<const void*>(address)) ||
                 !IsExecutableAddress(reinterpret_cast<const void*>(address)) ||
-                !SafeCopy(reinterpret_cast<const void*>(address), actual.data(),
-                          actual.size()) ||
-                actual != writer.expected) {
+                !actual || *actual != writer.expected) {
                 LogError("Respect", std::string("Unexpected bytes at writer=") +
                                         writer.name);
                 return false;
@@ -230,17 +230,19 @@ struct RespectController::Implementation {
     }
 
     std::optional<RuntimeState> ReadRuntimeState() const {
-        RuntimeState state{};
-        if (!SafeCopy(reinterpret_cast<const void*>(
-                          gameBase + addresses::kPlayerGlobalRva),
-                      &state.player, sizeof(state.player)) ||
-            state.player == 0 ||
-            !SafeCopy(reinterpret_cast<const void*>(
-                          gameBase + addresses::kRespectPointsPerBarRva),
-                      &state.pointsPerBar, sizeof(state.pointsPerBar)) ||
-            state.pointsPerBar == 0) {
+        auto playerState =
+            ReadMemory<std::uint32_t>(gameBase + addresses::kPlayerGlobalRva);
+        auto pointsPerBar = ReadMemory<std::uint32_t>(
+            gameBase + addresses::kRespectPointsPerBarRva);
+
+        if (!playerState || *playerState == 0 || !pointsPerBar ||
+            *pointsPerBar == 0) {
             return std::nullopt;
         }
+
+        RuntimeState state{};
+        state.pointsPerBar = *pointsPerBar;
+        state.player = *playerState;
         return state;
     }
 
@@ -272,12 +274,15 @@ struct RespectController::Implementation {
         if (!ReadRespect(state.player, current)) {
             return false;
         }
+
         const auto desired = static_cast<std::uint32_t>(std::min<std::uint64_t>(
             static_cast<std::uint64_t>(current) + state.pointsPerBar,
             MaximumPoints(state)));
+
         if (!WriteRespect(state.player, desired)) {
             return false;
         }
+
         LogInfo("Respect",
                 "Granted AP respect bar before=" + std::to_string(current) +
                     " after=" + std::to_string(desired));
@@ -289,18 +294,18 @@ struct RespectController::Implementation {
         nops.fill(0x90);
         for (std::size_t index = count; index > 0; --index) {
             const auto site = index - 1;
-            auto* const address =
-                reinterpret_cast<void*>(gameBase + kBlockedWriters[site].rva);
-            Instruction actual{};
-            if (!SafeCopy(address, actual.data(), actual.size()) ||
-                actual != nops) {
+            auto const address = gameBase + kBlockedWriters[site].rva;
+            std::optional<Instruction> actual =
+                ReadMemoryIntoArray<std::uint8_t, kInstructionSize>(address);
+
+            if (!actual || *actual != nops) {
                 LogWarning(
                     "Respect",
                     std::string("Writer changed; not restoring writer=") +
                         kBlockedWriters[site].name);
                 continue;
             }
-            if (!WriteExecutableMemory(address,
+            if (!WriteExecutableMemory(reinterpret_cast<void*>(address),
                                        kBlockedWriters[site].expected)) {
                 LogError("Respect", std::string("Failed to restore writer=") +
                                         kBlockedWriters[site].name);
@@ -318,9 +323,11 @@ struct RespectController::Implementation {
         breakpoint.front() = 0xCC;
         auto* const address =
             reinterpret_cast<void*>(gameBase + addresses::kRespectLoadWriteRva);
-        Instruction actual{};
-        if (!SafeCopy(address, actual.data(), actual.size()) ||
-            actual != breakpoint) {
+        std::optional<Instruction> actual =
+            ReadMemoryIntoArray<std::uint8_t, kInstructionSize>(
+                gameBase + addresses::kRespectLoadWriteRva);
+
+        if (!actual || *actual != breakpoint) {
             LogWarning("Respect",
                        "Writer changed; not restoring writer=save_load");
         } else if (!WriteExecutableMemory(address, kSaveLoadWriter)) {

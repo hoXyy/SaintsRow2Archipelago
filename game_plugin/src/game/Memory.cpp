@@ -4,6 +4,7 @@
 
 #include <array>
 #include <limits>
+#include <optional>
 
 #include "ModuleInfo.hpp"
 
@@ -26,14 +27,13 @@ bool HasAccess(DWORD protect, bool executable) {
            basic == PAGE_EXECUTE_READWRITE || basic == PAGE_EXECUTE_WRITECOPY;
 }
 
-bool DecodeInstruction(const std::uint8_t* bytes, std::size_t size,
-                       ZydisDecodedInstruction& instruction,
-                       ZydisDecodedOperand (&operands)
-                           [ZYDIS_MAX_OPERAND_COUNT]) {
+bool DecodeInstruction(
+    const std::uint8_t* bytes, std::size_t size,
+    ZydisDecodedInstruction& instruction,
+    ZydisDecodedOperand (&operands)[ZYDIS_MAX_OPERAND_COUNT]) {
     ZydisDecoder decoder{};
-    return ZYAN_SUCCESS(ZydisDecoderInit(
-               &decoder, ZYDIS_MACHINE_MODE_LEGACY_32,
-               ZYDIS_STACK_WIDTH_32)) &&
+    return ZYAN_SUCCESS(ZydisDecoderInit(&decoder, ZYDIS_MACHINE_MODE_LEGACY_32,
+                                         ZYDIS_STACK_WIDTH_32)) &&
            ZYAN_SUCCESS(ZydisDecoderDecodeFull(&decoder, bytes, size,
                                                &instruction, operands));
 }
@@ -143,10 +143,12 @@ std::optional<std::string> ReadFixedString(std::uintptr_t address,
                   buffer.size())) {
         return std::nullopt;
     }
+
     const auto terminator = buffer.find('\0');
     if (terminator == std::string::npos) {
         return std::nullopt;
     }
+
     buffer.resize(terminator);
     return buffer;
 }

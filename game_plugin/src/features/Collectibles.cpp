@@ -2,6 +2,7 @@
 
 #include <windows.h>
 
+#include <optional>
 #include <unordered_set>
 
 #include "game/Addresses.hpp"
@@ -23,25 +24,25 @@ CdSnapshot GetCdSnapshot(const GameContext& context) {
 
     const ModuleInfo& game = *context.module;
 
-    std::uint32_t manager{};
-    if (!SafeCopy(reinterpret_cast<const void*>(
-                      game.base + addresses::kCollectibleManagerRva),
-                  &manager, sizeof(manager)) ||
-        !manager) {
+    std::optional<std::uint32_t> manager = ReadMemory<std::uint32_t>(
+        game.base + addresses::kCollectibleManagerRva);
+    if (!manager || !*manager) {
         snapshot.result = CdReadResult::ManagerUnavailable;
         return snapshot;
     }
 
-    std::uint32_t count{};
-    if (!SafeCopy(reinterpret_cast<const void*>(
-                      manager + addresses::kCollectedCdCountOffset),
-                  &count, sizeof(count)) ||
-        !SafeCopy(reinterpret_cast<const void*>(
-                      manager + addresses::kCollectedCdTargetOffset),
-                  &snapshot.target, sizeof(snapshot.target))) {
+    std::optional<std::uint32_t> count = ReadMemory<std::uint32_t>(
+        *manager + addresses::kCollectedCdCountOffset);
+
+    std::optional<std::uint32_t> target = ReadMemory<std::uint32_t>(
+        *manager + addresses::kCollectedCdTargetOffset);
+
+    if (!count || !target) {
         snapshot.result = CdReadResult::InvalidPointer;
         return snapshot;
     }
+
+    snapshot.target = *target;
 
     if (snapshot.target == 0) {
         snapshot.result = CdReadResult::GameNotReady;
@@ -55,26 +56,25 @@ CdSnapshot GetCdSnapshot(const GameContext& context) {
     }
 
     std::unordered_set<std::uint32_t> identities;
-    snapshot.collectedIds.reserve(count);
+    snapshot.collectedIds.reserve(*count);
 
     for (std::uint32_t index = 0; index < count; ++index) {
-        std::uint32_t id{};
-        if (!SafeCopy(
-                reinterpret_cast<const void*>(
-                    manager + addresses::kCollectedCdIdsOffset + index * 4),
-                &id, sizeof(id))) {
+        std::optional<std::uint32_t> id = ReadMemory<std::uint32_t>(
+            *manager + addresses::kCollectedCdIdsOffset + index * 4);
+
+        if (!id) {
             snapshot.result = CdReadResult::InvalidPointer;
             snapshot.collectedIds.clear();
             return snapshot;
         }
 
-        if (!id || !identities.emplace(id).second) {
+        if (!*id || !identities.emplace(*id).second) {
             snapshot.result = CdReadResult::InvalidData;
             snapshot.collectedIds.clear();
             return snapshot;
         }
 
-        snapshot.collectedIds.push_back(id);
+        snapshot.collectedIds.push_back(*id);
     }
 
     snapshot.result = CdReadResult::Success;

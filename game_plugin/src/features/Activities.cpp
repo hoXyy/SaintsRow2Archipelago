@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <array>
 #include <cctype>
+#include <optional>
 #include <sstream>
 #include <unordered_set>
 
@@ -56,59 +57,59 @@ ActivitySnapshot GetActivitySnapshot(const GameContext& context) {
 
     const ModuleInfo& game = *context.module;
 
-    std::uint32_t componentCount{}, progressionCount{};
-    if (!SafeCopy(reinterpret_cast<const void*>(
-                      game.base + addresses::kActivityComponentCountRva),
-                  &componentCount, sizeof(componentCount)) ||
-        componentCount == 0 || componentCount > kMaximumTableRows ||
-        !SafeCopy(reinterpret_cast<const void*>(
-                      game.base + addresses::kActivityProgressionCountRva),
-                  &progressionCount, sizeof(progressionCount)) ||
+    const auto componentCount = ReadMemory<std::uint32_t>(
+        game.base + addresses::kActivityComponentCountRva);
+
+    const auto progressionCount = ReadMemory<std::uint32_t>(
+        game.base + addresses::kActivityProgressionCountRva);
+
+    if (!componentCount || componentCount == 0 ||
+        componentCount > kMaximumTableRows || !progressionCount ||
         progressionCount == 0 || progressionCount > kMaximumTableRows) {
         snapshot.result = ActivityReadResult::ManagerUnavailable;
         return snapshot;
     }
+
     std::unordered_set<std::string> identities;
     for (std::uint32_t index = 0; index < componentCount; ++index) {
         const auto component = game.base +
                                addresses::kActivityComponentTableRva +
                                static_cast<std::uintptr_t>(index) *
                                    addresses::kActivityComponentStride;
-        std::uint32_t kind{}, activity{};
-        if (!SafeCopy(reinterpret_cast<const void*>(
-                          component + addresses::kActivityComponentKindOffset),
-                      &kind, sizeof(kind)) ||
-            kind != 1 ||
-            !SafeCopy(
-                reinterpret_cast<const void*>(
-                    component + addresses::kActivityComponentObjectOffset),
-                &activity, sizeof(activity)) ||
-            !activity) {
+
+        auto kind = ReadMemory<std::uint32_t>(
+            component + addresses::kActivityComponentKindOffset);
+        auto activity = ReadMemory<std::uint32_t>(
+            component + addresses::kActivityComponentObjectOffset);
+
+        if (!kind || kind.value() != 1 || !activity || !*activity) {
             continue;
         }
-        if (!IsReadableAddress(reinterpret_cast<const void*>(activity),
+
+        if (!IsReadableAddress(reinterpret_cast<const void*>(*activity),
                                0x180)) {
             snapshot.result = ActivityReadResult::InvalidPointer;
             snapshot.instances.clear();
             return snapshot;
         }
+
         std::string tag;
-        if (!ReadTag(activity + addresses::kActivityInstanceTagOffset, tag)) {
+        if (!ReadTag(*activity + addresses::kActivityInstanceTagOffset, tag)) {
             continue;
         }
-        std::uint32_t total{}, key{};
-        if (!SafeCopy(reinterpret_cast<const void*>(
-                          activity + addresses::kActivityTotalLevelsOffset),
-                      &total, sizeof(total)) ||
-            !SafeCopy(reinterpret_cast<const void*>(
-                          activity + addresses::kActivityProgressionKeyOffset),
-                      &key, sizeof(key)) ||
-            total == 0 || total > 8 || !key ||
-            !identities.emplace(tag).second) {
+
+        auto total = ReadMemory<std::uint32_t>(
+            *activity + addresses::kActivityTotalLevelsOffset);
+        auto key = ReadMemory<std::uint32_t>(
+            *activity + addresses::kActivityProgressionKeyOffset);
+
+        if (!total || !key || total.value() == 0 || total.value() > 8 ||
+            !*key || !identities.emplace(tag).second) {
             snapshot.result = ActivityReadResult::InvalidData;
             snapshot.instances.clear();
             return snapshot;
         }
+
         std::uint8_t flags{};
         bool found = false;
         for (std::uint32_t row = 0; row < progressionCount; ++row) {
@@ -116,9 +117,10 @@ ActivitySnapshot GetActivitySnapshot(const GameContext& context) {
                                addresses::kActivityProgressionTableRva +
                                static_cast<std::uintptr_t>(row) *
                                    addresses::kActivityProgressionEntryStride;
-            std::uint32_t storedKey{};
-            if (!SafeCopy(reinterpret_cast<const void*>(entry), &storedKey,
-                          sizeof(storedKey))) {
+
+            auto storedKey = ReadMemory<std::uint32_t>(entry);
+
+            if (!storedKey) {
                 snapshot.result = ActivityReadResult::InvalidPointer;
                 snapshot.instances.clear();
                 return snapshot;
@@ -132,26 +134,32 @@ ActivitySnapshot GetActivitySnapshot(const GameContext& context) {
                 &flags, sizeof(flags));
             break;
         }
-        const auto validMask =
-            static_cast<std::uint8_t>(total == 8 ? 0xFFu : (1u << total) - 1u);
+
+        const auto validMask = static_cast<std::uint8_t>(
+            total.value() == 8 ? 0xFFu : (1u << total.value()) - 1u);
+
         if (!found || (flags & static_cast<std::uint8_t>(~validMask)) != 0) {
             snapshot.result = ActivityReadResult::InvalidData;
             snapshot.instances.clear();
             return snapshot;
         }
+
         std::uint32_t completed{};
         for (std::uint32_t level = 0; level < total; ++level) {
             if ((flags & (1u << level)) != 0) {
                 ++completed;
             }
         }
-        snapshot.instances.push_back({std::move(tag), completed, total, flags});
+        snapshot.instances.push_back(
+            {std::move(tag), completed, total.value(), flags});
     }
+
     if (snapshot.instances.size() != kExpectedInstanceCount) {
         snapshot.result = ActivityReadResult::ManagerUnavailable;
         snapshot.instances.clear();
         return snapshot;
     }
+
     std::sort(snapshot.instances.begin(), snapshot.instances.end(),
               [](const auto& left, const auto& right) {
                   return left.instanceTag < right.instanceTag;

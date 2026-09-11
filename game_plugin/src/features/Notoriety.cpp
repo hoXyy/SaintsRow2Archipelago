@@ -46,16 +46,15 @@ struct NotorietyController::Implementation {
         setAddress = game->base + addresses::kNotorietySetRva;
         constexpr std::array<std::uint8_t, 6> expectedSet{0x81, 0xEC, 0x2C,
                                                           0x05, 0x00, 0x00};
-        std::array<std::uint8_t, expectedSet.size()> actualSet{};
+        auto actualSet =
+            ReadMemoryIntoArray<std::uint8_t, expectedSet.size()>(setAddress);
         installed =
             IsInsideModule(game->handle,
                            reinterpret_cast<const void*>(setAddress)) &&
             IsExecutableAddress(reinterpret_cast<const void*>(setAddress)) &&
             DetectDetour(reinterpret_cast<const void*>(setAddress)) ==
                 DetourKind::None &&
-            SafeCopy(reinterpret_cast<const void*>(setAddress),
-                     actualSet.data(), actualSet.size()) &&
-            actualSet == expectedSet;
+            actualSet && *actualSet == expectedSet;
         return installed;
     }
 
