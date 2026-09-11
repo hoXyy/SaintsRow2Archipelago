@@ -20,49 +20,49 @@ StyleLevelSnapshot GetStyleLevelSnapshot(const GameContext& context) {
     }
 
     const ModuleInfo& game = *context.module;
+    const auto gameBase = game.base;
 
-    std::uint32_t player{};
-    std::uint32_t table{};
-    std::uint32_t count{};
-    if (!SafeCopy(reinterpret_cast<const void*>(game.base +
-                                                addresses::kPlayerGlobalRva),
-                  &player, sizeof(player)) ||
-        !SafeCopy(reinterpret_cast<const void*>(game.base +
-                                                addresses::kStyleLevelTableRva),
-                  &table, sizeof(table)) ||
-        !SafeCopy(reinterpret_cast<const void*>(game.base +
-                                                addresses::kStyleLevelCountRva),
-                  &count, sizeof(count))) {
+    auto player =
+        ReadMemory<std::uint32_t>(gameBase + addresses::kPlayerGlobalRva);
+    auto table =
+        ReadMemory<std::uint32_t>(gameBase + addresses::kStyleLevelTableRva);
+    auto count =
+        ReadMemory<std::uint32_t>(gameBase + addresses::kStyleLevelCountRva);
+    if (!player || !table || !count) {
         snapshot.result = ReaderResult::InvalidPointer;
         return snapshot;
     }
-    if (player == 0 || table == 0 || count == 0) {
+
+    if (*player == 0 || *table == 0 || *count == 0) {
         snapshot.result = ReaderResult::GameNotReady;
         return snapshot;
     }
-    if (count != addresses::kExpectedStyleLevelCount) {
+
+    if (*count != addresses::kExpectedStyleLevelCount) {
         snapshot.result = ReaderResult::InvalidData;
         return snapshot;
     }
 
     if (!SafeCopy(
-            reinterpret_cast<const void*>(static_cast<std::uintptr_t>(player) +
+            reinterpret_cast<const void*>(static_cast<std::uintptr_t>(*player) +
                                           addresses::kPlayerStyleLevelOffset),
             &snapshot.storedLevel, sizeof(snapshot.storedLevel)) ||
         !SafeCopy(
-            reinterpret_cast<const void*>(static_cast<std::uintptr_t>(player) +
+            reinterpret_cast<const void*>(static_cast<std::uintptr_t>(*player) +
                                           addresses::kPlayerStylePointsOffset),
             &snapshot.points, sizeof(snapshot.points))) {
         snapshot.result = ReaderResult::InvalidPointer;
         return snapshot;
     }
-    if (snapshot.storedLevel >= count) {
+
+    if (snapshot.storedLevel >= *count) {
         snapshot.result = ReaderResult::InvalidData;
         return snapshot;
     }
 
-    const auto entry = static_cast<std::uintptr_t>(table) +
+    const auto entry = static_cast<std::uintptr_t>(*table) +
                        snapshot.storedLevel * addresses::kStyleLevelEntryStride;
+
     if (!SafeCopy(reinterpret_cast<const void*>(
                       entry + addresses::kStyleLevelMinimumPointsOffset),
                   &snapshot.currentMinimumPoints,
@@ -74,6 +74,7 @@ StyleLevelSnapshot GetStyleLevelSnapshot(const GameContext& context) {
         snapshot.result = ReaderResult::InvalidData;
         return snapshot;
     }
+
     if (snapshot.storedLevel + 1 < count) {
         const auto nextEntry = entry + addresses::kStyleLevelEntryStride;
         if (!SafeCopy(

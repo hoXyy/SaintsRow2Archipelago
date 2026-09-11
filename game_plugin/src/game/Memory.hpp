@@ -2,11 +2,13 @@
 
 #include <windows.h>
 
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <optional>
 #include <span>
 #include <string>
+#include <type_traits>
 #include <vector>
 
 namespace sr2ap {
@@ -30,8 +32,7 @@ std::optional<std::string> ReadFixedString(std::uintptr_t address,
                                            std::size_t capacity);
 std::optional<std::vector<std::uint8_t>> CaptureBytes(const void* address,
                                                       std::size_t size);
-std::optional<std::uintptr_t> ResolveRelativeCallTarget(
-    std::uintptr_t address);
+std::optional<std::uintptr_t> ResolveRelativeCallTarget(std::uintptr_t address);
 enum class DetourKind {
     None,
     RelativeJump,
@@ -42,4 +43,29 @@ enum class DetourKind {
 };
 DetourKind DetectDetour(const void* address);
 const char* ToString(DetourKind kind);
+
+template <typename T>
+std::optional<T> ReadMemory(std::uintptr_t address) {
+    static_assert(std::is_trivially_copyable_v<T>);
+
+    T value{};
+
+    if (!SafeCopy(reinterpret_cast<const void*>(address), &value, sizeof(T))) {
+        return std::nullopt;
+    }
+
+    return value;
+}
+
+template <typename T, std::size_t N>
+std::optional<std::array<T, N>> ReadMemoryIntoArray(std::uintptr_t address) {
+    std::array<T, N> value{};
+
+    if (!SafeCopy(reinterpret_cast<const void*>(address), value.data(),
+                  sizeof(T) * N)) {
+        return std::nullopt;
+    }
+
+    return value;
+}
 }  // namespace sr2ap

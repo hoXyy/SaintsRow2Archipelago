@@ -7,6 +7,7 @@
 #include <atomic>
 #include <cstdint>
 #include <mutex>
+#include <optional>
 #include <safetyhook.hpp>
 #include <string>
 #include <unordered_map>
@@ -170,11 +171,13 @@ struct UnlockableController::Implementation {
         }
         constexpr std::array<std::uint8_t, overwrittenSize> expected{
             0x55, 0x8B, 0xEC, 0x83, 0xE4, 0xF8};
+
+        prologue = ReadMemoryIntoArray<std::uint8_t, overwrittenSize>(
+            processorAddress);
+
         if (DetectDetour(reinterpret_cast<const void*>(processorAddress)) !=
                 DetourKind::None ||
-            !SafeCopy(reinterpret_cast<const void*>(processorAddress),
-                      prologue.data(), prologue.size()) ||
-            prologue != expected) {
+            !prologue || *prologue != expected) {
             return false;
         }
 
@@ -182,6 +185,7 @@ struct UnlockableController::Implementation {
             reinterpret_cast<void*>(processorAddress),
             reinterpret_cast<void*>(&Hook),
             safetyhook::InlineHook::StartDisabled);
+
         if (!hook) {
             LogError("Unlockables",
                      "SafetyHook could not create the processor hook");
@@ -197,6 +201,7 @@ struct UnlockableController::Implementation {
                      "SafetyHook could not enable the processor hook");
             return false;
         }
+
         installed = true;
         return true;
     }
@@ -225,25 +230,21 @@ struct UnlockableController::Implementation {
                                managedItemNames.end()) {
             return false;
         }
+        auto array = ReadMemory<std::uint32_t>(arrayPointerOperand);
+        auto count = ReadMemory<std::uint32_t>(countAddress);
 
-        std::uint32_t array{}, count{};
-        if (!SafeCopy(reinterpret_cast<const void*>(arrayPointerOperand),
-                      &array, sizeof(array)) ||
-            !array ||
-            !SafeCopy(reinterpret_cast<const void*>(countAddress), &count,
-                      sizeof(count)) ||
-            count == 0 || count > maximumUnlockables) {
+        if (!array || !count || *count == 0 || *count > maximumUnlockables) {
             return false;
         }
+
         std::uintptr_t record{};
         for (std::uint32_t index = 0; index < count; ++index) {
-            const auto candidate = static_cast<std::uintptr_t>(array) +
+            const auto candidate = static_cast<std::uintptr_t>(*array) +
                                    static_cast<std::uintptr_t>(index) *
                                        addresses::kUnlockableRecordSize;
-            std::uint32_t hash{};
-            if (SafeCopy(reinterpret_cast<const void*>(candidate), &hash,
-                         sizeof(hash)) &&
-                hash == definition->hash) {
+
+            auto hash = ReadMemory<std::uint32_t>(candidate);
+            if (hash && *hash == definition->hash) {
                 record = candidate;
                 break;
             }
@@ -251,10 +252,12 @@ struct UnlockableController::Implementation {
         if (!record) {
             return false;
         }
+
         {
             std::lock_guard<std::mutex> lock(allowanceMutex);
             ++allowances[definition->hash];
         }
+
         std::uint32_t queueBefore{}, queueAfter{};
         SafeCopy(reinterpret_cast<const void*>(queueCountAddress), &queueBefore,
                  sizeof(queueBefore));
@@ -262,10 +265,12 @@ struct UnlockableController::Implementation {
             reinterpret_cast<void*>(record), 1);
         SafeCopy(reinterpret_cast<const void*>(queueCountAddress), &queueAfter,
                  sizeof(queueAfter));
+
         if (queueAfter <= queueBefore) {
             ConsumeAllowance(definition->hash);
             return false;
         }
+
         LogInfo("Unlockables",
                 "Queued received item: " + std::string{itemName});
         return true;
@@ -324,7 +329,7 @@ struct UnlockableController::Implementation {
     std::uintptr_t arrayPointerOperand{};
     std::uintptr_t countAddress{};
     std::uintptr_t queueCountAddress{};
-    std::array<std::uint8_t, overwrittenSize> prologue{};
+    std::optional<std::array<std::uint8_t, overwrittenSize>> prologue;
     safetyhook::InlineHook processorHook;
     std::mutex allowanceMutex;
     std::unordered_map<std::uint32_t, std::uint32_t> allowances;

@@ -30,8 +30,9 @@ constexpr std::array kCitySaveKind{'s', 'r', '2', '_', 'c', 'i', 't', 'y'};
 
 std::optional<std::uint32_t> ReadChecksum(std::uintptr_t object) {
     SaveHeader header{};
-    if (!object || !SafeCopy(reinterpret_cast<const void*>(object), &header,
-                             sizeof(header)) ||
+    if (!object ||
+        !SafeCopy(reinterpret_cast<const void*>(object), &header,
+                  sizeof(header)) ||
         header.kind != kCitySaveKind) {
         return std::nullopt;
     }
@@ -205,13 +206,13 @@ struct SaveRevisionMonitor::Implementation {
     LoadStartingCallback loadStarting;
     safetyhook::MidHook loadHook;
     safetyhook::MidHook saveHook;
-    std::atomic<std::uintptr_t> saveObject{};
-    std::atomic<std::uint32_t> loadChecksum{};
-    std::atomic<std::uint32_t> saveChecksum{};
-    std::atomic<std::uint32_t> currentChecksum{};
-    std::atomic<std::uint64_t> loadSequence{};
-    std::atomic<std::uint64_t> saveSequence{};
-    std::atomic<std::uint32_t> callbackFailures{};
+    std::atomic<std::uintptr_t> saveObject;
+    std::atomic<std::uint32_t> loadChecksum;
+    std::atomic<std::uint32_t> saveChecksum;
+    std::atomic<std::uint32_t> currentChecksum;
+    std::atomic<std::uint64_t> loadSequence;
+    std::atomic<std::uint64_t> saveSequence;
+    std::atomic<std::uint32_t> callbackFailures;
     std::uint64_t reportedLoad{};
     std::uint64_t reportedSave{};
 };

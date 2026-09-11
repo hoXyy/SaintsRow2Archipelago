@@ -24,13 +24,11 @@ bool ValidateReaderCode(const ModuleInfo& game) {
     constexpr std::array<std::uint8_t, 12> expected{
         0x55, 0x8B, 0xEC, 0x83, 0xE4, 0xF8, 0x81, 0xEC, 0x0C, 0x01, 0x00, 0x00};
 
-    std::array<std::uint8_t, expected.size()> actual{};
+    const auto handler = game.base + addresses::kHitmanCategoryHandlerRva;
 
-    const auto category3 = game.base + addresses::kHitmanCategoryHandlerRva;
+    auto actual = ReadMemoryIntoArray<std::uint8_t, expected.size()>(handler);
 
-    return SafeCopy(reinterpret_cast<const void*>(category3), actual.data(),
-                    actual.size()) &&
-           actual == expected;
+    return actual && *actual == expected;
 }
 
 bool ReadLocation(std::uintptr_t address, std::string& result) {
@@ -67,58 +65,59 @@ HitmanSnapshot GetHitmanSnapshot(const GameContext& context) {
     const auto table = game.base + addresses::kHitmanListTableCandidateRva;
     for (std::uint32_t listIndex = 0; listIndex < addresses::kHitmanListCount;
          ++listIndex) {
-        std::uint32_t rowBase{};
         const auto descriptor =
             table + listIndex * addresses::kHitmanListDescriptorStride;
-        if (!SafeCopy(reinterpret_cast<const void*>(descriptor), &rowBase,
-                      sizeof(rowBase)) ||
-            rowBase == 0) {
+
+        std::optional<std::uint32_t> rowBase =
+            ReadMemory<std::uint32_t>(descriptor);
+        if (!rowBase || *rowBase == 0) {
             snapshot.result = HitmanReadResult::GameNotReady;
             snapshot.targets.clear();
             return snapshot;
         }
+
         if (!IsInsideModule(game.handle,
-                            reinterpret_cast<const void*>(rowBase))) {
+                            reinterpret_cast<const void*>(*rowBase))) {
             snapshot.result = HitmanReadResult::InvalidPointer;
             snapshot.targets.clear();
             return snapshot;
         }
-        std::uint32_t count{};
-        if (!SafeCopy(reinterpret_cast<const void*>(
-                          rowBase + addresses::kHitmanRowCountOffset),
-                      &count, sizeof(count)) ||
-            count == 0 || count > kMaxTargetsPerList) {
+
+        std::optional<std::uint32_t> count = ReadMemory<std::uint32_t>(
+            *rowBase + addresses::kHitmanRowCountOffset);
+        if (!count || *count == 0 || *count > kMaxTargetsPerList) {
             snapshot.result = HitmanReadResult::ManagerUnavailable;
             snapshot.targets.clear();
             return snapshot;
         }
+
         const auto required =
-            static_cast<std::size_t>(count - 1) * addresses::kHitmanRowStride +
+            static_cast<std::size_t>(*count - 1) * addresses::kHitmanRowStride +
             addresses::kHitmanLocationOffset + kLocationCapacity;
-        if (!IsReadableAddress(reinterpret_cast<const void*>(rowBase),
+        if (!IsReadableAddress(reinterpret_cast<const void*>(*rowBase),
                                required)) {
             snapshot.result = HitmanReadResult::InvalidPointer;
             snapshot.targets.clear();
             return snapshot;
         }
+
         for (std::uint32_t targetIndex = 0; targetIndex < count;
              ++targetIndex) {
-            const auto row = static_cast<std::uintptr_t>(rowBase) +
+            const auto row = static_cast<std::uintptr_t>(*rowBase) +
                              targetIndex * addresses::kHitmanRowStride;
-            std::uint8_t completion{};
+            std::optional<std::uint8_t> completion = ReadMemory<std::uint8_t>(
+                row + addresses::kHitmanCompletionOffset);
             std::string location;
-            if (!SafeCopy(reinterpret_cast<const void*>(
-                              row + addresses::kHitmanCompletionOffset),
-                          &completion, sizeof(completion)) ||
-                completion > 1 ||
+            if (!completion || *completion > 1 ||
                 !ReadLocation(row + addresses::kHitmanLocationOffset,
                               location)) {
                 snapshot.result = HitmanReadResult::InvalidPointer;
                 snapshot.targets.clear();
                 return snapshot;
             }
+
             snapshot.targets.push_back({std::move(location), listIndex + 1,
-                                        targetIndex + 1, completion != 0});
+                                        targetIndex + 1, *completion != 0});
         }
     }
     snapshot.result = HitmanReadResult::Success;

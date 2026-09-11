@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <array>
 #include <cctype>
+#include <optional>
 
 #include "game/Addresses.hpp"
 #include "game/GameState.hpp"
@@ -21,11 +22,11 @@ constexpr std::uint32_t kMaximumVehiclesPerList = 16;
 bool ValidateReaderCode(const ModuleInfo& game) {
     constexpr std::array<std::uint8_t, 12> expected{
         0x55, 0x8B, 0xEC, 0x83, 0xE4, 0xF8, 0x81, 0xEC, 0x24, 0x01, 0x00, 0x00};
-    std::array<std::uint8_t, expected.size()> actual{};
+
     const auto handler = game.base + addresses::kChopShopRowsHandlerRva;
-    return SafeCopy(reinterpret_cast<const void*>(handler), actual.data(),
-                    actual.size()) &&
-           actual == expected;
+    auto actual = ReadMemoryIntoArray<std::uint8_t, expected.size()>(handler);
+
+    return actual && *actual == expected;
 }
 
 bool ReadTargetTag(std::uintptr_t address, std::string& result) {
@@ -57,62 +58,69 @@ ChopShopSnapshot GetChopShopSnapshot(const GameContext& context) {
         snapshot.result = ChopShopReadResult::UnsupportedVersion;
         return snapshot;
     }
-    std::uint32_t root{};
-    if (!SafeCopy(reinterpret_cast<const void*>(
-                      game.base + addresses::kChopShopRootGlobalRva),
-                  &root, sizeof(root)) ||
-        !root) {
+    std::optional<std::uint32_t> root = ReadMemory<std::uint32_t>(
+        game.base + addresses::kChopShopRootGlobalRva);
+
+    if (!root || !*root) {
         snapshot.result = ChopShopReadResult::GameNotReady;
         return snapshot;
     }
-    std::uint32_t listCount{};
-    if (!SafeCopy(reinterpret_cast<const void*>(
-                      root + addresses::kChopShopListCountOffset),
-                  &listCount, sizeof(listCount)) ||
-        listCount == 0 || listCount > kMaximumLists) {
+
+    std::optional<std::uint32_t> listCount =
+        ReadMemory<std::uint32_t>(*root + addresses::kChopShopListCountOffset);
+
+    if (!listCount || *listCount == 0 || *listCount > kMaximumLists) {
         snapshot.result = ChopShopReadResult::ManagerUnavailable;
         return snapshot;
     }
+
     for (std::uint32_t list = 0; list < listCount; ++list) {
-        const auto descriptor = static_cast<std::uintptr_t>(root) +
+        const auto descriptor = static_cast<std::uintptr_t>(*root) +
                                 addresses::kChopShopDescriptorOffset +
                                 list * addresses::kChopShopDescriptorStride;
-        std::uint32_t rowBase{};
-        if (!SafeCopy(reinterpret_cast<const void*>(descriptor), &rowBase,
-                      sizeof(rowBase)) ||
-            !rowBase) {
+        std::optional<std::uint32_t> rowBase =
+            ReadMemory<std::uint32_t>(descriptor);
+
+        if (!rowBase || !*rowBase) {
             snapshot.result = ChopShopReadResult::ManagerUnavailable;
             snapshot.vehicles.clear();
             return snapshot;
         }
-        std::uint32_t count{};
-        if (!SafeCopy(reinterpret_cast<const void*>(
-                          rowBase + addresses::kChopShopRowCountOffset),
-                      &count, sizeof(count)) ||
-            count == 0 || count > kMaximumVehiclesPerList) {
+
+        std::optional<std::uint32_t> count = ReadMemory<std::uint32_t>(
+            *rowBase + addresses::kChopShopRowCountOffset);
+
+        if (!count || *count == 0 || *count > kMaximumVehiclesPerList) {
             snapshot.result = ChopShopReadResult::InvalidPointer;
             snapshot.vehicles.clear();
             return snapshot;
         }
-        const auto required = static_cast<std::size_t>(count - 1) *
+
+        const auto required = static_cast<std::size_t>(*count - 1) *
                                   addresses::kChopShopRowStride +
                               addresses::kChopShopRespectOffset +
                               sizeof(std::uint32_t);
-        if (!IsReadableAddress(reinterpret_cast<const void*>(rowBase),
+
+        if (!IsReadableAddress(reinterpret_cast<const void*>(*rowBase),
                                required) ||
             !IsReadableAddress(
                 reinterpret_cast<const void*>(
                     descriptor + addresses::kChopShopRetrievedFlagsOffset),
-                count)) {
+                *count)) {
             snapshot.result = ChopShopReadResult::InvalidPointer;
             snapshot.vehicles.clear();
             return snapshot;
         }
         for (std::uint32_t vehicle = 0; vehicle < count; ++vehicle) {
-            const auto row = static_cast<std::uintptr_t>(rowBase) +
+            const auto row = static_cast<std::uintptr_t>(*rowBase) +
                              vehicle * addresses::kChopShopRowStride;
+
             std::uint8_t storedFlag{};
-            std::uint32_t cash{}, respect{};
+            std::optional<std::uint32_t> cash =
+                ReadMemory<std::uint32_t>(row + addresses::kChopShopCashOffset);
+            std::optional<std::uint32_t> respect = ReadMemory<std::uint32_t>(
+                row + addresses::kChopShopRespectOffset);
+
             std::string tag;
             if (!SafeCopy(
                     reinterpret_cast<const void*>(
@@ -121,18 +129,13 @@ ChopShopSnapshot GetChopShopSnapshot(const GameContext& context) {
                     &storedFlag, 1) ||
                 storedFlag > 1 ||
                 !ReadTargetTag(row + addresses::kChopShopDossierOffset, tag) ||
-                !SafeCopy(reinterpret_cast<const void*>(
-                              row + addresses::kChopShopCashOffset),
-                          &cash, sizeof(cash)) ||
-                !SafeCopy(reinterpret_cast<const void*>(
-                              row + addresses::kChopShopRespectOffset),
-                          &respect, sizeof(respect))) {
+                !cash || !respect) {
                 snapshot.result = ChopShopReadResult::InvalidPointer;
                 snapshot.vehicles.clear();
                 return snapshot;
             }
             snapshot.vehicles.push_back({std::move(tag), list + 1, vehicle + 1,
-                                         storedFlag == 0, cash, respect});
+                                         storedFlag == 0, *cash, *respect});
         }
     }
     snapshot.result = ChopShopReadResult::Success;

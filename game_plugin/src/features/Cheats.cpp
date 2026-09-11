@@ -7,6 +7,7 @@
 #include <atomic>
 #include <cstdint>
 #include <mutex>
+#include <optional>
 #include <safetyhook.hpp>
 #include <string>
 #include <unordered_set>
@@ -173,33 +174,37 @@ struct CheatController::Implementation {
 
         constexpr std::array<std::uint8_t, 6> expectedActivate{
             0x81, 0xEC, 0x20, 0x05, 0x00, 0x00};
-        std::array<std::uint8_t, expectedActivate.size()> actualActivate{};
+
+        auto actualActivate =
+            ReadMemoryIntoArray<std::uint8_t, expectedActivate.size()>(
+                activateAddress);
+
         if (!IsInsideModule(game->handle,
                             reinterpret_cast<const void*>(activateAddress)) ||
             !IsExecutableAddress(
                 reinterpret_cast<const void*>(activateAddress)) ||
             DetectDetour(reinterpret_cast<const void*>(activateAddress)) !=
                 DetourKind::None ||
-            !SafeCopy(reinterpret_cast<const void*>(activateAddress),
-                      actualActivate.data(), actualActivate.size()) ||
-            actualActivate != expectedActivate) {
+            !actualActivate || *actualActivate != expectedActivate) {
             return false;
         }
 
         constexpr std::array<std::uint8_t, 7> expectedFrameDispatch{
             0x83, 0x3D, 0x24, 0x8B, 0x52, 0x02, 0x00,
         };
-        std::array<std::uint8_t, expectedFrameDispatch.size()>
-            actualFrameDispatch{};
+
+        auto actualFrameDispatch =
+            ReadMemoryIntoArray<std::uint8_t, expectedFrameDispatch.size()>(
+                frameDispatchAddress);
+
         if (!IsInsideModule(game->handle, reinterpret_cast<const void*>(
                                               frameDispatchAddress)) ||
             !IsExecutableAddress(
                 reinterpret_cast<const void*>(frameDispatchAddress)) ||
             DetectDetour(reinterpret_cast<const void*>(frameDispatchAddress)) !=
                 DetourKind::None ||
-            !SafeCopy(reinterpret_cast<const void*>(frameDispatchAddress),
-                      actualFrameDispatch.data(), actualFrameDispatch.size()) ||
-            actualFrameDispatch != expectedFrameDispatch) {
+            !actualFrameDispatch ||
+            *actualFrameDispatch != expectedFrameDispatch) {
             return false;
         }
 
@@ -209,6 +214,7 @@ struct CheatController::Implementation {
         if (!hook) {
             return false;
         }
+
         frameHook = std::move(*hook);
         active.store(this, std::memory_order_release);
         if (const auto enabled = frameHook.enable(); !enabled) {
@@ -221,15 +227,19 @@ struct CheatController::Implementation {
             0x88, 0x1D, 0x5A, 0x7B, 0x52, 0x02,
             0x88, 0x1D, 0xE6, 0x7B, 0x52, 0x02,
         };
-        std::array<std::uint8_t, expectedSaveFlag.size()> actualSaveFlag{};
-        if (!SafeCopy(reinterpret_cast<const void*>(saveFlagAddress),
-                      actualSaveFlag.data(), actualSaveFlag.size())) {
+
+        auto actualSaveFlag =
+            ReadMemoryIntoArray<std::uint8_t, expectedSaveFlag.size()>(
+                saveFlagAddress);
+
+        if (!actualSaveFlag) {
             return false;
         }
+
         std::array<std::uint8_t, expectedSaveFlag.size()> nops{};
         nops.fill(0x90);
-        if (actualSaveFlag == expectedSaveFlag) {
-            originalSaveFlag = actualSaveFlag;
+        if (*actualSaveFlag == expectedSaveFlag) {
+            originalSaveFlag = *actualSaveFlag;
 
             const auto saveFlagNopWriteResult = WriteExecutableMemory(
                 reinterpret_cast<void*>(saveFlagAddress), nops);
@@ -241,7 +251,7 @@ struct CheatController::Implementation {
             if (!saveFlagNopWriteResult) {
                 return false;
             }
-        } else if (actualSaveFlag != nops) {
+        } else if (*actualSaveFlag != nops) {
             return false;
         }
 
@@ -253,13 +263,12 @@ struct CheatController::Implementation {
         DisableFrameHook();
 
         if (ownsSaveFlagPatch) {
-            std::array<std::uint8_t, saveFlagSize> current{};
+            auto current = ReadMemoryIntoArray<std::uint8_t, saveFlagSize>(
+                saveFlagAddress);
             std::array<std::uint8_t, saveFlagSize> nops{};
             nops.fill(0x90);
 
-            if (!SafeCopy(reinterpret_cast<const void*>(saveFlagAddress),
-                          current.data(), current.size()) ||
-                current != nops) {
+            if (!current || *current != nops) {
                 LogWarning("Cheats",
                            "Save-flag patch changed after installation; "
                            "original bytes not restored");
@@ -293,11 +302,10 @@ struct CheatController::Implementation {
             return false;
         }
 
-        std::uint32_t count{};
-        if (!SafeCopy(reinterpret_cast<const void*>(gameBase +
-                                                    addresses::kCheatCountRva),
-                      &count, sizeof(count)) ||
-            definition->index >= count) {
+        std::optional<std::uint32_t> count =
+            ReadMemory<std::uint32_t>(gameBase + addresses::kCheatCountRva);
+
+        if (!count || definition->index >= *count) {
             return false;
         }
 
@@ -305,21 +313,19 @@ struct CheatController::Implementation {
                             static_cast<std::uintptr_t>(definition->index) *
                                 addresses::kCheatRecordSize;
 
-        std::uint32_t phoneCodePointer{};
-        std::uint32_t callback{};
+        std::optional<std::uint32_t> phoneCodePointer =
+            ReadMemory<std::uint32_t>(record +
+                                      addresses::kCheatPhoneCodePointerOffset);
+        std::optional<std::uint32_t> callback = ReadMemory<std::uint32_t>(
+            record + addresses::kCheatActivateCallbackOffset);
 
-        if (!SafeCopy(reinterpret_cast<const void*>(
-                          record + addresses::kCheatPhoneCodePointerOffset),
-                      &phoneCodePointer, sizeof(phoneCodePointer)) ||
-            !SafeCopy(reinterpret_cast<const void*>(
-                          record + addresses::kCheatActivateCallbackOffset),
-                      &callback, sizeof(callback)) ||
-            callback != gameBase + definition->callbackRva ||
-            !IsExecutableAddress(reinterpret_cast<const void*>(callback))) {
+        if (!phoneCodePointer || !callback ||
+            *callback != gameBase + definition->callbackRva ||
+            !IsExecutableAddress(reinterpret_cast<const void*>(*callback))) {
             return false;
         }
 
-        const auto phoneCode = ReadFixedString(phoneCodePointer, 32);
+        const auto phoneCode = ReadFixedString(*phoneCodePointer, 32);
         if (!phoneCode || *phoneCode != definition->phoneCode) {
             return false;
         }
