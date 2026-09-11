@@ -24,11 +24,8 @@ bool ValidateReaderCode(const ModuleInfo& game) {
     constexpr std::array<std::uint8_t, 12> expected{
         0x55, 0x8B, 0xEC, 0x83, 0xE4, 0xF8, 0x81, 0xEC, 0x0C, 0x01, 0x00, 0x00};
 
-    const auto handler = game.base + addresses::kHitmanCategoryHandlerRva;
-
-    auto actual = ReadMemoryIntoArray<std::uint8_t, expected.size()>(handler);
-
-    return actual && *actual == expected;
+    return MatchesBytes(game.base + addresses::kHitmanCategoryHandlerRva,
+                        expected);
 }
 
 bool ReadLocation(std::uintptr_t address, std::string& result) {

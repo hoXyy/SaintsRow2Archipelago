@@ -68,4 +68,13 @@ std::optional<std::array<T, N>> ReadMemoryIntoArray(std::uintptr_t address) {
 
     return value;
 }
+
+template <std::size_t N>
+bool MatchesBytes(std::uintptr_t address,
+                  const std::array<std::uint8_t, N>& expected) {
+    std::array<std::uint8_t, N> actual{};
+
+    return SafeCopy(reinterpret_cast<const void*>(address), actual.data(), N) &&
+           actual == expected;
+}
 }  // namespace sr2ap
