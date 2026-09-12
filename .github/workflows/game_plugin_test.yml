@@ -7,14 +7,11 @@ on:
       - ".github/workflows/game_plugin_test.yml"
     branches: [main]
   pull_request:
-    paths:
-      - "game_plugin/**"
-      - ".github/workflows/game_plugin_test.yml"
 
 jobs:
   test:
     runs-on: windows-latest
-    name: Test C++
+    name: Test game integration plugin
 
     steps:
       - name: Checkout repo

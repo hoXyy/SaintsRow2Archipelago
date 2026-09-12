@@ -7,9 +7,6 @@ on:
             - ".github/workflows/apworld_test.yml"
         branches: [main]
     pull_request:
-        paths:
-            - "apworld/**"
-            - ".github/workflows/apworld_test.yml"
 
 jobs:
     test:
