@@ -1,15 +1,13 @@
-name: Run APWorld Tests
+name: Test
 
 on:
     push:
-        paths:
-            - "apworld/**"
-            - ".github/workflows/apworld_test.yml"
         branches: [main]
     pull_request:
+        branches: [main]
 
 jobs:
-    test:
+    test-apworld:
         name: Test APWorld
         runs-on: ubuntu-24.04
 
@@ -33,3 +31,21 @@ jobs:
                   cp -r apworld/* Archipelago/worlds/saints_row_2/
             - name: Run tests
               run: cd Archipelago && pytest worlds/saints_row_2/test/ -v --no-header --no-summary
+
+    test-plugin:
+        runs-on: windows-latest
+        name: Test game integration plugin
+
+        steps:
+            - name: Checkout repo
+              uses: actions/checkout@v7
+            - name: Setup MSVC
+              uses: TheMrMilchmann/setup-msvc-dev@v4
+              with:
+                  arch: x86
+            - name: Install make
+              run: choco install make
+            - name: Install Rust x86 target
+              run: rustup target add i686-pc-windows-msvc
+            - name: Run tests
+              run: cd game_plugin && make test
