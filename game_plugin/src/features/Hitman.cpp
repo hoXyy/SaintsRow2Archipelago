@@ -2,9 +2,7 @@
 
 #include <windows.h>
 
-#include <algorithm>
 #include <array>
-#include <cctype>
 #include <cstring>
 
 #include "game/Addresses.hpp"
@@ -23,21 +21,6 @@ bool ValidateReaderCode(const ModuleInfo& game) {
 
     return MatchesBytes(game.base + addresses::kHitmanCategoryHandlerRva,
                         expected);
-}
-
-bool ReadLocation(std::uintptr_t address, std::string& result) {
-    const auto value = ReadFixedString(address, kLocationCapacity);
-    if (!value) {
-        return false;
-    }
-    result = *value;
-    if (result.rfind("HITMAN_LOC_", 0) != 0 || result.size() <= 11) {
-        return false;
-    }
-    return std::all_of(result.begin(), result.end(),
-                       [](unsigned char character) {
-                           return std::isalnum(character) || character == '_';
-                       });
 }
 }  // namespace
 
@@ -101,16 +84,16 @@ HitmanSnapshot GetHitmanSnapshot(const GameContext& context) {
                              targetIndex * addresses::kHitmanRowStride;
             std::optional<std::uint8_t> completion = ReadMemory<std::uint8_t>(
                 row + addresses::kHitmanCompletionOffset);
-            std::string location;
-            if (!completion || *completion > 1 ||
-                !ReadLocation(row + addresses::kHitmanLocationOffset,
-                              location)) {
+            auto location =
+                ReadValidatedString(row + addresses::kHitmanLocationOffset,
+                                    kLocationCapacity, "HITMAN_LOC_");
+            if (!completion || *completion > 1 || !location) {
                 snapshot.result = HitmanReadResult::InvalidPointer;
                 snapshot.targets.clear();
                 return snapshot;
             }
 
-            snapshot.targets.push_back({std::move(location), listIndex + 1,
+            snapshot.targets.push_back({std::move(*location), listIndex + 1,
                                         targetIndex + 1, *completion != 0});
         }
     }
