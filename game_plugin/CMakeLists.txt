@@ -148,6 +148,10 @@ else()
         )
 endif()
 
+include(FetchContent)
+FetchContent_Declare(fmt GIT_REPOSITORY https://github.com/fmtlib/fmt GIT_TAG 12.2.0 GIT_SHALLOW TRUE)
+FetchContent_MakeAvailable(fmt)
+
 add_library(sr2ap_core STATIC
         src/util/ReaderResult.cpp    
         src/features/CollectibleDefinitions.cpp
@@ -157,13 +161,13 @@ add_library(sr2ap_core STATIC
 )
 target_include_directories(sr2ap_core PUBLIC src)
 target_compile_features(sr2ap_core PUBLIC cxx_std_17)
+target_link_libraries(sr2ap_core PUBLIC fmt::fmt)
 if(WIN32 AND SR2AP_BUILD_RUST)
         target_link_libraries(sr2ap_core PUBLIC sr2ap_rust)
         add_dependencies(sr2ap_core sr2ap_rust_build)
 endif()
 
 if(WIN32)
-        include(FetchContent)
         set(SAFETYHOOK_FETCH_ZYDIS ON CACHE BOOL "" FORCE)
         set(SAFETYHOOK_BUILD_TESTS OFF CACHE BOOL "" FORCE)
         FetchContent_Declare(safetyhook GIT_REPOSITORY "https://github.com/cursey/safetyhook.git" GIT_TAG v0.7.0 GIT_SHALLOW TRUE)

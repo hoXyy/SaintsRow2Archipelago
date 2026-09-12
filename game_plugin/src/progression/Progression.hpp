@@ -21,5 +21,4 @@ struct ProgressionSnapshot {
 };
 
 ProgressionSnapshot GetProgressionSnapshot(const GameContext& context);
-void LogProgressionSnapshot(const ProgressionSnapshot& snapshot, bool full);
 }  // namespace sr2ap

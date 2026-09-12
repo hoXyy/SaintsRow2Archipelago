@@ -1,13 +1,11 @@
 #include "Racing.hpp"
 
 #include <cmath>
-#include <sstream>
 
 #include "game/Addresses.hpp"
 #include "game/GameState.hpp"
 #include "game/Memory.hpp"
 #include "game/ModuleInfo.hpp"
-#include "util/Logger.hpp"
 #include "util/ReaderResult.hpp"
 
 namespace sr2ap {
@@ -74,19 +72,4 @@ RacingSnapshot GetRacingSnapshot(const GameContext& context) {
     return snapshot;
 }
 
-void LogRacingSnapshot(const RacingSnapshot& snapshot, const bool full) {
-    std::ostringstream summary;
-    summary << "[Manual snapshot] result=" << ToString(snapshot.result)
-            << " races=" << snapshot.races.size();
-    LogInfo("Racing", summary.str());
-
-    if (!full || snapshot.result != ReaderResult::Success) {
-        return;
-    }
-
-    for (const auto& race : snapshot.races) {
-        LogInfo("Racing", std::string{race.name} + "=" + ToString(race.medal) +
-                              " best_time=" + std::to_string(race.bestTime));
-    }
-}
 }  // namespace sr2ap

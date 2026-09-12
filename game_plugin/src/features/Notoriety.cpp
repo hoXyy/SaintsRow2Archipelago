@@ -91,10 +91,8 @@ struct NotorietyController::Implementation {
                         nativeSetAddress);
 
                 // trap doesn't work if the player already has notoriety, so
-                // need to set
-                // it to 0 before setting it to max for police just need to set
-                // the police notoriety to 0, but for a gang need to set all
-                // gang notoriety to 0 first
+                // need to set it to 0 before setting it to max for police but
+                // for a gang need to set all gang notoriety to 0 first
                 if (isPolice) {
                     setNotoriety(factionId, noNotoriety);
                 } else {

@@ -20,5 +20,4 @@ struct MissionSnapshot {
 };
 
 MissionSnapshot GetMissionSnapshot(const GameContext& context);
-void LogMissionSnapshot(const MissionSnapshot& snapshot, bool full);
 }  // namespace sr2ap

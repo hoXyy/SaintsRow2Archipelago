@@ -23,5 +23,4 @@ struct CdDefinition {
 CdSnapshot GetCdSnapshot(const GameContext& context);
 const std::vector<CdDefinition>& GetCdDefinitions();
 const char* FindCdDistrictKey(std::uint32_t id);
-void LogCdSnapshot(const CdSnapshot& snapshot, bool full);
 }  // namespace sr2ap

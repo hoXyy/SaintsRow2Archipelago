@@ -11,7 +11,6 @@
 #include "game/GameState.hpp"
 #include "game/Memory.hpp"
 #include "game/ModuleInfo.hpp"
-#include "util/Logger.hpp"
 
 namespace sr2ap {
 namespace {
@@ -138,35 +137,5 @@ ChopShopSnapshot GetChopShopSnapshot(const GameContext& context) {
     }
     snapshot.result = ChopShopReadResult::Success;
     return snapshot;
-}
-
-void LogChopShopSnapshot(const ChopShopSnapshot& snapshot, bool full) {
-    std::size_t retrieved = 0;
-
-    for (const auto& vehicle : snapshot.vehicles) {
-        if (vehicle.retrieved) {
-            ++retrieved;
-        }
-    }
-
-    std::uint32_t lists = 0;
-    for (const auto& vehicle : snapshot.vehicles) {
-        lists = std::max(lists, vehicle.listId);
-    }
-
-    LogInfo("ChopShop",
-            std::string("[Manual snapshot] result=") +
-                ToString(snapshot.result) + " lists=" + std::to_string(lists) +
-                " vehicles=" + std::to_string(snapshot.vehicles.size()) +
-                " retrieved=" + std::to_string(retrieved));
-
-    if (full && snapshot.result == ChopShopReadResult::Success) {
-        for (const auto& vehicle : snapshot.vehicles) {
-            LogInfo("ChopShop",
-                    vehicle.targetTag + "=" + (vehicle.retrieved ? "1" : "0") +
-                        " cash=" + std::to_string(vehicle.cash) +
-                        " respect=" + std::to_string(vehicle.respect));
-        }
-    }
 }
 }  // namespace sr2ap

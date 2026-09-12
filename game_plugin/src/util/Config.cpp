@@ -15,13 +15,11 @@ namespace {
         config.polling_interval_ms,
         config.network_enabled,
         config.network_port,
-        config.log_full_snapshots,
         config.log_state_changes,
         config.write_status_file,
         config.enable_hotkeys,
         config.module_report_hotkey,
         config.snapshot_hotkey,
-        config.address_dump_hotkey,
     };
 }
 }  // namespace

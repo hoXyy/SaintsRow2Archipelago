@@ -17,7 +17,7 @@ class ProgressionMonitor {
                                 ProgressionEventSink eventSink = {},
                                 bool writeStatusFile = false);
 
-    void CaptureManualSnapshot(bool full, GameContext context) const;
+    void CaptureManualSnapshot(GameContext context) const;
     void DumpCompactSnapshot(GameContext context) const;
     void Poll(GameContext context);
 

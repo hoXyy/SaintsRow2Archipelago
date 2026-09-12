@@ -25,5 +25,4 @@ struct ChopShopSnapshot {
 };
 
 ChopShopSnapshot GetChopShopSnapshot(const GameContext& context);
-void LogChopShopSnapshot(const ChopShopSnapshot& snapshot, bool full);
 }  // namespace sr2ap

@@ -167,23 +167,4 @@ ActivitySnapshot GetActivitySnapshot(const GameContext& context) {
     snapshot.result = ActivityReadResult::Success;
     return snapshot;
 }
-
-void LogActivitySnapshot(const ActivitySnapshot& snapshot, bool full) {
-    const auto completedInstances = std::count_if(
-        snapshot.instances.begin(), snapshot.instances.end(),
-        [](const auto& instance) {
-            return instance.completedLevels == instance.totalLevels;
-        });
-    std::ostringstream summary;
-    summary << "[Manual snapshot] result=" << ToString(snapshot.result)
-            << " instances=" << snapshot.instances.size()
-            << " fully_complete=" << completedInstances;
-    LogInfo("Activities", summary.str());
-    if (full && snapshot.result == ActivityReadResult::Success) {
-        for (const auto& instance : snapshot.instances) {
-            LogInfo("Activities", instance.instanceTag + "=" +
-                                      std::to_string(instance.completedLevels));
-        }
-    }
-}
 }  // namespace sr2ap

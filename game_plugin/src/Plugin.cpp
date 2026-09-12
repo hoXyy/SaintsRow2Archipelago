@@ -109,7 +109,7 @@ DWORD WINAPI PluginThread(void* parameter) {
                     "remain available");
         }
 
-        bool moduleDown = false, snapshotDown = false, dumpDown = false;
+        bool moduleDown = false, snapshotDown = false;
         ULONGLONG nextPoll = GetTickCount64();
         const auto statusPath = pluginDirectory / L"SR2ArchipelagoStatus.txt";
         ProgressionMonitor progression(
@@ -135,11 +135,7 @@ DWORD WINAPI PluginThread(void* parameter) {
                     ReportAllModules(plugin);
                 }
                 if (Pressed(config.snapshotHotkey, snapshotDown)) {
-                    progression.CaptureManualSnapshot(config.logFullSnapshots,
-                                                      gameContext);
-                }
-                if (Pressed(config.addressDumpHotkey, dumpDown)) {
-                    progression.DumpCompactSnapshot(gameContext);
+                    progression.CaptureManualSnapshot(gameContext);
                 }
             }
             const auto now = GetTickCount64();

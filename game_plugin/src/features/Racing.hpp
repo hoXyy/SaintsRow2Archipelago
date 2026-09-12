@@ -87,5 +87,4 @@ struct RacingSnapshot {
 }
 
 RacingSnapshot GetRacingSnapshot(const GameContext& context);
-void LogRacingSnapshot(const RacingSnapshot& snapshot, bool full);
 }  // namespace sr2ap
