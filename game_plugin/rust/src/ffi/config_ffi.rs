@@ -10,13 +10,11 @@ pub(crate) mod bridge {
         polling_interval_ms: u32,
         network_enabled: bool,
         network_port: u16,
-        log_full_snapshots: bool,
         log_state_changes: bool,
         write_status_file: bool,
         enable_hotkeys: bool,
         module_report_hotkey: u32,
         snapshot_hotkey: u32,
-        address_dump_hotkey: u32,
     }
 
     struct ConfigLoadResult {
@@ -38,13 +36,11 @@ impl From<config::Config> for bridge::Config {
             polling_interval_ms: config.polling_interval_ms,
             network_enabled: config.network_enabled,
             network_port: config.network_port,
-            log_full_snapshots: config.log_full_snapshots,
             log_state_changes: config.log_state_changes,
             write_status_file: config.write_status_file,
             enable_hotkeys: config.enable_hotkeys,
             module_report_hotkey: config.module_report_hotkey,
             snapshot_hotkey: config.snapshot_hotkey,
-            address_dump_hotkey: config.address_dump_hotkey,
         }
     }
 }

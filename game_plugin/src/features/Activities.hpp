@@ -23,5 +23,4 @@ struct ActivitySnapshot {
 };
 
 ActivitySnapshot GetActivitySnapshot(const GameContext& context);
-void LogActivitySnapshot(const ActivitySnapshot& snapshot, bool full);
 }  // namespace sr2ap

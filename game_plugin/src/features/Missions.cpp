@@ -3,13 +3,11 @@
 #include <windows.h>
 
 #include <array>
-#include <sstream>
 
 #include "game/Addresses.hpp"
 #include "game/GameState.hpp"
 #include "game/Memory.hpp"
 #include "game/ModuleInfo.hpp"
-#include "util/Logger.hpp"
 #include "util/ReaderResult.hpp"
 
 namespace sr2ap {
@@ -105,25 +103,5 @@ MissionSnapshot GetMissionSnapshot(const GameContext& context) {
     }
     snapshot.result = MissionReadResult::Success;
     return snapshot;
-}
-
-void LogMissionSnapshot(const MissionSnapshot& snapshot, bool full) {
-    std::size_t complete = 0;
-    for (const auto& mission : snapshot.missions) {
-        if (mission.complete) {
-            ++complete;
-        }
-    }
-    std::ostringstream summary;
-    summary << "[Manual snapshot] result=" << ToString(snapshot.result)
-            << " missions=" << snapshot.missions.size()
-            << " complete=" << complete;
-    LogInfo("Missions", summary.str());
-    if (full && snapshot.result == MissionReadResult::Success) {
-        for (const auto& mission : snapshot.missions) {
-            LogInfo("Missions",
-                    mission.missionId + "=" + (mission.complete ? "1" : "0"));
-        }
-    }
 }
 }  // namespace sr2ap

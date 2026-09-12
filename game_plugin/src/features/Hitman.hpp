@@ -1,6 +1,5 @@
 #pragma once
 #include <cstdint>
-#include <filesystem>
 #include <string>
 #include <vector>
 
@@ -23,7 +22,4 @@ struct HitmanSnapshot {
 };
 
 HitmanSnapshot GetHitmanSnapshot(const GameContext& context);
-void LogHitmanSnapshot(const HitmanSnapshot& snapshot, bool full);
-bool WriteHitmanStatus(const std::filesystem::path& path,
-                       const HitmanSnapshot& snapshot);
 }  // namespace sr2ap

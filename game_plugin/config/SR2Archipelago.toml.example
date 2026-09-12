@@ -3,7 +3,6 @@ enabled = true
 
 [progression]
 polling_interval_ms = 1000 # How often to poll the game for progression state
-log_full_snapshots = false
 log_state_changes = false # Whether to log progression state changes (for ex. a mission pass)
 
 [network]

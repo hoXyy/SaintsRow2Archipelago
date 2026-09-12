@@ -17,5 +17,4 @@ struct StyleLevelSnapshot {
 };
 
 StyleLevelSnapshot GetStyleLevelSnapshot(const GameContext& context);
-void LogStyleLevelSnapshot(const StyleLevelSnapshot& snapshot, bool full);
 }  // namespace sr2ap

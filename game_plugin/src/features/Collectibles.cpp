@@ -9,8 +9,6 @@
 #include "game/GameState.hpp"
 #include "game/Memory.hpp"
 #include "game/ModuleInfo.hpp"
-#include "util/Helpers.hpp"
-#include "util/Logger.hpp"
 
 namespace sr2ap {
 
@@ -81,18 +79,4 @@ CdSnapshot GetCdSnapshot(const GameContext& context) {
     return snapshot;
 }
 
-void LogCdSnapshot(const CdSnapshot& snapshot, bool full) {
-    LogInfo(
-        "CDs",
-        "[Manual snapshot] result=" + std::string(ToString(snapshot.result)) +
-            " collected=" + std::to_string(snapshot.collectedIds.size()) + "/" +
-            std::to_string(snapshot.target));
-    if (full && snapshot.result == CdReadResult::Success) {
-        for (const auto id : snapshot.collectedIds) {
-            const auto key = FindCdDistrictKey(id);
-            LogInfo("CDs", std::string(key ? key : "unknown") +
-                               " id=" + Hex(id) + " complete=1");
-        }
-    }
-}
 }  // namespace sr2ap

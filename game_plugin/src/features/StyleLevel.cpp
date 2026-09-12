@@ -1,13 +1,11 @@
 #include "StyleLevel.hpp"
 
 #include <cmath>
-#include <sstream>
 
 #include "game/Addresses.hpp"
 #include "game/GameState.hpp"
 #include "game/Memory.hpp"
 #include "game/ModuleInfo.hpp"
-#include "util/Logger.hpp"
 #include "util/ReaderResult.hpp"
 
 namespace sr2ap {
@@ -92,26 +90,4 @@ StyleLevelSnapshot GetStyleLevelSnapshot(const GameContext& context) {
     return snapshot;
 }
 
-void LogStyleLevelSnapshot(const StyleLevelSnapshot& snapshot,
-                           const bool full) {
-    std::ostringstream message;
-    message << "[Manual snapshot] result=" << ToString(snapshot.result);
-    if (snapshot.result == ReaderResult::Success) {
-        message << " stored_level=" << snapshot.storedLevel
-                << " displayed_level=" << snapshot.displayedLevel
-                << " points=" << snapshot.points;
-        if (full) {
-            message << " current_minimum=" << snapshot.currentMinimumPoints
-                    << " next_minimum=";
-            if (snapshot.storedLevel + 1 <
-                addresses::kExpectedStyleLevelCount) {
-                message << snapshot.nextMinimumPoints;
-            } else {
-                message << "none";
-            }
-            message << " respect_bonus=" << snapshot.respectBonus;
-        }
-    }
-    LogInfo("StyleLevel", message.str());
-}
 }  // namespace sr2ap

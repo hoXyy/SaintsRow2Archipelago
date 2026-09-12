@@ -53,18 +53,11 @@ ProgressionMonitor::ProgressionMonitor(std::filesystem::path statusPath,
       writeStatusFile_{writeStatusFile} {
 }
 
-void ProgressionMonitor::CaptureManualSnapshot(bool full,
-                                               GameContext context) const {
+void ProgressionMonitor::CaptureManualSnapshot(GameContext context) const {
     const auto snapshot = GetProgressionSnapshot(context);
-    LogProgressionSnapshot(snapshot, full);
     if (!WriteProgressionStatus(statusPath_, snapshot)) {
         LogWarning("Status", "Unable to replace diagnostic status file");
     }
-}
-
-void ProgressionMonitor::DumpCompactSnapshot(GameContext context) const {
-    LogInfo("Diagnostics", "F9 compact progression status; installed_hooks=0");
-    LogProgressionSnapshot(GetProgressionSnapshot(context), false);
 }
 
 void ProgressionMonitor::Emit(const ProgressionEvent& event) const {

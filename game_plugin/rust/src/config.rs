@@ -9,13 +9,11 @@ pub(crate) struct Config {
     pub polling_interval_ms: u32,
     pub network_enabled: bool,
     pub network_port: u16,
-    pub log_full_snapshots: bool,
     pub log_state_changes: bool,
     pub write_status_file: bool,
     pub enable_hotkeys: bool,
     pub module_report_hotkey: u32,
     pub snapshot_hotkey: u32,
-    pub address_dump_hotkey: u32,
 }
 
 impl Default for Config {
@@ -26,13 +24,11 @@ impl Default for Config {
             polling_interval_ms: 1_000,
             network_enabled: true,
             network_port: 38_282,
-            log_full_snapshots: false,
             log_state_changes: false,
             write_status_file: false,
             enable_hotkeys: false,
             module_report_hotkey: 0x76,
             snapshot_hotkey: 0x77,
-            address_dump_hotkey: 0x78,
         }
     }
 }
@@ -122,7 +118,6 @@ struct HotkeyConfig {
     enable_hotkeys: bool,
     module_report_hotkey: u32,
     snapshot_hotkey: u32,
-    address_dump_hotkey: u32,
 }
 
 impl Default for HotkeyConfig {
@@ -131,7 +126,6 @@ impl Default for HotkeyConfig {
             enable_hotkeys: false,
             module_report_hotkey: 0x76,
             snapshot_hotkey: 0x77,
-            address_dump_hotkey: 0x78,
         }
     }
 }
@@ -154,13 +148,11 @@ pub(crate) fn parse(text: &str) -> Result<ConfigLoadResult, ConfigError> {
             polling_interval_ms,
             network_enabled: file.network.enabled,
             network_port: file.network.port,
-            log_full_snapshots: file.progression.log_full_snapshots,
             log_state_changes: file.progression.log_state_changes,
             write_status_file: file.debug.write_status_file,
             enable_hotkeys: file.debug.hotkeys.enable_hotkeys,
             module_report_hotkey: file.debug.hotkeys.module_report_hotkey,
             snapshot_hotkey: file.debug.hotkeys.snapshot_hotkey,
-            address_dump_hotkey: file.debug.hotkeys.address_dump_hotkey,
         },
         file_found: false,
         warnings,
@@ -203,7 +195,6 @@ enabled = false
 
 [progression]
 polling_interval_ms = 250
-log_full_snapshots = true
 log_state_changes = true
 
 [network]
@@ -218,7 +209,6 @@ write_status_file = true
 enable_hotkeys = true
 module_report_hotkey = 0x70
 snapshot_hotkey = 0x71
-address_dump_hotkey = 0x72
 "#,
         )
         .expect("parse full configuration");

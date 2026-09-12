@@ -6,14 +6,11 @@
 #include <array>
 #include <cctype>
 #include <cstring>
-#include <sstream>
 
 #include "game/Addresses.hpp"
 #include "game/GameState.hpp"
 #include "game/Memory.hpp"
 #include "game/ModuleInfo.hpp"
-#include "util/AtomicFile.hpp"
-#include "util/Logger.hpp"
 
 namespace sr2ap {
 namespace {
@@ -121,48 +118,4 @@ HitmanSnapshot GetHitmanSnapshot(const GameContext& context) {
     return snapshot;
 }
 
-void LogHitmanSnapshot(const HitmanSnapshot& snapshot, bool full) {
-    std::size_t complete = 0;
-    for (const auto& target : snapshot.targets) {
-        if (target.complete) {
-            ++complete;
-        }
-    }
-    std::ostringstream summary;
-    summary << "[Manual snapshot] result=" << ToString(snapshot.result)
-            << " targets=" << snapshot.targets.size()
-            << " complete=" << complete;
-    LogInfo("Hitman", summary.str());
-    if (full && snapshot.result == HitmanReadResult::Success) {
-        for (const auto& target : snapshot.targets) {
-            LogInfo("Hitman",
-                    target.locationTag + "=" + (target.complete ? "1" : "0"));
-        }
-    }
-}
-
-bool WriteHitmanStatus(const std::filesystem::path& path,
-                       const HitmanSnapshot& snapshot) {
-    std::ostringstream output;
-    std::size_t complete = 0;
-    for (const auto& target : snapshot.targets) {
-        if (target.complete) {
-            ++complete;
-        }
-    }
-    output << "game_ready="
-           << (snapshot.result == HitmanReadResult::Success ? 1 : 0) << '\n'
-           << "reader_ready="
-           << (snapshot.result == HitmanReadResult::Success ? 1 : 0) << '\n'
-           << "result=" << ToString(snapshot.result) << '\n'
-           << "target_count=" << snapshot.targets.size() << '\n'
-           << "complete_count=" << complete << "\n\n";
-    if (snapshot.result == HitmanReadResult::Success) {
-        for (const auto& target : snapshot.targets) {
-            output << target.locationTag << '=' << (target.complete ? 1 : 0)
-                   << '\n';
-        }
-    }
-    return output && ReplaceFileAtomically(path, output.str());
-}
 }  // namespace sr2ap
