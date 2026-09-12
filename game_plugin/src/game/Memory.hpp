@@ -43,6 +43,9 @@ enum class DetourKind {
 };
 DetourKind DetectDetour(const void* address);
 const char* ToString(DetourKind kind);
+std::optional<std::string> ReadValidatedString(std::uintptr_t address,
+                                               std::size_t capacity,
+                                               std::string_view prefix);
 
 template <typename T>
 std::optional<T> ReadMemory(std::uintptr_t address) {

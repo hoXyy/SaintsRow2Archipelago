@@ -6,14 +6,12 @@
 #include <array>
 #include <cctype>
 #include <optional>
-#include <sstream>
 #include <unordered_set>
 
 #include "game/Addresses.hpp"
 #include "game/GameState.hpp"
 #include "game/Memory.hpp"
 #include "game/ModuleInfo.hpp"
-#include "util/Logger.hpp"
 
 namespace sr2ap {
 namespace {

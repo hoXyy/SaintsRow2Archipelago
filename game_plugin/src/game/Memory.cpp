@@ -254,4 +254,27 @@ const char* ToString(DetourKind kind) {
 
     return "unknown";
 }
+
+bool IsIdentifierCharacter(unsigned char character) {
+    return std::isalnum(character) || character == '_';
+}
+
+std::optional<std::string> ReadValidatedString(std::uintptr_t address,
+                                               std::size_t capacity,
+                                               std::string_view prefix) {
+    auto value = ReadFixedString(address, capacity);
+    if (!value) {
+        return std::nullopt;
+    }
+
+    if (!value->starts_with(prefix)) {
+        return std::nullopt;
+    }
+
+    if (!std::all_of(value->begin(), value->end(), IsIdentifierCharacter)) {
+        return std::nullopt;
+    }
+
+    return value;
+}
 }  // namespace sr2ap

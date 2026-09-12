@@ -2,9 +2,7 @@
 
 #include <windows.h>
 
-#include <algorithm>
 #include <array>
-#include <cctype>
 #include <optional>
 
 #include "game/Addresses.hpp"
@@ -26,19 +24,6 @@ bool ValidateReaderCode(const ModuleInfo& game) {
                         expected);
 }
 
-bool ReadTargetTag(std::uintptr_t address, std::string& result) {
-    const auto value = ReadFixedString(address, kTargetTagCapacity);
-    if (!value) {
-        return false;
-    }
-    result = *value;
-    if (result.rfind("CHOP_SHOP_TARGET_", 0) != 0 || result.size() <= 17) {
-        return false;
-    }
-    return std::all_of(result.begin(), result.end(), [](unsigned char value) {
-        return std::isalnum(value) || value == '_';
-    });
-}
 }  // namespace
 
 ChopShopSnapshot GetChopShopSnapshot(const GameContext& context) {
@@ -108,6 +93,7 @@ ChopShopSnapshot GetChopShopSnapshot(const GameContext& context) {
             snapshot.vehicles.clear();
             return snapshot;
         }
+
         for (std::uint32_t vehicle = 0; vehicle < count; ++vehicle) {
             const auto row = static_cast<std::uintptr_t>(*rowBase) +
                              vehicle * addresses::kChopShopRowStride;
@@ -118,20 +104,20 @@ ChopShopSnapshot GetChopShopSnapshot(const GameContext& context) {
             std::optional<std::uint32_t> respect = ReadMemory<std::uint32_t>(
                 row + addresses::kChopShopRespectOffset);
 
-            std::string tag;
+            auto tag =
+                ReadValidatedString(row + addresses::kChopShopDossierOffset,
+                                    kTargetTagCapacity, "CHOP_SHOP_TARGET_");
             if (!SafeCopy(
                     reinterpret_cast<const void*>(
                         descriptor + addresses::kChopShopRetrievedFlagsOffset +
                         vehicle),
                     &storedFlag, 1) ||
-                storedFlag > 1 ||
-                !ReadTargetTag(row + addresses::kChopShopDossierOffset, tag) ||
-                !cash || !respect) {
+                storedFlag > 1 || !tag || !cash || !respect) {
                 snapshot.result = ChopShopReadResult::InvalidPointer;
                 snapshot.vehicles.clear();
                 return snapshot;
             }
-            snapshot.vehicles.push_back({std::move(tag), list + 1, vehicle + 1,
+            snapshot.vehicles.push_back({std::move(*tag), list + 1, vehicle + 1,
                                          storedFlag == 0, *cash, *respect});
         }
     }
