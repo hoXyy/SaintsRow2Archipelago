@@ -221,12 +221,12 @@ fn progression_is_filtered_by_latched_session_and_communications() {
     let mut fixture = Fixture::new();
     let runtime = &mut fixture.runtime;
     activate(runtime);
-    runtime.progression(0, "target", 0, 1);
+    runtime.progression("hitman", "target", 0, 1);
     assert!(runtime.outgoing.is_empty());
-    runtime.progression(2, "mission", 0, 1);
+    runtime.progression("mission", "mission", 0, 1);
     assert_eq!(last_message(runtime)["category"], "mission");
     runtime.active = false;
-    runtime.progression(2, "mission", 0, 1);
+    runtime.progression("mission", "mission", 0, 1);
     assert_eq!(runtime.outgoing.len(), 1);
 }
 
