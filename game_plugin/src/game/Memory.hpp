@@ -60,6 +60,15 @@ std::optional<T> ReadMemory(std::uintptr_t address) {
     return value;
 }
 
+template <typename T>
+bool ReadMemoryIntoValue(std::uintptr_t address, T* destination) {
+    static_assert(std::is_trivially_copyable_v<T>);
+
+    return destination != nullptr &&
+           SafeCopy(reinterpret_cast<const void*>(address), destination,
+                    sizeof(T));
+}
+
 template <typename T, std::size_t N>
 std::optional<std::array<T, N>> ReadMemoryIntoArray(std::uintptr_t address) {
     std::array<T, N> value{};

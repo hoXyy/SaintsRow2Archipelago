@@ -145,9 +145,15 @@ void SessionRuntime::UpdateReadiness(GameReadiness current) {
 void SessionRuntime::SendProgression(const ProgressionEvent& event) {
     try {
         rust::session_progression(
-            *session_, static_cast<std::uint8_t>(event.kind),
-            {reinterpret_cast<const std::uint8_t*>(event.key.data()),
-             event.key.size()},
+            *session_,
+            {
+                reinterpret_cast<const std::uint8_t*>(event.category.data()),
+                event.category.size(),
+            },
+            {
+                reinterpret_cast<const std::uint8_t*>(event.key.data()),
+                event.key.size(),
+            },
             event.previous, event.current);
     } catch (const ::rust::Error& error) {
         LogError("Session",

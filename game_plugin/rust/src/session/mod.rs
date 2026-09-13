@@ -159,23 +159,26 @@ impl SessionRuntime {
             self.send_revisions();
         }
     }
-    pub fn progression(&mut self, kind: u8, key: &str, previous: u32, current: u32) {
+
+    pub fn progression(&mut self, category: &str, key: &str, previous: u32, current: u32) {
         let Some(session) = &self.session else {
             return;
         };
-        let enabled = match kind {
-            0 => session.hitman,
-            1 => session.chop_shop,
-            2 => session.missions,
-            3 => session.activities,
-            4 => session.races,
-            5 => session.cds,
-            6 => session.style_level,
+
+        let enabled = match category {
+            "hitman" => session.hitman,
+            "chop_shop" => session.chop_shop,
+            "mission" => session.missions,
+            "activity" => session.activities,
+            "racing" => session.races,
+            "cd" => session.cds,
+            "style_level" => session.style_level,
             _ => false,
         };
+
         if self.active && enabled {
             self.send(protocol::serialize_progression_event(
-                kind, key, previous, current,
+                category, key, previous, current,
             ));
         }
     }
