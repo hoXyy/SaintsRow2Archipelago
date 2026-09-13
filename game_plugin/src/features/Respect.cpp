@@ -215,6 +215,7 @@ struct RespectController::Implementation {
             self->permittedLoadThread.compare_exchange_strong(
                 permittedThread, 0, std::memory_order_acq_rel,
                 std::memory_order_acquire);
+
         if (permitted) {
             *reinterpret_cast<volatile std::uint32_t*>(
                 static_cast<std::uintptr_t>(context->Ebp) +

@@ -9,7 +9,7 @@
 #include "features/Respect.hpp"
 #include "features/Unlockables.hpp"
 #include "game/GameState.hpp"
-#include "progression/ProgressionEventSink.hpp"
+#include "progression/ProgressionEvent.hpp"
 #include "sr2ap/src/ffi/session_ffi.rs.h"
 
 namespace sr2ap {

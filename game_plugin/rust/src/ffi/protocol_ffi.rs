@@ -41,7 +41,7 @@ pub(crate) mod bridge {
     extern "Rust" {
         fn protocol_parse_incoming(message: &[u8]) -> IncomingMessage;
         fn protocol_serialize_progression_event(
-            kind: u8,
+            category: &[u8],
             key: &[u8],
             previous: u32,
             current: u32,
@@ -103,12 +103,17 @@ fn utf8_lossy(input: &[u8]) -> std::borrow::Cow<'_, str> {
 }
 
 fn protocol_serialize_progression_event(
-    kind: u8,
+    category: &[u8],
     key: &[u8],
     previous: u32,
     current: u32,
 ) -> String {
-    protocol::serialize_progression_event(kind, &utf8_lossy(key), previous, current)
+    protocol::serialize_progression_event(
+        &utf8_lossy(category),
+        &utf8_lossy(key),
+        previous,
+        current,
+    )
 }
 
 fn protocol_serialize_item_acknowledgement(index: u64, accepted: bool) -> String {

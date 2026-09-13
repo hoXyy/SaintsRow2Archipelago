@@ -80,23 +80,9 @@ DWORD WINAPI PluginThread(void* parameter) {
 
         if (config.enabled) {
             if (config.debugLogging) {
-                LogDebug("Hitman",
+                LogDebug("Progression",
                          "Polling enabled interval_ms=" +
                              std::to_string(config.pollingIntervalMs));
-                LogDebug("ChopShop",
-                         "Polling enabled interval_ms=" +
-                             std::to_string(config.pollingIntervalMs));
-                LogDebug("Missions",
-                         "Polling enabled interval_ms=" +
-                             std::to_string(config.pollingIntervalMs) +
-                             " base_game_missions=56 pc_dlc_missions=excluded");
-                LogDebug("Activities",
-                         "Polling enabled interval_ms=" +
-                             std::to_string(config.pollingIntervalMs) +
-                             " expected_instances=24");
-                LogDebug("CDs", "Polling enabled interval_ms=" +
-                                    std::to_string(config.pollingIntervalMs) +
-                                    " target=50");
             }
             if (config.networkEnabled) {
                 session.Connect(config.networkPort);

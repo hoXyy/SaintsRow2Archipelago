@@ -29,7 +29,7 @@ pub(crate) mod bridge {
         fn session_save_written(session: &mut SessionRuntime, checksum: u32);
         fn session_progression(
             session: &mut SessionRuntime,
-            kind: u8,
+            category: &[u8],
             key: &[u8],
             previous: u32,
             current: u32,
@@ -91,12 +91,17 @@ fn session_save_written(session: &mut SessionRuntime, checksum: u32) {
 }
 fn session_progression(
     session: &mut SessionRuntime,
-    kind: u8,
+    category: &[u8],
     key: &[u8],
     previous: u32,
     current: u32,
 ) -> Result<(), std::str::Utf8Error> {
-    session.progression(kind, std::str::from_utf8(key)?, previous, current);
+    session.progression(
+        std::str::from_utf8(category)?,
+        std::str::from_utf8(key)?,
+        previous,
+        current,
+    );
     Ok(())
 }
 fn session_active(session: &SessionRuntime) -> bool {

@@ -2,13 +2,14 @@
 
 #include <filesystem>
 #include <functional>
+#include <string>
 
-#include "Progression.hpp"
-#include "ProgressionEventSink.hpp"
-#include "ProgressionEventTracker.hpp"
 #include "game/GameState.hpp"
+#include "progression/ProgressionEvent.hpp"
+#include "progression/ProgressionReader.hpp"
 
 namespace sr2ap {
+
 using ProgressionEventSink = std::function<void(const ProgressionEvent&)>;
 
 class ProgressionMonitor {
@@ -17,32 +18,16 @@ class ProgressionMonitor {
                                 ProgressionEventSink eventSink = {},
                                 bool writeStatusFile = false);
 
-    void CaptureManualSnapshot(GameContext context) const;
-    void DumpCompactSnapshot(GameContext context) const;
-    void Poll(GameContext context);
+    void CaptureManualSnapshot(const GameContext& context) const;
+    void Poll(const GameContext& context);
 
    private:
-    bool UpdateHitman(const HitmanSnapshot& snapshot);
-    bool UpdateChopShop(const ChopShopSnapshot& snapshot);
-    bool UpdateMissions(const MissionSnapshot& snapshot);
-    bool UpdateActivities(const ActivitySnapshot& snapshot);
-    bool UpdateRacing(const RacingSnapshot& snapshot);
-    bool UpdateCds(const CdSnapshot& snapshot);
-    bool UpdateStyleLevel(const StyleLevelSnapshot& snapshot);
-    void Emit(const ProgressionEvent& event) const;
+    [[nodiscard]] std::string CaptureStatus(const GameContext& context) const;
 
     std::filesystem::path statusPath_;
     ProgressionEventSink eventSink_;
-    bool writeStatusFile_;
-    ProgressionEventTracker eventTracker_;
-    HitmanReadResult lastHitmanResult_{HitmanReadResult::ReaderUnavailable};
-    ChopShopReadResult lastChopShopResult_{
-        ChopShopReadResult::ReaderUnavailable};
-    MissionReadResult lastMissionResult_{MissionReadResult::ReaderUnavailable};
-    ActivityReadResult lastActivityResult_{
-        ActivityReadResult::ReaderUnavailable};
-    ReaderResult lastRacingResult_{ReaderResult::ReaderUnavailable};
-    CdReadResult lastCdResult_{CdReadResult::ReaderUnavailable};
-    ReaderResult lastStyleLevelResult_{ReaderResult::ReaderUnavailable};
+    bool writeStatusFile_{};
+    ProgressionReaders readers_;
 };
+
 }  // namespace sr2ap

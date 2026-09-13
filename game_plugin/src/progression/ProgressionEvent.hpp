@@ -4,18 +4,8 @@
 #include <string>
 
 namespace sr2ap {
-enum class ProgressionKind {
-    Hitman,
-    ChopShop,
-    Mission,
-    Activity,
-    Racing,
-    Cd,
-    StyleLevel
-};
-
 struct ProgressionEvent {
-    ProgressionKind kind;
+    std::string category;
     std::string key;
     std::uint32_t previous{};
     std::uint32_t current{};

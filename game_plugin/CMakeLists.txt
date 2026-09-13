@@ -153,10 +153,7 @@ FetchContent_Declare(fmt GIT_REPOSITORY https://github.com/fmtlib/fmt GIT_TAG 12
 FetchContent_MakeAvailable(fmt)
 
 add_library(sr2ap_core STATIC
-        src/util/ReaderResult.cpp    
-        src/features/CollectibleDefinitions.cpp
-        src/progression/StatusSerialization.cpp
-        src/progression/ProgressionEventTracker.cpp
+        src/util/ReaderResult.cpp
         src/util/Helpers.cpp
 )
 target_include_directories(sr2ap_core PUBLIC src)
@@ -173,6 +170,11 @@ if(WIN32)
         FetchContent_Declare(safetyhook GIT_REPOSITORY "https://github.com/cursey/safetyhook.git" GIT_TAG v0.7.0 GIT_SHALLOW TRUE)
         FetchContent_MakeAvailable(safetyhook)
 
+        file(GLOB SR2AP_READER_SOURCES CONFIGURE_DEPENDS
+                "${CMAKE_CURRENT_SOURCE_DIR}/src/progression/readers/*.cpp"
+        )
+
+
 
         add_library(SR2Archipelago SHARED
                 src/dllmain.cpp
@@ -184,21 +186,14 @@ if(WIN32)
                 src/game/ModuleInfo.cpp
                 src/game/Memory.cpp
                 src/game/GameState.cpp
-                src/features/Hitman.cpp
-                src/features/ChopShop.cpp
-                src/features/Missions.cpp
-                src/progression/Status.cpp
-                src/progression/Progression.cpp
                 src/progression/ProgressionMonitor.cpp
-                src/features/Activities.cpp
-                src/features/Racing.cpp
-                src/features/Collectibles.cpp
+                src/progression/ReaderRegistry.cpp
                 src/features/Cheats.cpp
                 src/features/Notoriety.cpp
                 src/features/Respect.cpp
-                src/features/StyleLevel.cpp
                 src/game/SaveRevisionMonitor.cpp
                 src/features/Unlockables.cpp
+                ${SR2AP_READER_SOURCES}
         )
         target_include_directories(SR2Archipelago PRIVATE src)
         target_link_libraries(SR2Archipelago PRIVATE
@@ -270,11 +265,8 @@ if(SR2AP_BUILD_TESTS)
 
         add_executable(sr2ap_tests
                 tests/BaselineTrackerTests.cpp
-                tests/CollectibleDefinitionsTests.cpp
                 tests/HandlerActivityTests.cpp
-                tests/ProgressionEventTrackerTests.cpp
                 tests/ReaderResultTests.cpp
-                tests/StatusSerializationTests.cpp
         )
         target_link_libraries(sr2ap_tests PRIVATE sr2ap_core GTest::gtest_main)
 

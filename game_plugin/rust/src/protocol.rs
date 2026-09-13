@@ -231,26 +231,21 @@ pub fn parse_incoming(input: &[u8]) -> IncomingMessage {
 }
 
 #[derive(Serialize)]
-struct ProgressionEvent<'a> {
+struct ProgressionEvent<'category, 'a> {
     #[serde(rename = "type")]
     message_type: &'static str,
-    category: &'static str,
+    category: &'category str,
     key: &'a str,
     previous: u32,
     current: u32,
 }
 
-pub fn serialize_progression_event(kind: u8, key: &str, previous: u32, current: u32) -> String {
-    let category = match kind {
-        0 => "hitman",
-        1 => "chop_shop",
-        2 => "mission",
-        3 => "activity",
-        4 => "racing",
-        5 => "cd",
-        6 => "style_level",
-        _ => "unknown",
-    };
+pub fn serialize_progression_event(
+    category: &str,
+    key: &str,
+    previous: u32,
+    current: u32,
+) -> String {
     serde_json::to_string(&ProgressionEvent {
         message_type: "progression",
         category,
