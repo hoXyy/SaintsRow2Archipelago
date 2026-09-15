@@ -99,7 +99,55 @@ class StyleLevelReader final : public ProgressionReader {
         return kReaderId;
     }
 
-    ReaderUpdate Poll(const GameContext& context) override;
+    ReaderUpdate Poll(const GameContext& context) override {
+        const auto snapshot = ReadSnapshot(context);
+        ReaderUpdate result;
+        result.statusSection = SerializeStatus(snapshot);
+
+        if (snapshot.result != ReaderResult::Success) {
+            const auto invalidation = baseline_.Invalidate();
+
+            result.changed =
+                invalidation.kind != BaselineUpdateKind::Unchanged ||
+                snapshot.result != previousResult_;
+
+            previousResult_ = snapshot.result;
+            return result;
+        }
+
+        const auto update =
+            baseline_.Observe({{std::string{kPlayerKey}, snapshot.level}});
+
+        result.changed = update.kind != BaselineUpdateKind::Unchanged;
+
+        if (update.kind == BaselineUpdateKind::Created ||
+            update.kind == BaselineUpdateKind::IdentityChanged) {
+            result.events.push_back({.category = std::string{kReaderId},
+                                     .key = std::string{kPlayerKey},
+                                     .previous = 0,
+                                     .current = snapshot.level});
+        }
+
+        for (const auto& change : update.changes) {
+            result.events.push_back({.category = std::string{kReaderId},
+                                     .key = change.key,
+                                     .previous = change.previous,
+                                     .current = change.current});
+
+            const auto message =
+                fmt::format("Level changed: {} -> {} points={}",
+                            change.previous, change.current, snapshot.points);
+
+            if (change.current > change.previous) {
+                LogInfo("StyleLevel", message);
+            } else {
+                LogWarning("StyleLevel", message);
+            }
+        }
+
+        previousResult_ = ReaderResult::Success;
+        return result;
+    };
 
     std::string CaptureStatus(const GameContext& context) const override {
         return SerializeStatus(ReadSnapshot(context));
@@ -109,55 +157,6 @@ class StyleLevelReader final : public ProgressionReader {
     BaselineTracker<std::string, std::uint32_t> baseline_;
     ReaderResult previousResult_{ReaderResult::ReaderUnavailable};
 };
-
-ReaderUpdate StyleLevelReader::Poll(const GameContext& context) {
-    const auto snapshot = ReadSnapshot(context);
-    ReaderUpdate result;
-    result.statusSection = SerializeStatus(snapshot);
-
-    if (snapshot.result != ReaderResult::Success) {
-        const auto invalidation = baseline_.Invalidate();
-
-        result.changed = invalidation.kind != BaselineUpdateKind::Unchanged ||
-                         snapshot.result != previousResult_;
-
-        previousResult_ = snapshot.result;
-        return result;
-    }
-
-    const auto update =
-        baseline_.Observe({{std::string{kPlayerKey}, snapshot.level}});
-
-    result.changed = update.kind != BaselineUpdateKind::Unchanged;
-
-    if (update.kind == BaselineUpdateKind::Created ||
-        update.kind == BaselineUpdateKind::IdentityChanged) {
-        result.events.push_back({.category = std::string{kReaderId},
-                                 .key = std::string{kPlayerKey},
-                                 .previous = 0,
-                                 .current = snapshot.level});
-    }
-
-    for (const auto& change : update.changes) {
-        result.events.push_back({.category = std::string{kReaderId},
-                                 .key = change.key,
-                                 .previous = change.previous,
-                                 .current = change.current});
-
-        const auto message =
-            fmt::format("Level changed: {} -> {} points={}", change.previous,
-                        change.current, snapshot.points);
-
-        if (change.current > change.previous) {
-            LogInfo("StyleLevel", message);
-        } else {
-            LogWarning("StyleLevel", message);
-        }
-    }
-
-    previousResult_ = ReaderResult::Success;
-    return result;
-}
 }  // namespace
 
 ProgressionReaderPtr CreateStyleLevelReader() {

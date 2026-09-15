@@ -154,7 +154,61 @@ class MissionReader final : public ProgressionReader {
         return kReaderId;
     }
 
-    ReaderUpdate Poll(const GameContext& context) override;
+    ReaderUpdate Poll(const GameContext& context) override {
+        const auto snapshot = ReadSnapshot(context);
+        ReaderUpdate result;
+        result.statusSection = SerializeStatus(snapshot);
+
+        if (snapshot.result != ReaderResult::Success) {
+            const auto invalidation = baseline_.Invalidate();
+
+            result.changed =
+                invalidation.kind != BaselineUpdateKind::Unchanged ||
+                snapshot.result != previousResult_;
+
+            previousResult_ = snapshot.result;
+            return result;
+        }
+
+        std::unordered_map<std::string, bool> current;
+        current.reserve(snapshot.missions.size());
+
+        for (const auto& mission : snapshot.missions) {
+            current.emplace(mission.missionId, mission.complete);
+        }
+
+        const auto update = baseline_.Observe(std::move(current));
+        result.changed = update.kind != BaselineUpdateKind::Unchanged;
+
+        if (update.kind == BaselineUpdateKind::Created ||
+            update.kind == BaselineUpdateKind::IdentityChanged) {
+            for (const auto& mission : snapshot.missions) {
+                if (!mission.complete) {
+                    continue;
+                }
+
+                result.events.push_back({
+                    .category = std::string{kReaderId},
+                    .key = mission.missionId,
+                    .previous = 0,
+                    .current = 1,
+                });
+            }
+        }
+
+        for (const auto& change : update.changes) {
+            result.events.push_back({
+                .category = std::string{kReaderId},
+                .key = change.key,
+                .previous = change.previous ? 1U : 0U,
+                .current = change.current ? 1U : 0U,
+            });
+        }
+
+        previousResult_ = ReaderResult::Success;
+
+        return result;
+    };
 
     std::string CaptureStatus(const GameContext& context) const override {
         return SerializeStatus(ReadSnapshot(context));
@@ -164,61 +218,6 @@ class MissionReader final : public ProgressionReader {
     BaselineTracker<std::string, bool> baseline_;
     ReaderResult previousResult_{ReaderResult::ReaderUnavailable};
 };
-
-ReaderUpdate MissionReader::Poll(const GameContext& context) {
-    const auto snapshot = ReadSnapshot(context);
-    ReaderUpdate result;
-    result.statusSection = SerializeStatus(snapshot);
-
-    if (snapshot.result != ReaderResult::Success) {
-        const auto invalidation = baseline_.Invalidate();
-
-        result.changed = invalidation.kind != BaselineUpdateKind::Unchanged ||
-                         snapshot.result != previousResult_;
-
-        previousResult_ = snapshot.result;
-        return result;
-    }
-
-    std::unordered_map<std::string, bool> current;
-    current.reserve(snapshot.missions.size());
-
-    for (const auto& mission : snapshot.missions) {
-        current.emplace(mission.missionId, mission.complete);
-    }
-
-    const auto update = baseline_.Observe(std::move(current));
-    result.changed = update.kind != BaselineUpdateKind::Unchanged;
-
-    if (update.kind == BaselineUpdateKind::Created ||
-        update.kind == BaselineUpdateKind::IdentityChanged) {
-        for (const auto& mission : snapshot.missions) {
-            if (!mission.complete) {
-                continue;
-            }
-
-            result.events.push_back({
-                .category = std::string{kReaderId},
-                .key = mission.missionId,
-                .previous = 0,
-                .current = 1,
-            });
-        }
-    }
-
-    for (const auto& change : update.changes) {
-        result.events.push_back({
-            .category = std::string{kReaderId},
-            .key = change.key,
-            .previous = change.previous ? 1U : 0U,
-            .current = change.current ? 1U : 0U,
-        });
-    }
-
-    previousResult_ = ReaderResult::Success;
-
-    return result;
-}
 }  // namespace
 
 ProgressionReaderPtr CreateMissionReader() {
