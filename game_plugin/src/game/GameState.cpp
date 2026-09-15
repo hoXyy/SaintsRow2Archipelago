@@ -1,7 +1,5 @@
 #include "GameState.hpp"
 
-#include <windows.h>
-
 #include <cstdint>
 
 #include "Addresses.hpp"
@@ -10,10 +8,10 @@
 
 namespace sr2ap {
 
-GameReadiness DetermineGameReadiness(std::uint8_t gameLoaded,
-                                     std::uint8_t menuState,
-                                     std::uint8_t cutsceneActive,
-                                     std::uint32_t player) {
+static GameReadiness DetermineGameReadiness(const std::uint8_t gameLoaded,
+                                            const std::uint8_t menuState,
+                                            const std::uint8_t cutsceneActive,
+                                            const std::uint32_t player) {
     if (menuState == addresses::kLoadingMenuState) {
         return GameReadiness::Loading;
     }

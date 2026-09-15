@@ -9,6 +9,7 @@
 #include "features/Respect.hpp"
 #include "features/Unlockables.hpp"
 #include "game/GameState.hpp"
+#include "game/GameThreadDispatcher.hpp"
 #include "progression/ProgressionEvent.hpp"
 #include "sr2ap/src/ffi/session_ffi.rs.h"
 
@@ -37,6 +38,7 @@ class SessionRuntime {
     void ShutdownControllers();
 
     ::rust::Box<rust::SessionRuntime> session_;
+    GameThreadDispatcher gameThreadDispatcher_;
     CheatController cheats_;
     NotorietyController notoriety_;
     RespectController respect_;
