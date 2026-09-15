@@ -51,8 +51,10 @@ bool SessionRuntime::InstallPolicies(const rust::SessionRequest& request) {
 
     const bool needsGameThread =
         !managedCheats.empty() || request.notoriety_traps;
+    const bool gameThreadDispatcherInstalled =
+        needsGameThread && gameThreadDispatcher_.Install();
     const bool cheatsInstalled =
-        needsGameThread && cheats_.Install(managedCheats);
+        !managedCheats.empty() && cheats_.Install(managedCheats);
     const bool notorietyInstalled =
         request.notoriety_traps && notoriety_.Install();
     respectInstalled_ =
@@ -62,7 +64,8 @@ bool SessionRuntime::InstallPolicies(const rust::SessionRequest& request) {
         unlockables_.Install(request.block_vanilla_unlockables,
                              managedUnlockables);
 
-    const bool failed = (needsGameThread && !cheatsInstalled) ||
+    const bool failed = (needsGameThread && !gameThreadDispatcherInstalled) ||
+                        (!managedCheats.empty() && !cheatsInstalled) ||
                         (request.notoriety_traps && !notorietyInstalled) ||
                         (request.exclusive_respect && !respectInstalled_) ||
                         (!managedUnlockables.empty() && !unlockablesInstalled);
@@ -73,13 +76,14 @@ bool SessionRuntime::InstallPolicies(const rust::SessionRequest& request) {
 }
 
 bool SessionRuntime::ActivateItem(std::string_view name) {
-    return cheats_.ActivateReceivedItem(name) ||
-           notoriety_.ActivateReceivedItem(name, cheats_) ||
+    return cheats_.ActivateReceivedItem(name, gameThreadDispatcher_) ||
+           notoriety_.ActivateReceivedItem(name, gameThreadDispatcher_) ||
            respect_.ActivateReceivedItem(name) ||
            unlockables_.QueueReceivedItem(name);
 }
 
 void SessionRuntime::ShutdownControllers() {
+    gameThreadDispatcher_.Remove();
     unlockables_.Remove();
     respect_.Remove();
     notoriety_.Remove();

@@ -1,19 +1,15 @@
 #include "Cheats.hpp"
 
-#include <windows.h>
-
 #include <algorithm>
 #include <array>
-#include <atomic>
 #include <cstdint>
-#include <mutex>
 #include <optional>
-#include <safetyhook.hpp>
 #include <string>
 #include <unordered_set>
 #include <vector>
 
 #include "game/Addresses.hpp"
+#include "game/GameThreadDispatcher.hpp"
 #include "game/Memory.hpp"
 #include "game/ModuleInfo.hpp"
 #include "util/Logger.hpp"
@@ -144,20 +140,6 @@ struct CheatController::Implementation {
     Implementation(Implementation&&) = delete;
     Implementation& operator=(Implementation&&) = delete;
 
-    bool DispatchOnGameThread(GameThreadTask task) {
-        if (!task) {
-            return false;
-        }
-
-        std::lock_guard<std::mutex> lock(pendingMutex);
-        if (!installed) {
-            return false;
-        }
-
-        pendingTasks.push_back(std::move(task));
-        return true;
-    }
-
     bool Install(const std::vector<std::string>& managedItems) {
         const auto game = InspectSupportedGameModule();
         if (!game) {
@@ -168,8 +150,6 @@ struct CheatController::Implementation {
         managedItemNames.clear();
         managedItemNames.insert(managedItems.begin(), managedItems.end());
         activateAddress = game->base + addresses::kCheatActivateRva;
-        frameDispatchAddress =
-            game->base + addresses::kGameFrameDispatchSiteRva;
         saveFlagAddress = game->base + addresses::kCheatSaveFlagSiteRva;
 
         constexpr std::array<std::uint8_t, 6> expectedActivate{
@@ -185,39 +165,6 @@ struct CheatController::Implementation {
             DetectDetour(reinterpret_cast<const void*>(activateAddress)) !=
                 DetourKind::None ||
             !actualActivate || *actualActivate != expectedActivate) {
-            return false;
-        }
-
-        constexpr std::array<std::uint8_t, 7> expectedFrameDispatch{
-            0x83, 0x3D, 0x24, 0x8B, 0x52, 0x02, 0x00,
-        };
-
-        auto actualFrameDispatch =
-            ReadMemoryIntoArray<std::uint8_t, expectedFrameDispatch.size()>(
-                frameDispatchAddress);
-
-        if (!IsInsideModule(game->handle, reinterpret_cast<const void*>(
-                                              frameDispatchAddress)) ||
-            !IsExecutableAddress(frameDispatchAddress) ||
-            DetectDetour(reinterpret_cast<const void*>(frameDispatchAddress)) !=
-                DetourKind::None ||
-            !actualFrameDispatch ||
-            *actualFrameDispatch != expectedFrameDispatch) {
-            return false;
-        }
-
-        auto hook = safetyhook::MidHook::create(
-            reinterpret_cast<void*>(frameDispatchAddress), &FrameHook,
-            safetyhook::MidHook::StartDisabled);
-        if (!hook) {
-            return false;
-        }
-
-        frameHook = std::move(*hook);
-        active.store(this, std::memory_order_release);
-        if (const auto enabled = frameHook.enable(); !enabled) {
-            active.store(nullptr, std::memory_order_release);
-            frameHook.reset();
             return false;
         }
 
@@ -258,8 +205,6 @@ struct CheatController::Implementation {
     }
 
     void Remove() {
-        DisableFrameHook();
-
         if (ownsSaveFlagPatch) {
             auto current = ReadMemoryIntoArray<std::uint8_t, saveFlagSize>(
                 saveFlagAddress);
@@ -289,7 +234,8 @@ struct CheatController::Implementation {
         installed = false;
     }
 
-    bool ActivateReceivedItem(const std::string_view itemName) {
+    bool ActivateReceivedItem(const std::string_view itemName,
+                              GameThreadDispatcher& dispatcher) {
         if (!installed) {
             return false;
         }
@@ -331,8 +277,8 @@ struct CheatController::Implementation {
         const auto function = activateAddress;
         const auto activationCount = definition->activations;
 
-        const bool queued = DispatchOnGameThread([function, record,
-                                                  activationCount] {
+        const bool queued = dispatcher.Dispatch([function, record,
+                                                 activationCount] {
             for (std::uint32_t index = 0; index < activationCount; ++index) {
                 InvokeActivate(function, record);
             }
@@ -352,38 +298,6 @@ struct CheatController::Implementation {
     }
 
    private:
-    void DisableFrameHook() {
-        if (frameHook) {
-            if (const auto disabled = frameHook.disable(); !disabled) {
-                LogError("Cheats",
-                         "Failed to disable game-thread dispatch hook");
-                return;
-            }
-            frameHook.reset();
-        }
-        active.store(nullptr, std::memory_order_release);
-        std::lock_guard<std::mutex> lock(pendingMutex);
-        pendingTasks.clear();
-    }
-
-    void DrainPendingTasks() {
-        std::vector<GameThreadTask> tasks;
-        {
-            std::lock_guard<std::mutex> lock(pendingMutex);
-            tasks.swap(pendingTasks);
-        }
-        for (const auto& task : tasks) {
-            task();
-        }
-    }
-
-    static void FrameHook(safetyhook::Context&) {
-        auto* const self = active.load(std::memory_order_acquire);
-        if (self) {
-            self->DrainPendingTasks();
-        }
-    }
-
     static void InvokeActivate(const std::uintptr_t function,
                                const std::uintptr_t record) {
         __asm {
@@ -397,16 +311,11 @@ struct CheatController::Implementation {
 
     std::uintptr_t gameBase{};
     std::uintptr_t activateAddress{};
-    std::uintptr_t frameDispatchAddress{};
     std::uintptr_t saveFlagAddress{};
     std::array<std::uint8_t, saveFlagSize> originalSaveFlag{};
     bool ownsSaveFlagPatch{};
-    safetyhook::MidHook frameHook;
-    std::mutex pendingMutex;
-    std::vector<GameThreadTask> pendingTasks;
     std::unordered_set<std::string> managedItemNames;
     bool installed{};
-    inline static std::atomic<Implementation*> active{};
 };
 
 CheatController::CheatController() = default;
@@ -433,16 +342,14 @@ void CheatController::Remove() {
     implementation_.reset();
 }
 
-bool CheatController::ActivateReceivedItem(const std::string_view itemName) {
-    return implementation_ && implementation_->ActivateReceivedItem(itemName);
+bool CheatController::ActivateReceivedItem(const std::string_view itemName,
+                                           GameThreadDispatcher& dispatcher) {
+    return implementation_ &&
+           implementation_->ActivateReceivedItem(itemName, dispatcher);
 }
 
 bool CheatController::SupportsItem(const std::string_view itemName) {
     return FindCheat(itemName) != nullptr;
 }
 
-bool CheatController::DispatchOnGameThread(GameThreadTask task) {
-    return implementation_ &&
-           implementation_->DispatchOnGameThread(std::move(task));
-}
 }  // namespace sr2ap

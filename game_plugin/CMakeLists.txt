@@ -185,6 +185,7 @@ if (WIN32)
             src/game/ModuleInfo.cpp
             src/game/Memory.cpp
             src/game/GameState.cpp
+            src/game/GameThreadDispatcher.cpp
             src/progression/ProgressionMonitor.cpp
             src/progression/ReaderRegistry.cpp
             src/features/Cheats.cpp
