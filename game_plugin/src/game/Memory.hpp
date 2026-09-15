@@ -3,7 +3,6 @@
 #include <windows.h>
 
 #include <array>
-#include <cstddef>
 #include <cstdint>
 #include <optional>
 #include <span>
@@ -22,16 +21,14 @@ struct MemoryWriteResult {
     }
 };
 
-bool IsReadableAddress(const void* address, std::size_t size);
-bool IsExecutableAddress(const void* address);
+bool IsReadableAddress(std::uintptr_t address, std::size_t size);
+bool IsExecutableAddress(std::uintptr_t address);
 bool IsInsideModule(HMODULE module, const void* address);
 bool SafeCopy(const void* address, void* destination, std::size_t size);
 MemoryWriteResult WriteExecutableMemory(void* destination,
                                         std::span<const std::uint8_t> bytes);
 std::optional<std::string> ReadFixedString(std::uintptr_t address,
                                            std::size_t capacity);
-std::optional<std::vector<std::uint8_t>> CaptureBytes(const void* address,
-                                                      std::size_t size);
 std::optional<std::uintptr_t> ResolveRelativeCallTarget(std::uintptr_t address);
 enum class DetourKind {
     None,

@@ -10,8 +10,8 @@
 #include <vector>
 
 #include "fmt/format.h"
-#include "game/Addresses.hpp"
 #include "game/GameState.hpp"
+#include "game/Lua.hpp"
 #include "game/Memory.hpp"
 #include "progression/BaselineTracker.hpp"
 #include "progression/ProgressionReader.hpp"
@@ -105,19 +105,19 @@ MissionSnapshot ReadSnapshot(const GameContext& context) {
 
     const ModuleInfo& game = *context.module;
 
-    const auto address = game.base + addresses::kMissionCompletedQueryRva;
+    const auto address = game.base + Lua::kMissionCompletedQueryRva;
     if (!IsInsideModule(game.handle, reinterpret_cast<const void*>(address)) ||
-        !IsExecutableAddress(reinterpret_cast<const void*>(address)) ||
+        !IsExecutableAddress(address) ||
         DetectDetour(reinterpret_cast<const void*>(address)) !=
             DetourKind::None) {
         snapshot.result = ReaderResult::InvalidFunction;
         return snapshot;
     }
 
-    const auto query = reinterpret_cast<MissionCompletedFunction>(address);
     snapshot.missions.reserve(kBaseGameMissions.size());
     for (const auto* mission : kBaseGameMissions) {
-        snapshot.missions.push_back({mission, query(mission)});
+        snapshot.missions.push_back(
+            {mission, Lua::IsMissionComplete(game, mission)});
     }
     snapshot.result = ReaderResult::Success;
     return snapshot;

@@ -106,8 +106,7 @@ ActivitySnapshot ReadSnapshot(const GameContext& context) {
             continue;
         }
 
-        if (!IsReadableAddress(reinterpret_cast<const void*>(*activity),
-                               0x180)) {
+        if (!IsReadableAddress(*activity, 0x180)) {
             snapshot.result = ReaderResult::InvalidPointer;
             snapshot.instances.clear();
             return snapshot;

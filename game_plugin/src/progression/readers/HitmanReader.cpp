@@ -91,8 +91,7 @@ HitmanSnapshot ReadSnapshot(const GameContext& context) {
         const auto required =
             static_cast<std::size_t>(*count - 1) * addresses::kHitmanRowStride +
             addresses::kHitmanLocationOffset + kLocationCapacity;
-        if (!IsReadableAddress(reinterpret_cast<const void*>(*rowBase),
-                               required)) {
+        if (!IsReadableAddress(*rowBase, required)) {
             snapshot.result = ReaderResult::InvalidPointer;
             snapshot.targets.clear();
             return snapshot;
