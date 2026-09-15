@@ -181,8 +181,7 @@ struct CheatController::Implementation {
 
         if (!IsInsideModule(game->handle,
                             reinterpret_cast<const void*>(activateAddress)) ||
-            !IsExecutableAddress(
-                reinterpret_cast<const void*>(activateAddress)) ||
+            !IsExecutableAddress(activateAddress) ||
             DetectDetour(reinterpret_cast<const void*>(activateAddress)) !=
                 DetourKind::None ||
             !actualActivate || *actualActivate != expectedActivate) {
@@ -199,8 +198,7 @@ struct CheatController::Implementation {
 
         if (!IsInsideModule(game->handle, reinterpret_cast<const void*>(
                                               frameDispatchAddress)) ||
-            !IsExecutableAddress(
-                reinterpret_cast<const void*>(frameDispatchAddress)) ||
+            !IsExecutableAddress(frameDispatchAddress) ||
             DetectDetour(reinterpret_cast<const void*>(frameDispatchAddress)) !=
                 DetourKind::None ||
             !actualFrameDispatch ||
@@ -321,7 +319,7 @@ struct CheatController::Implementation {
 
         if (!phoneCodePointer || !callback ||
             *callback != gameBase + definition->callbackRva ||
-            !IsExecutableAddress(reinterpret_cast<const void*>(*callback))) {
+            !IsExecutableAddress(*callback)) {
             return false;
         }
 

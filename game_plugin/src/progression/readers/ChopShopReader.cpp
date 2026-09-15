@@ -105,11 +105,9 @@ ChopShopSnapshot ReadSnapshot(const GameContext& context) {
                               addresses::kChopShopRespectOffset +
                               sizeof(std::uint32_t);
 
-        if (!IsReadableAddress(reinterpret_cast<const void*>(*rowBase),
-                               required) ||
+        if (!IsReadableAddress(*rowBase, required) ||
             !IsReadableAddress(
-                reinterpret_cast<const void*>(
-                    descriptor + addresses::kChopShopRetrievedFlagsOffset),
+                descriptor + addresses::kChopShopRetrievedFlagsOffset,
                 *count)) {
             snapshot.result = ReaderResult::InvalidPointer;
             snapshot.vehicles.clear();

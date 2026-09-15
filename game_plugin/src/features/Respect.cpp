@@ -72,9 +72,8 @@ struct RespectController::Implementation {
                 saveLoadAddress);
         if (!IsInsideModule(game->handle,
                             reinterpret_cast<const void*>(saveLoadAddress)) ||
-            !IsExecutableAddress(
-                reinterpret_cast<const void*>(saveLoadAddress)) ||
-            !saveLoadActual || *saveLoadActual != kSaveLoadWriter) {
+            !IsExecutableAddress(saveLoadAddress) || !saveLoadActual ||
+            *saveLoadActual != kSaveLoadWriter) {
             LogError("Respect", "Unexpected bytes at writer=save_load");
             return false;
         }
@@ -86,8 +85,8 @@ struct RespectController::Implementation {
 
             if (!IsInsideModule(game->handle,
                                 reinterpret_cast<const void*>(address)) ||
-                !IsExecutableAddress(reinterpret_cast<const void*>(address)) ||
-                !actual || *actual != writer.expected) {
+                !IsExecutableAddress(address) || !actual ||
+                *actual != writer.expected) {
                 LogError("Respect", std::string("Unexpected bytes at writer=") +
                                         writer.name);
                 return false;

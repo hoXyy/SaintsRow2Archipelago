@@ -48,13 +48,12 @@ struct NotorietyController::Implementation {
                                                           0x05, 0x00, 0x00};
         auto actualSet =
             ReadMemoryIntoArray<std::uint8_t, expectedSet.size()>(setAddress);
-        installed =
-            IsInsideModule(game->handle,
-                           reinterpret_cast<const void*>(setAddress)) &&
-            IsExecutableAddress(reinterpret_cast<const void*>(setAddress)) &&
-            DetectDetour(reinterpret_cast<const void*>(setAddress)) ==
-                DetourKind::None &&
-            actualSet && *actualSet == expectedSet;
+        installed = IsInsideModule(game->handle,
+                                   reinterpret_cast<const void*>(setAddress)) &&
+                    IsExecutableAddress(setAddress) &&
+                    DetectDetour(reinterpret_cast<const void*>(setAddress)) ==
+                        DetourKind::None &&
+                    actualSet && *actualSet == expectedSet;
         return installed;
     }
 

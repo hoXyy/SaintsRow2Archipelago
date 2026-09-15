@@ -4,6 +4,7 @@
 
 #include <array>
 #include <limits>
+#include <safetyhook/os.hpp>
 
 #include "ModuleInfo.hpp"
 
@@ -44,37 +45,15 @@ const ZydisDecodedOperand* FirstVisibleOperand(
 }
 }  // namespace
 
-bool IsReadableAddress(const void* address, std::size_t size) {
-    if (!address || size == 0) {
-        return false;
-    }
-    auto cursor = reinterpret_cast<std::uintptr_t>(address);
-    const auto end = cursor + size;
-    if (end < cursor) {
-        return false;
-    }
-    while (cursor < end) {
-        MEMORY_BASIC_INFORMATION info{};
-        if (!VirtualQuery(reinterpret_cast<const void*>(cursor), &info,
-                          sizeof(info)) ||
-            info.State != MEM_COMMIT || !HasAccess(info.Protect, false)) {
-            return false;
-        }
-        const auto regionEnd =
-            reinterpret_cast<std::uintptr_t>(info.BaseAddress) +
-            info.RegionSize;
-        if (regionEnd <= cursor) {
-            return false;
-        }
-        cursor = regionEnd < end ? regionEnd : end;
-    }
-    return true;
+bool IsReadableAddress(std::uintptr_t address, std::size_t size) {
+    return address != 0 && size != 0 &&
+           safetyhook::vm_is_readable(reinterpret_cast<std::uint8_t*>(address),
+                                      size);
 }
 
-bool IsExecutableAddress(const void* address) {
-    MEMORY_BASIC_INFORMATION info{};
-    return address && VirtualQuery(address, &info, sizeof(info)) &&
-           info.State == MEM_COMMIT && HasAccess(info.Protect, true);
+bool IsExecutableAddress(std::uintptr_t address) {
+    return address != 0 && safetyhook::vm_is_executable(
+                               reinterpret_cast<std::uint8_t*>(address));
 }
 
 bool IsInsideModule(HMODULE module, const void* address) {
@@ -89,7 +68,8 @@ bool IsInsideModule(HMODULE module, const void* address) {
 }
 
 bool SafeCopy(const void* address, void* destination, std::size_t size) {
-    if (!destination || !IsReadableAddress(address, size)) {
+    if (!destination ||
+        !IsReadableAddress(reinterpret_cast<std::uintptr_t>(address), size)) {
         return false;
     }
 
@@ -150,17 +130,6 @@ std::optional<std::string> ReadFixedString(std::uintptr_t address,
 
     buffer.resize(terminator);
     return buffer;
-}
-
-std::optional<std::vector<std::uint8_t>> CaptureBytes(const void* address,
-                                                      std::size_t size) {
-    std::vector<std::uint8_t> result(size);
-
-    if (!SafeCopy(address, result.data(), size)) {
-        return std::nullopt;
-    }
-
-    return result;
 }
 
 std::optional<std::uintptr_t> ResolveRelativeCallTarget(
