@@ -220,7 +220,55 @@ class ActivitiesReader final : public ProgressionReader {
         return kReaderId;
     }
 
-    ReaderUpdate Poll(const GameContext& context) override;
+    ReaderUpdate Poll(const GameContext& context) override {
+        const auto snapshot = ReadSnapshot(context);
+        ReaderUpdate result;
+        result.statusSection = SerializeStatus(snapshot);
+
+        if (snapshot.result != ReaderResult::Success) {
+            const auto invalidation = baseline_.Invalidate();
+
+            result.changed =
+                invalidation.kind != BaselineUpdateKind::Unchanged ||
+                snapshot.result != previousResult_;
+
+            previousResult_ = snapshot.result;
+            return result;
+        }
+
+        std::unordered_map<std::string, std::uint8_t> current;
+        current.reserve(snapshot.instances.size());
+
+        for (const auto& instance : snapshot.instances) {
+            current.emplace(instance.instanceTag, instance.completionFlags);
+        }
+
+        const auto update = baseline_.Observe(std::move(current));
+        result.changed = update.kind != BaselineUpdateKind::Unchanged;
+
+        if (update.kind == BaselineUpdateKind::Created ||
+            update.kind == BaselineUpdateKind::IdentityChanged) {
+            for (const auto& instance : snapshot.instances) {
+                if (instance.completionFlags != 0) {
+                    result.events.push_back(
+                        {.category = std::string{kReaderId},
+                         .key = instance.instanceTag,
+                         .previous = 0,
+                         .current = instance.completionFlags});
+                }
+            }
+        }
+
+        for (const auto& change : update.changes) {
+            result.events.push_back({.category = std::string{kReaderId},
+                                     .key = change.key,
+                                     .previous = change.previous,
+                                     .current = change.current});
+        }
+
+        previousResult_ = ReaderResult::Success;
+        return result;
+    };
 
     std::string CaptureStatus(const GameContext& context) const override {
         return SerializeStatus(ReadSnapshot(context));
@@ -230,54 +278,6 @@ class ActivitiesReader final : public ProgressionReader {
     BaselineTracker<std::string, std::uint8_t> baseline_;
     ReaderResult previousResult_{ReaderResult::ReaderUnavailable};
 };
-
-ReaderUpdate ActivitiesReader::Poll(const GameContext& context) {
-    const auto snapshot = ReadSnapshot(context);
-    ReaderUpdate result;
-    result.statusSection = SerializeStatus(snapshot);
-
-    if (snapshot.result != ReaderResult::Success) {
-        const auto invalidation = baseline_.Invalidate();
-
-        result.changed = invalidation.kind != BaselineUpdateKind::Unchanged ||
-                         snapshot.result != previousResult_;
-
-        previousResult_ = snapshot.result;
-        return result;
-    }
-
-    std::unordered_map<std::string, std::uint8_t> current;
-    current.reserve(snapshot.instances.size());
-
-    for (const auto& instance : snapshot.instances) {
-        current.emplace(instance.instanceTag, instance.completionFlags);
-    }
-
-    const auto update = baseline_.Observe(std::move(current));
-    result.changed = update.kind != BaselineUpdateKind::Unchanged;
-
-    if (update.kind == BaselineUpdateKind::Created ||
-        update.kind == BaselineUpdateKind::IdentityChanged) {
-        for (const auto& instance : snapshot.instances) {
-            if (instance.completionFlags != 0) {
-                result.events.push_back({.category = std::string{kReaderId},
-                                         .key = instance.instanceTag,
-                                         .previous = 0,
-                                         .current = instance.completionFlags});
-            }
-        }
-    }
-
-    for (const auto& change : update.changes) {
-        result.events.push_back({.category = std::string{kReaderId},
-                                 .key = change.key,
-                                 .previous = change.previous,
-                                 .current = change.current});
-    }
-
-    previousResult_ = ReaderResult::Success;
-    return result;
-}
 }  // namespace
 
 ProgressionReaderPtr CreateActivitiesReader() {

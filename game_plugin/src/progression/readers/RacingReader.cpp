@@ -195,7 +195,53 @@ class RacingReader final : public ProgressionReader {
         return kReaderId;
     }
 
-    ReaderUpdate Poll(const GameContext& context) override;
+    ReaderUpdate Poll(const GameContext& context) override {
+        const auto snapshot = ReadSnapshot(context);
+        ReaderUpdate result;
+        result.statusSection = SerializeStatus(snapshot);
+
+        if (snapshot.result != ReaderResult::Success) {
+            const auto invalidation = baseline_.Invalidate();
+
+            result.changed =
+                invalidation.kind != BaselineUpdateKind::Unchanged ||
+                snapshot.result != previousResult_;
+
+            previousResult_ = snapshot.result;
+            return result;
+        }
+
+        std::unordered_map<std::string_view, RacingMedal> current;
+        current.reserve(snapshot.races.size());
+
+        for (const auto& race : snapshot.races) {
+            current.emplace(race.name, race.medal);
+        }
+
+        const auto update = baseline_.Observe(std::move(current));
+        result.changed = update.kind != BaselineUpdateKind::Unchanged;
+
+        if (update.kind == BaselineUpdateKind::Created ||
+            update.kind == BaselineUpdateKind::IdentityChanged) {
+            for (const auto& race : snapshot.races) {
+                if (const auto rank = RacingMedalRank(race.medal); rank != 0) {
+                    result.events.push_back({std::string{kReaderId},
+                                             std::string{race.name}, 0, rank});
+                }
+            }
+        }
+
+        for (const auto& change : update.changes) {
+            result.events.push_back(
+                {.category = std::string{kReaderId},
+                 .key = std::string{change.key},
+                 .previous = RacingMedalRank(change.previous),
+                 .current = RacingMedalRank(change.current)});
+        }
+
+        previousResult_ = ReaderResult::Success;
+        return result;
+    };
 
     std::string CaptureStatus(const GameContext& context) const override {
         return SerializeStatus(ReadSnapshot(context));
@@ -205,52 +251,6 @@ class RacingReader final : public ProgressionReader {
     BaselineTracker<std::string_view, RacingMedal> baseline_;
     ReaderResult previousResult_{ReaderResult::ReaderUnavailable};
 };
-
-ReaderUpdate RacingReader::Poll(const GameContext& context) {
-    const auto snapshot = ReadSnapshot(context);
-    ReaderUpdate result;
-    result.statusSection = SerializeStatus(snapshot);
-
-    if (snapshot.result != ReaderResult::Success) {
-        const auto invalidation = baseline_.Invalidate();
-
-        result.changed = invalidation.kind != BaselineUpdateKind::Unchanged ||
-                         snapshot.result != previousResult_;
-
-        previousResult_ = snapshot.result;
-        return result;
-    }
-
-    std::unordered_map<std::string_view, RacingMedal> current;
-    current.reserve(snapshot.races.size());
-
-    for (const auto& race : snapshot.races) {
-        current.emplace(race.name, race.medal);
-    }
-
-    const auto update = baseline_.Observe(std::move(current));
-    result.changed = update.kind != BaselineUpdateKind::Unchanged;
-
-    if (update.kind == BaselineUpdateKind::Created ||
-        update.kind == BaselineUpdateKind::IdentityChanged) {
-        for (const auto& race : snapshot.races) {
-            if (const auto rank = RacingMedalRank(race.medal); rank != 0) {
-                result.events.push_back(
-                    {std::string{kReaderId}, std::string{race.name}, 0, rank});
-            }
-        }
-    }
-
-    for (const auto& change : update.changes) {
-        result.events.push_back({std::string{kReaderId},
-                                 std::string{change.key},
-                                 RacingMedalRank(change.previous),
-                                 RacingMedalRank(change.current)});
-    }
-
-    previousResult_ = ReaderResult::Success;
-    return result;
-}
 }  // namespace
 
 ProgressionReaderPtr CreateRacingReader() {

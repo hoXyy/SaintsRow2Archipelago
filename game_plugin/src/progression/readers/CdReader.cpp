@@ -204,7 +204,84 @@ class CdReader final : public ProgressionReader {
         return kReaderId;
     }
 
-    ReaderUpdate Poll(const GameContext& context) override;
+    ReaderUpdate Poll(const GameContext& context) override {
+        const auto snapshot = ReadSnapshot(context);
+
+        ReaderUpdate result;
+        result.statusSection = SerializeStatus(snapshot);
+
+        if (snapshot.result != ReaderResult::Success) {
+            const bool baselineInvalidated = baselineValid_;
+
+            baseline_.clear();
+            baselineValid_ = false;
+
+            result.changed =
+                baselineInvalidated || snapshot.result != previousResult_;
+
+            previousResult_ = snapshot.result;
+            return result;
+        }
+
+        std::unordered_set<std::uint32_t> current{
+            snapshot.collectedIds.begin(),
+            snapshot.collectedIds.end(),
+        };
+
+        if (!baselineValid_) {
+            result.changed = true;
+
+            // Reconcile CDs already collected when polling starts or resumes.
+            for (const auto id : current) {
+                result.events.push_back({
+                    .category = std::string{kReaderId},
+                    .key = GetCdEventKey(id),
+                    .previous = 0,
+                    .current = 1,
+                });
+            }
+
+            baseline_ = std::move(current);
+            baselineValid_ = true;
+            previousResult_ = ReaderResult::Success;
+            return result;
+        }
+
+        // Newly collected CDs.
+        for (const auto id : current) {
+            if (baseline_.contains(id)) {
+                continue;
+            }
+
+            result.events.push_back({
+                .category = std::string{kReaderId},
+                .key = GetCdEventKey(id),
+                .previous = 0,
+                .current = 1,
+            });
+        }
+
+        // CDs removed because an older save was loaded.
+        for (const auto id : baseline_) {
+            if (current.contains(id)) {
+                continue;
+            }
+
+            result.events.push_back({
+                .category = std::string{kReaderId},
+                .key = GetCdEventKey(id),
+                .previous = 1,
+                .current = 0,
+            });
+        }
+
+        result.changed = current != baseline_;
+
+        baseline_ = std::move(current);
+        previousResult_ = ReaderResult::Success;
+
+        return result;
+    };
 
     std::string CaptureStatus(const GameContext& context) const override {
         return SerializeStatus(ReadSnapshot(context));
@@ -215,86 +292,6 @@ class CdReader final : public ProgressionReader {
     bool baselineValid_{};
     ReaderResult previousResult_{ReaderResult::ReaderUnavailable};
 };
-
-ReaderUpdate CdReader::Poll(const GameContext& context) {
-    const auto snapshot = ReadSnapshot(context);
-
-    ReaderUpdate result;
-    result.statusSection = SerializeStatus(snapshot);
-
-    if (snapshot.result != ReaderResult::Success) {
-        const bool baselineInvalidated = baselineValid_;
-
-        baseline_.clear();
-        baselineValid_ = false;
-
-        result.changed =
-            baselineInvalidated || snapshot.result != previousResult_;
-
-        previousResult_ = snapshot.result;
-        return result;
-    }
-
-    std::unordered_set<std::uint32_t> current{
-        snapshot.collectedIds.begin(),
-        snapshot.collectedIds.end(),
-    };
-
-    if (!baselineValid_) {
-        result.changed = true;
-
-        // Reconcile CDs already collected when polling starts or resumes.
-        for (const auto id : current) {
-            result.events.push_back({
-                .category = std::string{kReaderId},
-                .key = GetCdEventKey(id),
-                .previous = 0,
-                .current = 1,
-            });
-        }
-
-        baseline_ = std::move(current);
-        baselineValid_ = true;
-        previousResult_ = ReaderResult::Success;
-        return result;
-    }
-
-    // Newly collected CDs.
-    for (const auto id : current) {
-        if (baseline_.contains(id)) {
-            continue;
-        }
-
-        result.events.push_back({
-            .category = std::string{kReaderId},
-            .key = GetCdEventKey(id),
-            .previous = 0,
-            .current = 1,
-        });
-    }
-
-    // CDs removed because an older save was loaded.
-    for (const auto id : baseline_) {
-        if (current.contains(id)) {
-            continue;
-        }
-
-        result.events.push_back({
-            .category = std::string{kReaderId},
-            .key = GetCdEventKey(id),
-            .previous = 1,
-            .current = 0,
-        });
-    }
-
-    result.changed = current != baseline_;
-
-    baseline_ = std::move(current);
-    previousResult_ = ReaderResult::Success;
-
-    return result;
-}
-
 }  // namespace
 
 ProgressionReaderPtr CreateCdReader() {
