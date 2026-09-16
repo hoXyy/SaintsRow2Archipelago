@@ -23,7 +23,7 @@ class ItemHandlerManager {
     [[nodiscard]] bool Install(ItemHandlerConfiguration configuration,
                                bool saveMonitoringAvailable);
     [[nodiscard]] bool Handle(std::string_view itemName) const;
-    void PermitNextSaveRestore(std::uint32_t threadId) const noexcept;
+    void PermitNextSaveRestore(std::uint32_t threadId) noexcept;
     void Update() const;
     void Remove();
 

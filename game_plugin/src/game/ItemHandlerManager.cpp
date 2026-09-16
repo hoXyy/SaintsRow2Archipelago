@@ -44,7 +44,7 @@ bool ItemHandlerManager::Handle(const std::string_view itemName) const {
 }
 
 void ItemHandlerManager::PermitNextSaveRestore(
-    const std::uint32_t threadId) const noexcept {
+    const std::uint32_t threadId) noexcept {
     respectController_.PermitNextSaveRestore(threadId);
 }
 
