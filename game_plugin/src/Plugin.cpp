@@ -133,7 +133,7 @@ DWORD WINAPI PluginThread(void* parameter) {
             }
 
             session.PollNetwork(gameContext);
-            session.UpdateControllers();
+            session.UpdateItemHandlers();
 
             Sleep(50);
         }

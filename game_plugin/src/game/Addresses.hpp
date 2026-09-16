@@ -52,8 +52,6 @@ inline constexpr std::size_t kCollectedCdCountOffset = 0x14B0;
 inline constexpr std::size_t kCollectedCdTargetOffset = 0x14B4;
 inline constexpr std::uint32_t kCollectedCdCapacity = 60;
 
-inline constexpr std::ptrdiff_t kMissionCompletedQueryRva = 0x002A6E50;
-
 inline constexpr std::ptrdiff_t kUnlockableProcessorRva = 0x002BBEB0;
 inline constexpr std::ptrdiff_t kUnlockableEnqueueRva = 0x002BBD50;
 inline constexpr std::ptrdiff_t kUnlockableCountRva = 0x0105A29C;
@@ -69,8 +67,6 @@ inline constexpr std::ptrdiff_t kCheatCountRva = 0x02127B5C;
 inline constexpr std::size_t kCheatRecordSize = 0x68;
 inline constexpr std::size_t kCheatPhoneCodePointerOffset = 0x10;
 inline constexpr std::size_t kCheatActivateCallbackOffset = 0x54;
-
-inline constexpr std::ptrdiff_t kNotorietySetRva = 0x0015F870;
 
 inline constexpr std::ptrdiff_t kPlayerGlobalRva = 0x01D703D4;
 inline constexpr std::size_t kPlayerRespectOffset = 0x1200;

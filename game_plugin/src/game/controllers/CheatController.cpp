@@ -1,4 +1,4 @@
-#include "Cheats.hpp"
+#include "CheatController.hpp"
 
 #include <algorithm>
 #include <array>
@@ -119,8 +119,8 @@ constexpr std::array<CheatDefinition, 79> supportedApItems{{
 }};
 
 const CheatDefinition* FindCheat(const std::string_view itemName) {
-    const auto found = std::find_if(
-        supportedApItems.begin(), supportedApItems.end(),
+    const auto found = std::ranges::find_if(
+        supportedApItems,
         [itemName](const auto& cheat) { return cheat.itemName == itemName; });
     return found == supportedApItems.end() ? nullptr : &*found;
 }
@@ -155,7 +155,7 @@ struct CheatController::Implementation {
         constexpr std::array<std::uint8_t, 6> expectedActivate{
             0x81, 0xEC, 0x20, 0x05, 0x00, 0x00};
 
-        auto actualActivate =
+        const auto actualActivate =
             ReadMemoryIntoArray<std::uint8_t, expectedActivate.size()>(
                 activateAddress);
 
@@ -173,7 +173,7 @@ struct CheatController::Implementation {
             0x88, 0x1D, 0xE6, 0x7B, 0x52, 0x02,
         };
 
-        auto actualSaveFlag =
+        const auto actualSaveFlag =
             ReadMemoryIntoArray<std::uint8_t, expectedSaveFlag.size()>(
                 saveFlagAddress);
 
@@ -206,8 +206,9 @@ struct CheatController::Implementation {
 
     void Remove() {
         if (ownsSaveFlagPatch) {
-            auto current = ReadMemoryIntoArray<std::uint8_t, saveFlagSize>(
-                saveFlagAddress);
+            const auto current =
+                ReadMemoryIntoArray<std::uint8_t, saveFlagSize>(
+                    saveFlagAddress);
             std::array<std::uint8_t, saveFlagSize> nops{};
             nops.fill(0x90);
 
@@ -235,14 +236,13 @@ struct CheatController::Implementation {
     }
 
     bool ActivateReceivedItem(const std::string_view itemName,
-                              GameThreadDispatcher& dispatcher) {
+                              GameThreadDispatcher& dispatcher) const {
         if (!installed) {
             return false;
         }
 
         const auto* const definition = FindCheat(itemName);
-        if (!definition || managedItemNames.find(std::string{itemName}) ==
-                               managedItemNames.end()) {
+        if (!definition || !managedItemNames.contains(std::string{itemName})) {
             return false;
         }
 

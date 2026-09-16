@@ -4,12 +4,8 @@
 #include <filesystem>
 #include <string_view>
 
-#include "features/Cheats.hpp"
-#include "features/Notoriety.hpp"
-#include "features/Respect.hpp"
-#include "features/Unlockables.hpp"
 #include "game/GameState.hpp"
-#include "game/GameThreadDispatcher.hpp"
+#include "game/ItemHandlerManager.hpp"
 #include "progression/ProgressionEvent.hpp"
 #include "sr2ap/src/ffi/session_ffi.rs.h"
 
@@ -29,22 +25,17 @@ class SessionRuntime {
     void UpdateReadiness(GameReadiness current);
     void SendProgression(const ProgressionEvent& event);
     bool CommunicationsActive() const noexcept;
-    void UpdateControllers();
+    void UpdateItemHandlers();
     void Shutdown();
 
    private:
     bool InstallPolicies(const rust::SessionRequest& request);
     bool ActivateItem(std::string_view name);
-    void ShutdownControllers();
+    void ShutdownItemHandlers();
 
     ::rust::Box<rust::SessionRuntime> session_;
-    GameThreadDispatcher gameThreadDispatcher_;
-    CheatController cheats_;
-    NotorietyController notoriety_;
-    RespectController respect_;
-    UnlockableController unlockables_;
+    ItemHandlerManager itemHandlers_;
     bool gameSupported_;
     bool saveMonitoring_{};
-    bool respectInstalled_{};
 };
 }  // namespace sr2ap
