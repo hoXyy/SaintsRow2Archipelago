@@ -1,0 +1,2 @@
+modded_game_files/**/*.lua linguist-vendored
+apworld/game_files/**/*.lua linguist-vendored
