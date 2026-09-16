@@ -19,7 +19,7 @@ class CheatController {
     bool Install(const std::vector<std::string>& managedItems);
     void Remove();
     bool ActivateReceivedItem(std::string_view itemName,
-                              GameThreadDispatcher& dispatcher) const;
+                              GameThreadDispatcher& dispatcher);
     [[nodiscard]] static bool SupportsItem(std::string_view itemName);
 
    private:

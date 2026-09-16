@@ -13,10 +13,10 @@ class RespectController {
     RespectController& operator=(const RespectController&) = delete;
 
     bool Install();
-    void PermitNextSaveRestore(std::uint32_t threadId) const noexcept;
+    void PermitNextSaveRestore(std::uint32_t threadId) noexcept;
     void Remove();
-    bool GrantBar() const;
-    void Update() const;
+    bool GrantBar();
+    void Update();
 
    private:
     struct Implementation;

@@ -361,7 +361,7 @@ bool RespectController::Install() {
 }
 
 void RespectController::PermitNextSaveRestore(
-    const std::uint32_t threadId) const noexcept {
+    const std::uint32_t threadId) noexcept {
     if (implementation_) {
         implementation_->PermitNextSaveRestore(threadId);
     }
@@ -371,11 +371,11 @@ void RespectController::Remove() {
     implementation_.reset();
 }
 
-bool RespectController::GrantBar() const {
+bool RespectController::GrantBar() {
     return implementation_ && implementation_->GrantBar();
 }
 
-void RespectController::Update() const {
+void RespectController::Update() {
     if (implementation_) {
         implementation_->Update();
     }

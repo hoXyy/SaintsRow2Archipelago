@@ -342,8 +342,8 @@ void CheatController::Remove() {
     implementation_.reset();
 }
 
-bool CheatController::ActivateReceivedItem(
-    const std::string_view itemName, GameThreadDispatcher& dispatcher) const {
+bool CheatController::ActivateReceivedItem(const std::string_view itemName,
+                                           GameThreadDispatcher& dispatcher) {
     return implementation_ &&
            implementation_->ActivateReceivedItem(itemName, dispatcher);
 }

@@ -363,8 +363,7 @@ void UnlockableController::Remove() {
     implementation_.reset();
 }
 
-bool UnlockableController::QueueReceivedItem(
-    const std::string_view itemName) const {
+bool UnlockableController::QueueReceivedItem(const std::string_view itemName) {
     return implementation_ && implementation_->QueueReceivedItem(itemName);
 }
 
