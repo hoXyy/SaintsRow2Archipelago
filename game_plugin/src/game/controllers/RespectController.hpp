@@ -2,7 +2,6 @@
 
 #include <cstdint>
 #include <memory>
-#include <string_view>
 
 namespace sr2ap {
 class RespectController {
@@ -14,10 +13,10 @@ class RespectController {
     RespectController& operator=(const RespectController&) = delete;
 
     bool Install();
-    void PermitNextSaveRestore(std::uint32_t threadId) noexcept;
+    void PermitNextSaveRestore(std::uint32_t threadId) const noexcept;
     void Remove();
-    bool ActivateReceivedItem(std::string_view itemName);
-    void Update();
+    bool GrantBar() const;
+    void Update() const;
 
    private:
     struct Implementation;

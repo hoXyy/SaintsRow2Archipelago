@@ -1,8 +1,7 @@
-#include "Respect.hpp"
+#include "RespectController.hpp"
 
 #include <windows.h>
 
-#include <algorithm>
 #include <array>
 #include <atomic>
 #include <cstdint>
@@ -16,8 +15,6 @@
 
 namespace sr2ap {
 namespace {
-constexpr std::array<std::string_view, 2> kRespectItems{
-    {"+1 Respect", "+1 Bonus Respect"}};
 constexpr std::uint32_t kMaximumRespectBars{99};
 constexpr std::size_t kInstructionSize{6};
 using Instruction = std::array<std::uint8_t, kInstructionSize>;
@@ -30,15 +27,15 @@ struct BlockedWriter {
 };
 
 constexpr std::array<BlockedWriter, 3> kBlockedWriters{{
-    {"style_award",
-     addresses::kRespectAwardWriteRva,
-     {0x89, 0x97, 0x00, 0x12, 0x00, 0x00}},
-    {"generic_set",
-     addresses::kRespectSetWriteRva,
-     {0x89, 0x8A, 0x00, 0x12, 0x00, 0x00}},
-    {"generic_add",
-     addresses::kRespectAddWriteRva,
-     {0x89, 0x91, 0x00, 0x12, 0x00, 0x00}},
+    {.name = "style_award",
+     .rva = addresses::kRespectAwardWriteRva,
+     .expected = {0x89, 0x97, 0x00, 0x12, 0x00, 0x00}},
+    {.name = "generic_set",
+     .rva = addresses::kRespectSetWriteRva,
+     .expected = {0x89, 0x8A, 0x00, 0x12, 0x00, 0x00}},
+    {.name = "generic_add",
+     .rva = addresses::kRespectAddWriteRva,
+     .expected = {0x89, 0x91, 0x00, 0x12, 0x00, 0x00}},
 }};
 }  // namespace
 
@@ -67,7 +64,7 @@ struct RespectController::Implementation {
         gameBase = game->base;
 
         const auto saveLoadAddress = gameBase + addresses::kRespectLoadWriteRva;
-        std::optional<Instruction> saveLoadActual =
+        const std::optional<Instruction> saveLoadActual =
             ReadMemoryIntoArray<std::uint8_t, kInstructionSize>(
                 saveLoadAddress);
         if (!IsInsideModule(game->handle,
@@ -163,9 +160,8 @@ struct RespectController::Implementation {
         permittedLoadThread.store(threadId, std::memory_order_release);
     }
 
-    bool ActivateReceivedItem(const std::string_view itemName) {
-        if (!installed || std::find(kRespectItems.begin(), kRespectItems.end(),
-                                    itemName) == kRespectItems.end()) {
+    bool GrantBar() {
+        if (!installed) {
             return false;
         }
 
@@ -195,8 +191,8 @@ struct RespectController::Implementation {
    private:
     static LONG CALLBACK HandleException(EXCEPTION_POINTERS* exception) {
         auto* const self = active.load(std::memory_order_acquire);
-        auto handlerLease = handlerActivity.Acquire();
-        if (!self || !handlerLease || !exception ||
+        if (const auto handlerLease = handlerActivity.Acquire();
+            !self || !handlerLease || !exception ||
             !exception->ExceptionRecord || !exception->ContextRecord ||
             exception->ExceptionRecord->ExceptionCode != EXCEPTION_BREAKPOINT ||
             reinterpret_cast<std::uintptr_t>(
@@ -230,9 +226,9 @@ struct RespectController::Implementation {
     }
 
     std::optional<RuntimeState> ReadRuntimeState() const {
-        auto playerState =
+        const auto playerState =
             ReadMemory<std::uint32_t>(gameBase + addresses::kPlayerGlobalRva);
-        auto pointsPerBar = ReadMemory<std::uint32_t>(
+        const auto pointsPerBar = ReadMemory<std::uint32_t>(
             gameBase + addresses::kRespectPointsPerBarRva);
 
         if (!playerState || *playerState == 0 || !pointsPerBar ||
@@ -246,14 +242,15 @@ struct RespectController::Implementation {
         return state;
     }
 
-    static bool ReadRespect(std::uint32_t player, std::uint32_t& value) {
+    static bool ReadRespect(const std::uint32_t player, std::uint32_t& value) {
         return SafeCopy(
             reinterpret_cast<const void*>(static_cast<std::uintptr_t>(player) +
                                           addresses::kPlayerRespectOffset),
             &value, sizeof(value));
     }
 
-    static bool WriteRespect(std::uint32_t player, std::uint32_t value) {
+    static bool WriteRespect(const std::uint32_t player,
+                             const std::uint32_t value) {
         auto* const field =
             reinterpret_cast<void*>(static_cast<std::uintptr_t>(player) +
                                     addresses::kPlayerRespectOffset);
@@ -269,7 +266,7 @@ struct RespectController::Implementation {
             kMaximumRespectBars);
     }
 
-    bool ApplyOneBar(const RuntimeState& state) {
+    static bool ApplyOneBar(const RuntimeState& state) {
         std::uint32_t current{};
         if (!ReadRespect(state.player, current)) {
             return false;
@@ -289,7 +286,7 @@ struct RespectController::Implementation {
         return true;
     }
 
-    void Restore(std::size_t count) {
+    void Restore(const std::size_t count) {
         Instruction nops{};
         nops.fill(0x90);
         for (std::size_t index = count; index > 0; --index) {
@@ -323,7 +320,7 @@ struct RespectController::Implementation {
         breakpoint.front() = 0xCC;
         auto* const address =
             reinterpret_cast<void*>(gameBase + addresses::kRespectLoadWriteRva);
-        std::optional<Instruction> actual =
+        const std::optional<Instruction> actual =
             ReadMemoryIntoArray<std::uint8_t, kInstructionSize>(
                 gameBase + addresses::kRespectLoadWriteRva);
 
@@ -363,7 +360,8 @@ bool RespectController::Install() {
     return true;
 }
 
-void RespectController::PermitNextSaveRestore(std::uint32_t threadId) noexcept {
+void RespectController::PermitNextSaveRestore(
+    const std::uint32_t threadId) const noexcept {
     if (implementation_) {
         implementation_->PermitNextSaveRestore(threadId);
     }
@@ -373,11 +371,11 @@ void RespectController::Remove() {
     implementation_.reset();
 }
 
-bool RespectController::ActivateReceivedItem(const std::string_view itemName) {
-    return implementation_ && implementation_->ActivateReceivedItem(itemName);
+bool RespectController::GrantBar() const {
+    return implementation_ && implementation_->GrantBar();
 }
 
-void RespectController::Update() {
+void RespectController::Update() const {
     if (implementation_) {
         implementation_->Update();
     }

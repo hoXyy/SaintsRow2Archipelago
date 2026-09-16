@@ -1,4 +1,4 @@
-#include "Unlockables.hpp"
+#include "UnlockableController.hpp"
 
 #include <windows.h>
 
@@ -122,8 +122,8 @@ constexpr std::array<ManagedUnlockable, 92> managedUnlockables{{
 }};
 
 const ManagedUnlockable* FindManagedUnlockable(const std::string_view name) {
-    const auto found = std::find_if(
-        managedUnlockables.begin(), managedUnlockables.end(),
+    const auto found = std::ranges::find_if(
+        managedUnlockables,
         [name](const auto& entry) { return entry.itemName == name; });
     return found == managedUnlockables.end() ? nullptr : &*found;
 }
@@ -226,12 +226,11 @@ struct UnlockableController::Implementation {
         }
 
         const auto* definition = FindManagedUnlockable(itemName);
-        if (!definition || managedItemNames.find(std::string{itemName}) ==
-                               managedItemNames.end()) {
+        if (!definition || !managedItemNames.contains(std::string{itemName})) {
             return false;
         }
-        auto array = ReadMemory<std::uint32_t>(arrayPointerOperand);
-        auto count = ReadMemory<std::uint32_t>(countAddress);
+        const auto array = ReadMemory<std::uint32_t>(arrayPointerOperand);
+        const auto count = ReadMemory<std::uint32_t>(countAddress);
 
         if (!array || !count || *count == 0 || *count > maximumUnlockables) {
             return false;
@@ -243,12 +242,13 @@ struct UnlockableController::Implementation {
                                    static_cast<std::uintptr_t>(index) *
                                        addresses::kUnlockableRecordSize;
 
-            auto hash = ReadMemory<std::uint32_t>(candidate);
-            if (hash && *hash == definition->hash) {
+            if (auto hash = ReadMemory<std::uint32_t>(candidate);
+                hash && *hash == definition->hash) {
                 record = candidate;
                 break;
             }
         }
+
         if (!record) {
             return false;
         }
@@ -276,7 +276,7 @@ struct UnlockableController::Implementation {
         return true;
     }
 
-    bool ConsumeAllowance(std::uint32_t hash) {
+    bool ConsumeAllowance(const std::uint32_t hash) {
         std::lock_guard<std::mutex> lock(allowanceMutex);
         const auto found = allowances.find(hash);
         if (found == allowances.end() || found->second == 0) {
@@ -288,8 +288,8 @@ struct UnlockableController::Implementation {
         return true;
     }
 
-    bool IsManagedHash(std::uint32_t hash) const {
-        return managedHashes.find(hash) != managedHashes.end();
+    bool IsManagedHash(const std::uint32_t hash) const {
+        return managedHashes.contains(hash);
     }
 
     static void __stdcall Hook(void* const item) {
@@ -346,7 +346,8 @@ UnlockableController::~UnlockableController() {
 }
 
 bool UnlockableController::Install(
-    bool blockVanillaRewards, const std::vector<std::string>& managedItems) {
+    const bool blockVanillaRewards,
+    const std::vector<std::string>& managedItems) {
     if (implementation_) {
         return false;
     }
@@ -362,7 +363,8 @@ void UnlockableController::Remove() {
     implementation_.reset();
 }
 
-bool UnlockableController::QueueReceivedItem(const std::string_view itemName) {
+bool UnlockableController::QueueReceivedItem(
+    const std::string_view itemName) const {
     return implementation_ && implementation_->QueueReceivedItem(itemName);
 }
 

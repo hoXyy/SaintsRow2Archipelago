@@ -17,7 +17,7 @@ class UnlockableController {
     bool Install(bool blockVanillaRewards,
                  const std::vector<std::string>& managedItems);
     void Remove();
-    bool QueueReceivedItem(std::string_view itemName);
+    bool QueueReceivedItem(std::string_view itemName) const;
     [[nodiscard]] static bool SupportsItem(std::string_view itemName);
 
    private:

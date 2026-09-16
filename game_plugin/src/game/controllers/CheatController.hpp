@@ -1,23 +1,26 @@
 #pragma once
 
 #include <memory>
+#include <string>
 #include <string_view>
+#include <vector>
 
 namespace sr2ap {
 class GameThreadDispatcher;
 
-class NotorietyController {
+class CheatController {
    public:
-    NotorietyController();
-    ~NotorietyController();
+    CheatController();
+    ~CheatController();
 
-    NotorietyController(const NotorietyController&) = delete;
-    NotorietyController& operator=(const NotorietyController&) = delete;
+    CheatController(const CheatController&) = delete;
+    CheatController& operator=(const CheatController&) = delete;
 
-    bool Install();
+    bool Install(const std::vector<std::string>& managedItems);
     void Remove();
     bool ActivateReceivedItem(std::string_view itemName,
                               GameThreadDispatcher& dispatcher) const;
+    [[nodiscard]] static bool SupportsItem(std::string_view itemName);
 
    private:
     struct Implementation;
