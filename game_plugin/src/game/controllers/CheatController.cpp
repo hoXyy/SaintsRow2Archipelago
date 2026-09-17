@@ -24,7 +24,6 @@ struct CheatDefinition {
     std::uint32_t activations;
 };
 
-constexpr std::ptrdiff_t cashCallbackRva{0x00284D10};
 constexpr std::ptrdiff_t weaponCallbackRva{0x00285370};
 constexpr std::ptrdiff_t vehicleCallbackRva{0x00285270};
 constexpr std::ptrdiff_t weatherCallbackRva{0x00285480};
@@ -35,10 +34,7 @@ constexpr std::ptrdiff_t noPoliceNotorietyRva{0x00284D40};
 constexpr std::ptrdiff_t noGangNotorietyRva{0x00284D70};
 constexpr std::ptrdiff_t carRepairRva{0x002852E0};
 constexpr std::ptrdiff_t maxHealthRva{0x00284ED0};
-constexpr std::array<CheatDefinition, 79> supportedApItems{{
-    {"$1,000", 13, "#2274666399", cashCallbackRva, 1},
-    {"$5,000", 13, "#2274666399", cashCallbackRva, 5},
-    {"$10,000", 13, "#2274666399", cashCallbackRva, 10},
+constexpr std::array<CheatDefinition, 76> supportedApItems{{
     {"Weapon: Pimp Slap", 52, "#969", weaponCallbackRva, 1},
     {"Weapon: Samurai Sword", 97, "#948", weaponCallbackRva, 1},
     {"Weapon: Pepper Spray", 93, "#943", weaponCallbackRva, 1},

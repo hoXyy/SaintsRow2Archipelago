@@ -4,6 +4,7 @@
 
 #include "GameThreadDispatcher.hpp"
 #include "item_handlers/CheatItemHandler.hpp"
+#include "item_handlers/MoneyItemHandler.hpp"
 #include "item_handlers/NotorietyItemHandler.hpp"
 #include "item_handlers/RespectItemHandler.hpp"
 #include "item_handlers/UnlockableItemHandler.hpp"
@@ -14,7 +15,7 @@ ItemHandlers CreateItemHandlers(ItemHandlerConfiguration configuration,
                                 GameThreadDispatcher& dispatcher,
                                 RespectController& respectController) {
     ItemHandlers handlers;
-    handlers.reserve(4);
+    handlers.reserve(5);
 
     if (!configuration.managedCheats.empty()) {
         handlers.push_back(CreateCheatItemHandler(
@@ -31,6 +32,8 @@ ItemHandlers CreateItemHandlers(ItemHandlerConfiguration configuration,
             configuration.blockVanillaUnlockables,
             std::move(configuration.managedUnlockables)));
     }
+
+    handlers.push_back(CreateMoneyItemHandler(dispatcher));
 
     return handlers;
 }

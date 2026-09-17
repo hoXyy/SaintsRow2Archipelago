@@ -15,9 +15,7 @@ bool ItemHandlerManager::Install(ItemHandlerConfiguration configuration,
         return false;
     }
 
-    const bool needsGameThread =
-        !configuration.managedCheats.empty() || configuration.notorietyTraps;
-    if (needsGameThread && !dispatcher_.Install()) {
+    if (!dispatcher_.Install()) {
         return false;
     }
 
