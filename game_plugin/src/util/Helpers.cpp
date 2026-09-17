@@ -1,16 +1,13 @@
 #include "Helpers.hpp"
 
-#include <iomanip>
 #include <sstream>
 
+#include "fmt/format.h"
 #include "util/Logger.hpp"
 
 namespace sr2ap {
-std::string Hex(std::uintptr_t value, int width) {
-    std::ostringstream stream;
-    stream << "0x" << std::uppercase << std::hex << std::setw(width)
-           << std::setfill('0') << value;
-    return stream.str();
+std::string Hex(const std::uintptr_t value, const int width) {
+    return fmt::format("0x{:0{}X}", value, width);
 }
 
 std::string Narrow(const std::filesystem::path& path) {
