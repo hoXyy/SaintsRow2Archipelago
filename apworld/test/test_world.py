@@ -234,7 +234,6 @@ class TestSlotData(SR2TestBase):
             & (
                 set(CHEAT_ITEMS)
                 | set(WEAPON_ITEM_NAMES)
-                | set(MONEY_ITEM_NAMES)
                 | set(TRAP_CHEATS)
             )
         )
