@@ -78,8 +78,6 @@ constexpr std::array<const char*, 56> kBaseGameMissions{"tss01",
                                                         "sh_tss_ugmall",
                                                         "em01"};
 
-using MissionCompletedFunction = bool(__thiscall*)(const char*);
-
 struct MissionStatus {
     std::string missionId;
     bool complete{};
@@ -105,8 +103,8 @@ MissionSnapshot ReadSnapshot(const GameContext& context) {
 
     const ModuleInfo& game = *context.module;
 
-    const auto address = game.base + Lua::kMissionCompletedQueryRva;
-    if (!IsInsideModule(game.handle, reinterpret_cast<const void*>(address)) ||
+    if (const auto address = game.base + Lua::kMissionCompletedQueryRva;
+        !IsInsideModule(game.handle, reinterpret_cast<const void*>(address)) ||
         !IsExecutableAddress(address) ||
         DetectDetour(reinterpret_cast<const void*>(address)) !=
             DetourKind::None) {
@@ -117,7 +115,8 @@ MissionSnapshot ReadSnapshot(const GameContext& context) {
     snapshot.missions.reserve(kBaseGameMissions.size());
     for (const auto* mission : kBaseGameMissions) {
         snapshot.missions.push_back(
-            {mission, Lua::IsMissionComplete(game, mission)});
+            {.missionId = mission,
+             .complete = Lua::IsMissionComplete(game, mission)});
     }
     snapshot.result = ReaderResult::Success;
     return snapshot;
@@ -129,9 +128,8 @@ std::string SerializeStatus(const MissionSnapshot& snapshot) {
                            ToString(snapshot.result));
     }
 
-    const auto missionsComplete =
-        std::count_if(snapshot.missions.begin(), snapshot.missions.end(),
-                      [](const auto& value) { return value.complete; });
+    const auto missionsComplete = std::ranges::count_if(
+        snapshot.missions, [](const auto& value) { return value.complete; });
 
     std::string output = fmt::format(
         "[{}]\n"
