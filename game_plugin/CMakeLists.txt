@@ -176,6 +176,7 @@ if (WIN32)
     file(GLOB SR2AP_ITEM_HANDLER_SOURCES CONFIGURE_DEPENDS
             "${CMAKE_CURRENT_SOURCE_DIR}/src/game/item_handlers/*.cpp"
     )
+    file(GLOB SR2AP_CONTROLLER_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/game/controllers/*.cpp")
 
     add_library(SR2Archipelago SHARED
             src/dllmain.cpp
@@ -190,16 +191,14 @@ if (WIN32)
             src/game/GameThreadDispatcher.cpp
             src/game/ItemHandlerManager.cpp
             src/game/ItemHandlerRegistry.cpp
-            src/game/controllers/CheatController.cpp
-            src/game/controllers/RespectController.cpp
-            src/game/controllers/UnlockableController.cpp
             src/progression/ProgressionMonitor.cpp
             src/progression/ReaderRegistry.cpp
             src/game/SaveRevisionMonitor.cpp
-            ${SR2AP_READER_SOURCES}
-            ${SR2AP_ITEM_HANDLER_SOURCES}
             src/game/Lua.hpp
             src/game/Lua.cpp
+            ${SR2AP_READER_SOURCES}
+            ${SR2AP_ITEM_HANDLER_SOURCES}
+            ${SR2AP_CONTROLLER_SOURCES}
     )
     target_include_directories(SR2Archipelago PRIVATE src)
     target_link_libraries(SR2Archipelago PRIVATE

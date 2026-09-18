@@ -9,15 +9,18 @@
 
 namespace sr2ap {
 namespace {
+// Lua functions mapping
+using IsMissionCompletedLuaFunction = bool(__thiscall*)(const char*);
+using GiveMoneyLuaFunction =
+    void(__thiscall*)(void* player, const std::int32_t* amountInCents);
+using MissionUnlockFunction = void(__fastcall*)(const char* progressionTag);
+
+// money add stuff
 inline constexpr std::ptrdiff_t kCashAddRva = 0x0056A430;
 constexpr std::array<std::uint8_t, 11> kCashAddBytes{
     0x81, 0xEC, 0x2C, 0x05, 0x00, 0x00, 0xA1, 0x50, 0x0B, 0xE8, 0x00,
 };
 constexpr std::int32_t kCentsPerDollar{100};
-
-using IsMissionCompletedLuaFunction = bool(__thiscall*)(const char*);
-using GiveMoneyLuaFunction =
-    void(__thiscall*)(void* player, const std::int32_t* amountInCents);
 
 [[nodiscard]] GiveMoneyLuaFunction ResolveCashAdd(
     const ModuleInfo& game) noexcept {
@@ -39,6 +42,23 @@ using GiveMoneyLuaFunction =
 
     return reinterpret_cast<GiveMoneyLuaFunction>(address);
 }
+
+// activity unlock stuff
+inline constexpr std::ptrdiff_t kMissionUnlockRva = 0x002A7270;
+
+[[nodiscard]] MissionUnlockFunction ResolveMissionUnlockFunction(
+    const ModuleInfo& game) noexcept {
+    const auto address = game.base + kMissionUnlockRva;
+
+    if (!IsInsideModule(game.handle, reinterpret_cast<const void*>(address)) ||
+        !IsExecutableAddress(address) ||
+        DetectDetour(reinterpret_cast<const void*>(address)) !=
+            DetourKind::None) {
+        return nullptr;
+    }
+
+    return reinterpret_cast<MissionUnlockFunction>(address);
+}
 }  // namespace
 
 namespace Lua {
@@ -56,6 +76,28 @@ bool IsMissionComplete(const ModuleInfo& game, const char* mission) {
 
     return isMissionComplete(mission);
 }
+
+bool CanUnlockActivity() {
+    const auto game = InspectSupportedGameModule();
+    return game && ResolveMissionUnlockFunction(*game) != nullptr;
+}
+
+bool UnlockActivity(const char* progressionTag) {
+    const auto game = InspectSupportedGameModule();
+
+    if (!game) {
+        return false;
+    }
+
+    const auto unlockMission = ResolveMissionUnlockFunction(*game);
+
+    if (unlockMission == nullptr) {
+        return false;
+    }
+
+    unlockMission(progressionTag);
+    return true;
+};
 
 bool CanGiveMoney() {
     const auto game = InspectSupportedGameModule();
