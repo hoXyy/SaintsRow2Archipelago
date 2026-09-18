@@ -111,7 +111,6 @@ def create_activities_location(world: SR2World) -> None:
 
     for activity in ACTIVITIES_LEVEL_BASED:
         if is_activity_enabled_in_options(world, activity):
-            is_respect_safe = activity != "Heli Assault"
             activity_locations = [
                 value for d in ACTIVITIES_LEVEL_BASED[activity] for value in d.values()
             ]
@@ -126,7 +125,7 @@ def create_activities_location(world: SR2World) -> None:
                             curr_key,
                             ACTIVITY_LEVEL_IDS[curr_key],
                             region,
-                            respect_safe=is_respect_safe,
+                            respect_safe=True,
                         )
                     )
 
@@ -137,7 +136,7 @@ def create_activities_location(world: SR2World) -> None:
                             f"Event: {curr_key} Complete",
                             None,
                             region,
-                            respect_safe=is_respect_safe,
+                            respect_safe=True,
                         )
 
                         completion_event.place_locked_item(

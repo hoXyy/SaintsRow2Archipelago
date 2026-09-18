@@ -2,6 +2,25 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from Options import OptionError
+from .items import (
+    CROWD_CONTROL_UNLOCK_ITEM,
+    DEMO_DERBY_UNLOCK_ITEM,
+    TRAFFICKING_UNLOCK_ITEM,
+    ESCORT_UNLOCK_ITEM,
+    FIGHT_CLUB_UNLOCK_ITEM,
+    INSURANCE_FRAUD_UNLOCK_ITEM,
+    FUZZ_UNLOCK_ITEM,
+    HELI_ASSAULT_UNLOCK_ITEM,
+    MAYHEM_UNLOCK_ITEM,
+    SEWAGE_UNLOCK_ITEM,
+    SNATCH_UNLOCK_ITEM,
+    TORCH_UNLOCK_ITEM,
+    ACTIVITY_UNLOCK_ITEMS_SETTINGS_MAPPING,
+)
+
+from .options import StartingActivity, ACTIVITY_STARTING_ACTIVITY_OPTION_MAPPING
+
 if TYPE_CHECKING:
     from .world import SR2World
 
@@ -87,6 +106,21 @@ def generate_level_ids(
 
     return result
 
+
+ACTIVITY_STARTING_ACTIVITY_ITEM_MAPPING = {
+    "Crowd Control": CROWD_CONTROL_UNLOCK_ITEM,
+    "Demolition Derby": DEMO_DERBY_UNLOCK_ITEM,
+    "Drug Trafficking": TRAFFICKING_UNLOCK_ITEM,
+    "Escort": ESCORT_UNLOCK_ITEM,
+    "Fight Club": FIGHT_CLUB_UNLOCK_ITEM,
+    "Insurance Fraud": INSURANCE_FRAUD_UNLOCK_ITEM,
+    "FUZZ": FUZZ_UNLOCK_ITEM,
+    "Heli Assault": HELI_ASSAULT_UNLOCK_ITEM,
+    "Mayhem": MAYHEM_UNLOCK_ITEM,
+    "Septic Avenger": SEWAGE_UNLOCK_ITEM,
+    "Snatch": SNATCH_UNLOCK_ITEM,
+    "Trail Blazing": TORCH_UNLOCK_ITEM,
+}
 
 ACTIVITIES_LEVEL_BASED = {
     "Crowd Control": [{"crowd_ht": "Hotels & Marina"}, {"crowd_su": "Suburbs"}],
@@ -253,3 +287,32 @@ MEDAL_STRINGS = {
 ACTIVITY_LEVEL_IDS = generate_level_ids(
     ACTIVITIES_LEVEL_BASED, CHOP_SHOP_LISTS, HITMAN_LISTS, RACES
 )
+
+
+def get_enabled_activity_list(world: SR2World) -> list[int]:
+    enabled_activities = []
+
+    for [option, activity] in ACTIVITY_STARTING_ACTIVITY_OPTION_MAPPING.items():
+        if is_activity_enabled_in_options(world, activity):
+            enabled_activities.append(option)
+
+    return enabled_activities
+
+
+def get_starting_activity_item_name(world: SR2World) -> str:
+    enabled_activities = get_enabled_activity_list(world)
+
+    if not enabled_activities:
+        raise OptionError("At least one activity needs to be enabled!")
+
+    starting_activity = world.options.starting_activity
+
+    if starting_activity.randomized:
+        selected_activity = world.random.choice(enabled_activities)
+    else:
+        selected_activity = starting_activity.value
+
+        if selected_activity not in enabled_activities:
+            raise OptionError("The selected starting activity must also be enabled!")
+
+    return ACTIVITY_UNLOCK_ITEMS_SETTINGS_MAPPING[selected_activity]
