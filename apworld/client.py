@@ -26,7 +26,14 @@ from .activities import (
     RACES,
     MEDAL_STRINGS,
 )
-from .collectibles import CD_IDS, CD_MAPPING, STYLE_LEVEL_LOCATIONS, STYLE_LEVEL_IDS
+from .collectibles import (
+    CD_IDS,
+    CD_MAPPING,
+    STYLE_LEVEL_LOCATIONS,
+    STYLE_LEVEL_IDS,
+    TAGS_IDS,
+    TAGS_MAPPING,
+)
 from .missions import MISSION_CHAINS, ULTOR_SECRET_MISSION
 
 PROTOCOL_VERSION = 4
@@ -360,6 +367,8 @@ async def process_progression(ctx: SR2Context, message: dict[str, Any]) -> None:
     elif category == "style_level":
         for location in STYLE_LEVEL_LOCATIONS[:current]:
             locations.append(STYLE_LEVEL_IDS[location])
+    elif category == "tag" and key in TAGS_MAPPING:
+        locations.append(TAGS_IDS[TAGS_MAPPING[key]])
 
     ctx.observed_locations.update(locations)
     await submit_observed_locations(ctx)
