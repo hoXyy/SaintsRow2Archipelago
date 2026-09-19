@@ -46,6 +46,16 @@ void ItemHandlerManager::PermitNextSaveRestore(
     respectController_.PermitNextSaveRestore(threadId);
 }
 
+bool ItemHandlerManager::ResetState() const {
+    for (const auto& handler : handlers_) {
+        if (!handler->ResetState()) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 void ItemHandlerManager::Update() const {
     for (auto& handler : handlers_) {
         handler->Update();

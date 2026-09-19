@@ -21,6 +21,10 @@ class ItemHandler {
         std::string_view itemName) const noexcept = 0;
     [[nodiscard]] virtual bool Handle(std::string_view itemName) = 0;
 
+    [[nodiscard]] virtual bool ResetState() {
+        return true;
+    }
+
     virtual void Update() {
     }
 

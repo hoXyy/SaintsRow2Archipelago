@@ -24,6 +24,7 @@ class ItemHandlerManager {
                                bool saveMonitoringAvailable);
     [[nodiscard]] bool Handle(std::string_view itemName) const;
     void PermitNextSaveRestore(std::uint32_t threadId) noexcept;
+    bool ResetState() const;
     void Update() const;
     void Remove();
 

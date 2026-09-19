@@ -4,6 +4,7 @@
 
 #include "GameThreadDispatcher.hpp"
 #include "item_handlers/CheatItemHandler.hpp"
+#include "item_handlers/HookActivityUnlockItemHandler.hpp"
 #include "item_handlers/LuaActivityUnlockItemHandler.hpp"
 #include "item_handlers/MoneyItemHandler.hpp"
 #include "item_handlers/NotorietyItemHandler.hpp"
@@ -16,7 +17,7 @@ ItemHandlers CreateItemHandlers(ItemHandlerConfiguration configuration,
                                 GameThreadDispatcher& dispatcher,
                                 RespectController& respectController) {
     ItemHandlers handlers;
-    handlers.reserve(6);
+    handlers.reserve(7);
 
     if (!configuration.managedCheats.empty()) {
         handlers.push_back(CreateCheatItemHandler(
@@ -36,6 +37,11 @@ ItemHandlers CreateItemHandlers(ItemHandlerConfiguration configuration,
 
     handlers.push_back(CreateMoneyItemHandler(dispatcher));
     handlers.push_back(CreateLuaActivityUnlockHandler(dispatcher));
+
+    if (!configuration.persistentItems.empty()) {
+        handlers.push_back(CreateHookActivityUnlockItemHandler(
+            dispatcher, configuration.persistentItems));
+    }
 
     return handlers;
 }
