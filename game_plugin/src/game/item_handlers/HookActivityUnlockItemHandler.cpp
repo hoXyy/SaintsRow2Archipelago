@@ -1,6 +1,7 @@
 #include "HookActivityUnlockItemHandler.hpp"
 
 #include <atomic>
+#include <chrono>
 #include <utility>
 
 #include "fmt/format.h"
@@ -9,6 +10,8 @@
 
 namespace sr2ap {
 namespace {
+constexpr auto kCollectibleRefreshInterval = std::chrono::milliseconds{250};
+
 class HookActivityUnlockItemHandler final : public ItemHandler {
    public:
     HookActivityUnlockItemHandler(GameThreadDispatcher& dispatcher,
@@ -49,8 +52,12 @@ class HookActivityUnlockItemHandler final : public ItemHandler {
     }
 
     void Update() override {
-        if (initialized_.load(std::memory_order_acquire) ||
-            initializationQueued_.exchange(true, std::memory_order_acq_rel)) {
+        if (initialized_.load(std::memory_order_acquire)) {
+            RefreshCollectiblePolicy();
+            return;
+        }
+
+        if (initializationQueued_.exchange(true, std::memory_order_acq_rel)) {
             return;
         }
 
@@ -68,16 +75,35 @@ class HookActivityUnlockItemHandler final : public ItemHandler {
     void Remove() override {
         initialized_.store(false, std::memory_order_release);
         initializationQueued_.store(false, std::memory_order_release);
+        refreshQueued_.store(false, std::memory_order_release);
         controller_.Remove();
     }
 
    private:
+    void RefreshCollectiblePolicy() {
+        const auto now = std::chrono::steady_clock::now();
+        if (now < nextCollectibleRefresh_ ||
+            refreshQueued_.exchange(true, std::memory_order_acq_rel)) {
+            return;
+        }
+        nextCollectibleRefresh_ = now + kCollectibleRefreshInterval;
+
+        if (!dispatcher_.Dispatch([this] {
+                controller_.RefreshCollectiblePolicy();
+                refreshQueued_.store(false, std::memory_order_release);
+            })) {
+            refreshQueued_.store(false, std::memory_order_release);
+        }
+    }
+
     GameThreadDispatcher& dispatcher_;
     std::vector<std::string> managedItems_;
     HookActivityUnlockController controller_;
 
     std::atomic_bool initialized_{};
     std::atomic_bool initializationQueued_{};
+    std::atomic_bool refreshQueued_{};
+    std::chrono::steady_clock::time_point nextCollectibleRefresh_{};
 };
 }  // namespace
 

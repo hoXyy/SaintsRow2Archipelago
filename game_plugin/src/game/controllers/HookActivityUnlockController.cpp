@@ -300,6 +300,22 @@ struct HookActivityUnlockController::Implementation {
         ApplyCurrentPolicy();
     }
 
+    void RefreshCollectiblePolicy() {
+        if (!installed || !initialized ||
+            !ReadGameContext(&gameModule).IsInteractive()) {
+            return;
+        }
+
+        if (managedCds) {
+            cdHook.fastcall<void>(
+                static_cast<std::uint8_t>(nativeCdsEnabled && ownsCds));
+        }
+        if (managedTags) {
+            tagHook.ccall<void>(
+                static_cast<std::uint8_t>(nativeTagsEnabled && ownsTags));
+        }
+    }
+
     void Remove() {
         if (!installed && !AnyHookEnabled()) {
             ResetHookObjects();
@@ -725,6 +741,12 @@ bool HookActivityUnlockController::Grant(const std::string_view itemName) {
 void HookActivityUnlockController::ResetPersistentState() {
     if (implementation_) {
         implementation_->ResetPersistentState();
+    }
+}
+
+void HookActivityUnlockController::RefreshCollectiblePolicy() {
+    if (implementation_) {
+        implementation_->RefreshCollectiblePolicy();
     }
 }
 
