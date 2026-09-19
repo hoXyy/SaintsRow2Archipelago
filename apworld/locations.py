@@ -34,7 +34,14 @@ from .options import (
     BROTHERHOOD_ARC_NAME,
     ULTOR_EPILOGUE_ARC_NAME,
 )
-from .collectibles import CD_MAPPING, CD_IDS, STYLE_LEVEL_IDS, STYLE_LEVEL_LOCATIONS
+from .collectibles import (
+    CD_MAPPING,
+    CD_IDS,
+    STYLE_LEVEL_IDS,
+    STYLE_LEVEL_LOCATIONS,
+    TAGS_MAPPING,
+    TAGS_IDS,
+)
 
 from .items import SR2Item
 
@@ -201,6 +208,12 @@ def create_collectible_locations(world: SR2World) -> None:
         for cd in CD_MAPPING.values():
             region.locations.append(
                 SR2Location(world.player, cd, CD_IDS[cd], region, respect_safe=True)
+            )
+
+    if world.options.include_tags.value == 1:
+        for tag in TAGS_MAPPING.values():
+            region.locations.append(
+                SR2Location(world.player, tag, TAGS_IDS[tag], region, respect_safe=True)
             )
 
 

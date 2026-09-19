@@ -293,10 +293,17 @@ def get_enabled_activity_list(world: SR2World) -> list[int]:
     enabled_activities = []
 
     for [option, activity] in ACTIVITY_STARTING_ACTIVITY_OPTION_MAPPING.items():
-        if is_activity_enabled_in_options(world, activity):
+        if option == StartingActivity.option_cd and bool(
+            world.options.include_cds.value
+        ):
             enabled_activities.append(option)
 
-        if option == StartingActivity.option_cd and bool(world.options.include_cds):
+        if option == StartingActivity.option_tags and bool(
+            world.options.include_tags.value
+        ):
+            enabled_activities.append(option)
+
+        if is_activity_enabled_in_options(world, activity):
             enabled_activities.append(option)
 
     return enabled_activities

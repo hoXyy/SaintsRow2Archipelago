@@ -43,6 +43,7 @@ pub struct IncomingMessage {
     pub cds: bool,
     pub races: bool,
     pub style_level: bool,
+    pub tags: bool,
 }
 
 #[derive(Deserialize)]
@@ -93,6 +94,7 @@ struct EnabledProgression {
     races: bool,
     #[serde(default)]
     style_level: bool,
+    tags: bool,
 }
 
 #[derive(Deserialize)]
@@ -221,6 +223,7 @@ pub fn parse_incoming(input: &[u8]) -> IncomingMessage {
                     cds: session.enabled_progression.cds,
                     races: session.enabled_progression.races,
                     style_level: session.enabled_progression.style_level,
+                    tags: session.enabled_progression.tags,
                     ..IncomingMessage::default()
                 }
             }
@@ -397,7 +400,7 @@ mod tests {
           "managed_unlockables":["Taxi","Taxi","Boat"],"managed_cheats":[],
           "persistent_items":["Tag Pass","Tag Pass"],
           "features":{"exclusive_respect":true,"block_vanilla_unlockables":false,"notoriety_traps":true},
-          "enabled_progression":{"missions":true,"activities":false,"hitman":true,"chop_shop":false,"cds":true,"races":true}}
+          "enabled_progression":{"missions":true,"activities":false,"hitman":true,"chop_shop":false,"cds":true,"races":true,"tags":true}}
         "#);
         assert_eq!(message.kind, IncomingKind::SessionReady);
         assert_eq!(message.managed_unlockables, ["Taxi", "Boat"]);

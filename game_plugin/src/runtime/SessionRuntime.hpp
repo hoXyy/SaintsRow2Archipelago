@@ -12,8 +12,6 @@
 namespace sr2ap {
 class SaveRevisionMonitor;
 
-// Called only by the plugin thread. The save monitor must be removed before
-// destruction.
 class SessionRuntime {
    public:
     SessionRuntime(bool gameSupported,

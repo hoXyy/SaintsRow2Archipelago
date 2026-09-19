@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 from Options import OptionError
 from worlds.generic.Rules import add_rule, add_item_rule, forbid_items
 from BaseClasses import Location
-from .collectibles import CD_MAPPING
+from .collectibles import CD_MAPPING, TAGS_MAPPING
 
 if TYPE_CHECKING:
     from .world import SR2World
@@ -39,6 +39,7 @@ from .items import (
     LEVEL_ACTIVITY_UNLOCK_ITEMS,
     PERSISTENT_ACTIVITY_UNLOCK_ITEMS,
     CD_UNLOCK_ITEM,
+    TAGS_UNLOCK_ITEM,
 )
 from .options import (
     RONIN_ARC_NAME,
@@ -288,6 +289,13 @@ def set_collectible_rules(world: SR2World):
             add_rule(
                 world.get_location(location),
                 lambda state: state.has(CD_UNLOCK_ITEM, world.player),
+            )
+
+    for location in TAGS_MAPPING.values():
+        if location in location_cache:
+            add_rule(
+                world.get_location(location),
+                lambda state: state.has(TAGS_UNLOCK_ITEM, world.player),
             )
 
 

@@ -49,7 +49,7 @@ class StartingActivity(Choice):
     option_chop_shop = 12
     option_hitman = 13
     option_cd = 14
-    option_tag = 15
+    option_tags = 15
     option_car_races = 16
     option_bike_races = 17
     option_plane_races = 18
@@ -274,6 +274,15 @@ class StyleLevelLocationCount(Range):
     default = 10
 
 
+class IncludeTags(Toggle):
+    """
+    Whether to include all 50 tags as individual location checks.
+    """
+
+    display_name = "Include Tags"
+    default = 1
+
+
 @dataclass
 class SR2Options(PerGameCommonOptions):
     required_gang_arcs: RequiredGangArcs
@@ -296,6 +305,7 @@ class SR2Options(PerGameCommonOptions):
     include_torch: IncludeTorch
     include_cds: IncludeCDs
     include_races: IncludeRaces
+    include_tags: IncludeTags
     trap_chance: TrapChance
     bonus_respect_percentage: BonusRespectPercentage
     style_level_location_count: StyleLevelLocationCount
@@ -323,6 +333,7 @@ option_groups = [
             IncludeSewage,
             IncludeSnatch,
             IncludeTorch,
+            IncludeTags,
         ],
     ),
     OptionGroup(
@@ -356,4 +367,5 @@ ACTIVITY_STARTING_ACTIVITY_OPTION_MAPPING = {
     StartingActivity.option_bike_races: "Races",
     StartingActivity.option_plane_races: "Races",
     StartingActivity.option_cd: "CD",
+    StartingActivity.option_tags: "Tags",
 }

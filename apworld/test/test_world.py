@@ -42,6 +42,7 @@ class TestSlotData(SR2TestBase):
             "hitman": True,
             "races": True,
             "style_level": True,
+            "tags": True,
         }
 
         self.assertEqual(slot_enabled_progression, expected_enabled_progression)
@@ -60,6 +61,7 @@ class TestSlotData(SR2TestBase):
             "hitman": True,
             "races": True,
             "style_level": True,
+            "tags": True,
         }
 
         self.assertEqual(slot_enabled_progression, expected_enabled_progression)
@@ -78,6 +80,7 @@ class TestSlotData(SR2TestBase):
             "hitman": True,
             "races": False,
             "style_level": True,
+            "tags": True,
         }
 
         self.assertEqual(slot_enabled_progression, expected_enabled_progression)
@@ -96,6 +99,7 @@ class TestSlotData(SR2TestBase):
             "hitman": True,
             "races": True,
             "style_level": True,
+            "tags": True,
         }
 
         self.assertEqual(slot_enabled_progression, expected_enabled_progression)
@@ -114,6 +118,7 @@ class TestSlotData(SR2TestBase):
             "hitman": False,
             "races": True,
             "style_level": True,
+            "tags": True,
         }
 
         self.assertEqual(slot_enabled_progression, expected_enabled_progression)
@@ -146,6 +151,7 @@ class TestSlotData(SR2TestBase):
             "hitman": True,
             "races": True,
             "style_level": True,
+            "tags": True,
         }
 
         self.assertEqual(slot_enabled_progression, expected_enabled_progression)
@@ -164,6 +170,26 @@ class TestSlotData(SR2TestBase):
             "hitman": True,
             "races": True,
             "style_level": False,
+            "tags": True,
+        }
+
+        self.assertEqual(slot_enabled_progression, expected_enabled_progression)
+
+    def test_enabled_progression_no_tags(self) -> None:
+        self.options = {"include_tags": 0}
+        self.world_setup()
+        slot_data = self.world.fill_slot_data()
+        slot_enabled_progression = slot_data["enabled_progression"]
+
+        expected_enabled_progression = {
+            "missions": True,
+            "activities": True,
+            "cds": True,
+            "chop_shop": True,
+            "hitman": True,
+            "races": True,
+            "style_level": True,
+            "tags": False,
         }
 
         self.assertEqual(slot_enabled_progression, expected_enabled_progression)

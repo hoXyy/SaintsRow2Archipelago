@@ -91,7 +91,7 @@ ACTIVITY_UNLOCK_ITEMS_SETTINGS_MAPPING = {
     StartingActivity.option_hitman: HITMAN_UNLOCK_ITEM,
     StartingActivity.option_chop_shop: CHOP_SHOP_UNLOCK_ITEM,
     StartingActivity.option_cd: CD_UNLOCK_ITEM,
-    StartingActivity.option_tag: TAGS_UNLOCK_ITEM,
+    StartingActivity.option_tags: TAGS_UNLOCK_ITEM,
     StartingActivity.option_bike_races: BIKE_RACES_UNLOCK_ITEM,
     StartingActivity.option_plane_races: PLANE_RACES_UNLOCK_ITEM,
     StartingActivity.option_car_races: CAR_RACES_UNLOCK_ITEM,
