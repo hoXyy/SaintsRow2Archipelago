@@ -133,6 +133,8 @@ fn save_load_invalidates_pending_result_and_requires_matching_cursor() {
     runtime.save_loaded(42);
     assert!(runtime.report_result(true).is_err());
     assert!(runtime.handle_message(item(0), true).is_none());
+    runtime.update_readiness(true, false);
+    assert_eq!(runtime.delivery.context, Context::AwaitingCursor);
     for checksum in [41, 42] {
         runtime.handle_message(
             IncomingMessage {
@@ -147,11 +149,13 @@ fn save_load_invalidates_pending_result_and_requires_matching_cursor() {
     }
     assert_eq!(runtime.delivery.next_index, 7);
     runtime.update_readiness(true, false);
+    assert_eq!(runtime.delivery.context, Context::ActiveRevision);
+    runtime.update_readiness(false, true);
+    assert_eq!(runtime.delivery.next_index, 7);
+    assert_eq!(runtime.delivery.context, Context::ActiveRevision);
+    runtime.update_readiness(true, false);
     assert_eq!(runtime.delivery.context, Context::Waiting);
     assert_eq!(runtime.delivery.checksum, None);
-    runtime.update_readiness(false, true);
-    assert_eq!(runtime.delivery.next_index, 0);
-    assert_eq!(runtime.delivery.context, Context::Provisional);
 }
 
 #[test]

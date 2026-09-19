@@ -47,6 +47,7 @@ pub(crate) struct SessionRuntime {
     persistent_items: BTreeSet<String>,
     restore: RestoreState,
     restore_checksum: Option<u32>,
+    save_load_pending: bool,
     defer_restore_once: bool,
     game_supported: bool,
     save_monitoring: bool,
@@ -67,6 +68,7 @@ impl SessionRuntime {
             persistent_items: BTreeSet::new(),
             restore: RestoreState::None,
             restore_checksum: None,
+            save_load_pending: false,
             defer_restore_once: false,
             game_supported,
             save_monitoring: false,
@@ -149,7 +151,11 @@ impl SessionRuntime {
     }
 
     pub fn update_readiness(&mut self, main_menu: bool, loaded: bool) {
-        if main_menu && self.delivery.context != Context::Waiting {
+        if loaded && self.save_load_pending && self.delivery.context != Context::AwaitingCursor {
+            self.save_load_pending = false;
+        }
+
+        if main_menu && !self.save_load_pending && self.delivery.context != Context::Waiting {
             self.delivery = Delivery::default();
             self.cancel_gameplay_request();
             self.persistent_items.clear();
@@ -202,6 +208,7 @@ impl SessionRuntime {
         self.cancel_gameplay_request();
         self.delivery.load(checksum);
         self.restore_checksum = Some(checksum);
+        self.save_load_pending = true;
         if self.session.is_some() {
             self.prepare_restore(checksum);
         }
