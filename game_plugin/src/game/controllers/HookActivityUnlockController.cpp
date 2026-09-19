@@ -33,16 +33,13 @@ enum class ActivityUnlockKind {
     ChopShop,
     Cd,
     Tags,
-    CarRaces,
-    BikeRaces,
-    PlaneRaces,
-    HelicopterRaces,
-    BoatRaces,
+    Races,
 };
 
 struct ActivityUnlockDefinition {
     std::string_view itemName;
     ActivityUnlockKind kind;
+    std::optional<RaceClass> raceClass;
 };
 
 struct RaceTrigger {
@@ -59,23 +56,24 @@ constexpr std::uint32_t RaceClassBit(const RaceClass value) noexcept {
 
 constexpr std::array kActivityUnlocks{
     ActivityUnlockDefinition{"Hitman Activity Unlock Pass",
-                             ActivityUnlockKind::Hitman},
+                             ActivityUnlockKind::Hitman, std::nullopt},
     ActivityUnlockDefinition{"Chop Shop Activity Unlock Pass",
-                             ActivityUnlockKind::ChopShop},
+                             ActivityUnlockKind::ChopShop, std::nullopt},
     ActivityUnlockDefinition{"CD Collectible Unlock Pass",
-                             ActivityUnlockKind::Cd},
+                             ActivityUnlockKind::Cd, std::nullopt},
     ActivityUnlockDefinition{"Tags Collectible Unlock Pass",
-                             ActivityUnlockKind::Tags},
+                             ActivityUnlockKind::Tags, std::nullopt},
     ActivityUnlockDefinition{"Car Races Activity Unlock Pass",
-                             ActivityUnlockKind::CarRaces},
+                             ActivityUnlockKind::Races, RaceClass::Car},
     ActivityUnlockDefinition{"Bike Races Activity Unlock Pass",
-                             ActivityUnlockKind::BikeRaces},
+                             ActivityUnlockKind::Races, RaceClass::Bike},
     ActivityUnlockDefinition{"Plane Races Activity Unlock Pass",
-                             ActivityUnlockKind::PlaneRaces},
+                             ActivityUnlockKind::Races, RaceClass::Plane},
     ActivityUnlockDefinition{"Helicopter Races Activity Unlock Pass",
-                             ActivityUnlockKind::HelicopterRaces},
+                             ActivityUnlockKind::Races, RaceClass::Helicopter},
     ActivityUnlockDefinition{"Boat Races Activity Unlock Pass",
-                             ActivityUnlockKind::BoatRaces},
+                             ActivityUnlockKind::Races,
+                             RaceClass::BoatAndJetSki},
 };
 
 constexpr std::array<std::uint8_t, 6> kExpectedChopShop{
@@ -102,15 +100,52 @@ const ActivityUnlockDefinition* FindUnlock(
     return found == kActivityUnlocks.end() ? nullptr : &*found;
 }
 
-bool CreateDisabledHook(safetyhook::InlineHook& destination,
-                        const std::uintptr_t address, void* const callback) {
+template <std::size_t Size>
+bool CreateManagedHook(const bool managed, safetyhook::InlineHook& destination,
+                       const std::uintptr_t address,
+                       const std::array<std::uint8_t, Size>& expected,
+                       void* const callback, const std::string_view name) {
+    if (!managed) {
+        return true;
+    }
+    if (!ValidateHookTarget(address, expected)) {
+        LogError("WorldUnlock", std::string{name} + " hook target mismatch");
+        return false;
+    }
+
     auto hook = safetyhook::InlineHook::create(
         reinterpret_cast<void*>(address), callback,
         safetyhook::InlineHook::StartDisabled);
     if (!hook) {
+        LogError("WorldUnlock",
+                 "Could not create " + std::string{name} + " hook");
         return false;
     }
     destination = std::move(*hook);
+    return true;
+}
+
+bool EnableHook(safetyhook::InlineHook& hook, const std::string_view name) {
+    if (!hook) {
+        return true;
+    }
+    if (!hook.enable()) {
+        LogError("WorldUnlock",
+                 "Could not enable " + std::string{name} + " hook");
+        return false;
+    }
+    return true;
+}
+
+bool DisableHook(safetyhook::InlineHook& hook, const std::string_view name) {
+    if (!hook || !hook.enabled()) {
+        return true;
+    }
+    if (!hook.disable()) {
+        LogError("WorldUnlock",
+                 "Could not disable " + std::string{name} + " hook");
+        return false;
+    }
     return true;
 }
 }  // namespace
@@ -143,7 +178,7 @@ struct HookActivityUnlockController::Implementation {
 
         gameModule = *game;
         ResolveAddresses(gameModule.base);
-        if (!ValidateManagedTargets() || !CreateManagedHooks()) {
+        if (!ValidateSupportingTargets() || !CreateManagedHooks()) {
             ResetHookObjects();
             return false;
         }
@@ -216,7 +251,7 @@ struct HookActivityUnlockController::Implementation {
 
     bool SupportsItem(const std::string_view itemName) const noexcept {
         const auto* const definition = FindUnlock(itemName);
-        return definition && IsManaged(definition->kind);
+        return definition && IsManaged(*definition);
     }
 
     bool Grant(const std::string_view itemName) {
@@ -225,7 +260,7 @@ struct HookActivityUnlockController::Implementation {
         }
 
         const auto* const definition = FindUnlock(itemName);
-        if (!definition || !IsManaged(definition->kind)) {
+        if (!definition || !IsManaged(*definition)) {
             return false;
         }
 
@@ -250,20 +285,8 @@ struct HookActivityUnlockController::Implementation {
                     tagHook.ccall<void>(std::uint8_t{1});
                 }
                 break;
-            case ActivityUnlockKind::CarRaces:
-                GrantRaceClass(RaceClass::Car);
-                break;
-            case ActivityUnlockKind::BikeRaces:
-                GrantRaceClass(RaceClass::Bike);
-                break;
-            case ActivityUnlockKind::PlaneRaces:
-                GrantRaceClass(RaceClass::Plane);
-                break;
-            case ActivityUnlockKind::HelicopterRaces:
-                GrantRaceClass(RaceClass::Helicopter);
-                break;
-            case ActivityUnlockKind::BoatRaces:
-                GrantRaceClass(RaceClass::BoatAndJetSki);
+            case ActivityUnlockKind::Races:
+                GrantRaceClass(*definition->raceClass);
                 break;
         }
         return true;
@@ -319,29 +342,16 @@ struct HookActivityUnlockController::Implementation {
                 case ActivityUnlockKind::Tags:
                     managedTags = true;
                     break;
-                case ActivityUnlockKind::CarRaces:
-                    managedRaceClasses |= RaceClassBit(RaceClass::Car);
-                    break;
-                case ActivityUnlockKind::BikeRaces:
-                    managedRaceClasses |= RaceClassBit(RaceClass::Bike);
-                    break;
-                case ActivityUnlockKind::PlaneRaces:
-                    managedRaceClasses |= RaceClassBit(RaceClass::Plane);
-                    break;
-                case ActivityUnlockKind::HelicopterRaces:
-                    managedRaceClasses |= RaceClassBit(RaceClass::Helicopter);
-                    break;
-                case ActivityUnlockKind::BoatRaces:
-                    managedRaceClasses |=
-                        RaceClassBit(RaceClass::BoatAndJetSki);
+                case ActivityUnlockKind::Races:
+                    managedRaceClasses |= RaceClassBit(*definition->raceClass);
                     break;
             }
         }
         return true;
     }
 
-    bool IsManaged(const ActivityUnlockKind kind) const noexcept {
-        switch (kind) {
+    bool IsManaged(const ActivityUnlockDefinition& definition) const noexcept {
+        switch (definition.kind) {
             case ActivityUnlockKind::Hitman:
                 return managedHitman;
             case ActivityUnlockKind::ChopShop:
@@ -350,20 +360,10 @@ struct HookActivityUnlockController::Implementation {
                 return managedCds;
             case ActivityUnlockKind::Tags:
                 return managedTags;
-            case ActivityUnlockKind::CarRaces:
-                return (managedRaceClasses & RaceClassBit(RaceClass::Car)) != 0;
-            case ActivityUnlockKind::BikeRaces:
-                return (managedRaceClasses & RaceClassBit(RaceClass::Bike)) !=
-                       0;
-            case ActivityUnlockKind::PlaneRaces:
-                return (managedRaceClasses & RaceClassBit(RaceClass::Plane)) !=
-                       0;
-            case ActivityUnlockKind::HelicopterRaces:
-                return (managedRaceClasses &
-                        RaceClassBit(RaceClass::Helicopter)) != 0;
-            case ActivityUnlockKind::BoatRaces:
-                return (managedRaceClasses &
-                        RaceClassBit(RaceClass::BoatAndJetSki)) != 0;
+            case ActivityUnlockKind::Races:
+                return definition.raceClass &&
+                       (managedRaceClasses &
+                        RaceClassBit(*definition.raceClass)) != 0;
         }
         return false;
     }
@@ -380,30 +380,7 @@ struct HookActivityUnlockController::Implementation {
         gameplayInstanceAddress = base + addresses::kCurrentGameplayInstanceRva;
     }
 
-    bool ValidateManagedTargets() const {
-        if (managedHitman &&
-            !ValidateHookTarget(hitmanAddress, kExpectedHitman)) {
-            LogError("WorldUnlock", "Hitman hook target mismatch");
-            return false;
-        }
-        if (managedChopShop &&
-            !ValidateHookTarget(chopShopAddress, kExpectedChopShop)) {
-            LogError("WorldUnlock", "Chop Shop hook target mismatch");
-            return false;
-        }
-        if (managedCds && !ValidateHookTarget(cdAddress, kExpectedCd)) {
-            LogError("WorldUnlock", "CD hook target mismatch");
-            return false;
-        }
-        if (managedTags && !ValidateHookTarget(tagAddress, kExpectedTag)) {
-            LogError("WorldUnlock", "tag hook target mismatch");
-            return false;
-        }
-        if (managedRaceClasses != 0 &&
-            !ValidateHookTarget(raceAddress, kExpectedRace)) {
-            LogError("WorldUnlock", "race hook target mismatch");
-            return false;
-        }
+    bool ValidateSupportingTargets() const {
         if ((managedHitman || managedChopShop || managedRaceClasses != 0) &&
             !IsExecutableAddress(storyLockedAddress)) {
             LogError("WorldUnlock", "story gate function is unavailable");
@@ -418,107 +395,42 @@ struct HookActivityUnlockController::Implementation {
     }
 
     bool CreateManagedHooks() {
-        if (managedHitman &&
-            !CreateDisabledHook(hitmanHook, hitmanAddress,
-                                reinterpret_cast<void*>(&HitmanHook))) {
-            LogError("WorldUnlock", "Could not create Hitman hook");
-            return false;
-        }
-        if (managedChopShop &&
-            !CreateDisabledHook(chopShopHook, chopShopAddress,
-                                reinterpret_cast<void*>(&ChopShopHook))) {
-            LogError("WorldUnlock", "Could not create Chop Shop hook");
-            return false;
-        }
-        if (managedCds &&
-            !CreateDisabledHook(cdHook, cdAddress,
-                                reinterpret_cast<void*>(&CdHook))) {
-            LogError("WorldUnlock", "Could not create CD hook");
-            return false;
-        }
-        if (managedTags &&
-            !CreateDisabledHook(tagHook, tagAddress,
-                                reinterpret_cast<void*>(&TagHook))) {
-            LogError("WorldUnlock", "Could not create tag hook");
-            return false;
-        }
-        if (managedRaceClasses != 0 &&
-            !CreateDisabledHook(raceHook, raceAddress,
-                                reinterpret_cast<void*>(&RaceHook))) {
-            LogError("WorldUnlock", "Could not create race hook");
-            return false;
-        }
-        return true;
+        return CreateManagedHook(
+                   managedHitman, hitmanHook, hitmanAddress, kExpectedHitman,
+                   reinterpret_cast<void*>(&HitmanHook), "Hitman") &&
+               CreateManagedHook(managedChopShop, chopShopHook, chopShopAddress,
+                                 kExpectedChopShop,
+                                 reinterpret_cast<void*>(&ChopShopHook),
+                                 "Chop Shop") &&
+               CreateManagedHook(managedCds, cdHook, cdAddress, kExpectedCd,
+                                 reinterpret_cast<void*>(&CdHook), "CD") &&
+               CreateManagedHook(managedTags, tagHook, tagAddress, kExpectedTag,
+                                 reinterpret_cast<void*>(&TagHook), "tag") &&
+               CreateManagedHook(managedRaceClasses != 0, raceHook, raceAddress,
+                                 kExpectedRace,
+                                 reinterpret_cast<void*>(&RaceHook), "race");
     }
 
     bool EnableManagedHooks() {
-        if (managedHitman) {
-            if (!hitmanHook.enable()) {
-                LogError("WorldUnlock", "Could not enable Hitman hook");
-                return false;
-            }
-            hitmanHookEnabled = true;
-        }
-        if (managedChopShop) {
-            if (!chopShopHook.enable()) {
-                LogError("WorldUnlock", "Could not enable Chop Shop hook");
-                return false;
-            }
-            chopShopHookEnabled = true;
-        }
-        if (managedCds) {
-            if (!cdHook.enable()) {
-                LogError("WorldUnlock", "Could not enable CD hook");
-                return false;
-            }
-            cdHookEnabled = true;
-        }
-        if (managedTags) {
-            if (!tagHook.enable()) {
-                LogError("WorldUnlock", "Could not enable tag hook");
-                return false;
-            }
-            tagHookEnabled = true;
-        }
-        if (managedRaceClasses != 0) {
-            if (!raceHook.enable()) {
-                LogError("WorldUnlock", "Could not enable race hook");
-                return false;
-            }
-            raceHookEnabled = true;
-        }
-        return true;
-    }
-
-    static bool DisableHook(safetyhook::InlineHook& hook, bool& enabled,
-                            const std::string_view name) {
-        if (!enabled) {
-            return true;
-        }
-        if (!hook.disable()) {
-            LogError("WorldUnlock",
-                     "Could not disable " + std::string{name} + " hook");
-            return false;
-        }
-        enabled = false;
-        return true;
+        return EnableHook(hitmanHook, "Hitman") &&
+               EnableHook(chopShopHook, "Chop Shop") &&
+               EnableHook(cdHook, "CD") && EnableHook(tagHook, "tag") &&
+               EnableHook(raceHook, "race");
     }
 
     bool DisableEnabledHooks() {
         bool success{true};
-        success = DisableHook(raceHook, raceHookEnabled, "race") && success;
-        success = DisableHook(tagHook, tagHookEnabled, "tag") && success;
-        success = DisableHook(cdHook, cdHookEnabled, "CD") && success;
-        success = DisableHook(chopShopHook, chopShopHookEnabled, "Chop Shop") &&
-                  success;
-        success =
-            DisableHook(hitmanHook, hitmanHookEnabled, "Hitman") && success;
+        success = DisableHook(raceHook, "race") && success;
+        success = DisableHook(tagHook, "tag") && success;
+        success = DisableHook(cdHook, "CD") && success;
+        success = DisableHook(chopShopHook, "Chop Shop") && success;
+        success = DisableHook(hitmanHook, "Hitman") && success;
         return success;
     }
 
     bool AnyHookEnabled() const noexcept {
-        return hitmanHookEnabled || chopShopHookEnabled || cdHookEnabled ||
-               tagHookEnabled || raceHookEnabled;
+        return hitmanHook.enabled() || chopShopHook.enabled() ||
+               cdHook.enabled() || tagHook.enabled() || raceHook.enabled();
     }
 
     void ResetHookObjects() {
@@ -669,7 +581,7 @@ struct HookActivityUnlockController::Implementation {
         if (!trigger) {
             return;
         }
-#if defined(_MSC_VER) && defined(_M_IX86)
+
         __asm {
             push esi
             mov esi, trigger
@@ -677,9 +589,6 @@ struct HookActivityUnlockController::Implementation {
             call eax
             pop esi
         }
-#else
-#error HookActivityUnlockController requires 32-bit MSVC inline assembly
-#endif
     }
 
     static void __stdcall HitmanHook(const std::uint8_t requested) {
@@ -774,11 +683,6 @@ struct HookActivityUnlockController::Implementation {
     safetyhook::InlineHook tagHook;
     safetyhook::InlineHook raceHook;
 
-    bool hitmanHookEnabled{};
-    bool chopShopHookEnabled{};
-    bool cdHookEnabled{};
-    bool tagHookEnabled{};
-    bool raceHookEnabled{};
     bool installed{};
     bool initialized{};
 
