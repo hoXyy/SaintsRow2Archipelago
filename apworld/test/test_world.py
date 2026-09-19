@@ -9,6 +9,7 @@ from ..items_list import (
     TRAP_ITEMS,
 )
 from ..missions import get_mission_by_key, ULTOR_SECRET_MISSION
+from ..items import PERSISTENT_ACTIVITY_UNLOCK_ITEMS
 from ..options import (
     RONIN_ARC_NAME,
     BROTHERHOOD_ARC_NAME,
@@ -26,7 +27,7 @@ class TestSlotData(SR2TestBase):
         self.world_setup()
         slot_data = self.world.fill_slot_data()
 
-        self.assertEqual(slot_data["protocol"], 3)
+        self.assertEqual(slot_data["protocol"], 4)
 
     def test_default_enabled_progression(self) -> None:
         self.world_setup()
@@ -233,11 +234,10 @@ class TestSlotData(SR2TestBase):
         )
         expected_cheats = sorted(
             generated_names
-            & (
-                set(CHEAT_ITEMS)
-                | set(WEAPON_ITEM_NAMES)
-                | set(TRAP_CHEATS)
-            )
+            & (set(CHEAT_ITEMS) | set(WEAPON_ITEM_NAMES) | set(TRAP_CHEATS))
+        )
+        expected_persistent_items = sorted(
+            generated_names & set(PERSISTENT_ACTIVITY_UNLOCK_ITEMS)
         )
 
         self.assertEqual(
@@ -247,6 +247,10 @@ class TestSlotData(SR2TestBase):
         self.assertEqual(
             expected_cheats,
             slot_data["managed_cheats"],
+        )
+        self.assertEqual(
+            expected_persistent_items,
+            slot_data["persistent_items"],
         )
 
     def test_feature_defaults(self) -> None:
