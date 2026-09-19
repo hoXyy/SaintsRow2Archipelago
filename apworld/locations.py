@@ -18,7 +18,6 @@ from .missions import (
     get_mission_complete_event_name,
     get_mission_complete_item_name,
     Mission,
-    Stronghold,
 )
 from .activities import (
     ACTIVITIES_LEVEL_BASED,
@@ -96,10 +95,6 @@ def create_mission_locations(world: SR2World) -> None:
             add_check_with_completion_event(world, region, mission)
 
         for stronghold in ULTOR_EPILOGUE_CHAIN["strongholds"]:
-            add_check_with_completion_event(world, region, stronghold)
-
-        # This stronghold is only required to beat the game, not to beat all of the gang arcs
-        for stronghold in TSS_INTRO_CHAIN["strongholds"]:
             add_check_with_completion_event(world, region, stronghold)
 
     if world.options.include_secret_mission.value == 1:
@@ -227,7 +222,7 @@ def create_style_level_locations(world: SR2World) -> None:
 
 
 def add_check_with_completion_event(
-    world: SR2World, region: Region, mission: Mission | Stronghold
+    world: SR2World, region: Region, mission: Mission
 ) -> None:
     region.locations.append(
         SR2Location(

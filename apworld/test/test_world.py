@@ -14,6 +14,7 @@ from ..options import (
     BROTHERHOOD_ARC_NAME,
     SAMEDI_ARC_NAME,
     ULTOR_EPILOGUE_ARC_NAME,
+    StartingActivity,
 )
 
 
@@ -130,6 +131,7 @@ class TestSlotData(SR2TestBase):
             "include_sewage": 0,
             "include_snatch": 0,
             "include_torch": 0,
+            "starting_activity": StartingActivity.option_chop_shop,
         }
         self.world_setup()
         slot_data = self.world.fill_slot_data()

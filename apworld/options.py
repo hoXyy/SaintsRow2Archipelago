@@ -5,14 +5,14 @@ from Options import OptionGroup, PerGameCommonOptions, Toggle, OptionSet, Range,
 RONIN_ARC_NAME = "Ronin Arc"
 SAMEDI_ARC_NAME = "Sons of Samedi Arc"
 BROTHERHOOD_ARC_NAME = "Brotherhood Arc"
-ULTOR_EPILOGUE_ARC_NAME = "Ultor Epilogue"
+ULTOR_EPILOGUE_ARC_NAME = "Ultor Arc"
 
 
 class RequiredGangArcs(OptionSet):
     """
     Select which mission chain(s) you need to complete to finish your game.
 
-    Available options: Ronin Arc, Sons of Samedi Arc, Brotherhood Arc, Ultor Epilogue
+    Available options: Ronin Arc, Sons of Samedi Arc, Brotherhood Arc, Ultor Arc
     """
 
     display_name = "Required Gang Arcs"
@@ -46,6 +46,15 @@ class StartingActivity(Choice):
     option_septic_avenger = 9
     option_snatch = 10
     option_trail_blazing = 11
+    option_chop_shop = 12
+    option_hitman = 13
+    option_cd = 14
+    option_tag = 15
+    option_car_races = 16
+    option_bike_races = 17
+    option_plane_races = 18
+    option_helicopter_races = 19
+    option_boat_races = 20
 
     random_sentinel = -1
 
@@ -339,4 +348,12 @@ ACTIVITY_STARTING_ACTIVITY_OPTION_MAPPING = {
     StartingActivity.option_escort: "Escort",
     StartingActivity.option_drug_trafficking: "Drug Trafficking",
     StartingActivity.option_demo_derby: "Demolition Derby",
+    StartingActivity.option_chop_shop: "Chop Shop",
+    StartingActivity.option_hitman: "Hitman",
+    StartingActivity.option_helicopter_races: "Races",
+    StartingActivity.option_boat_races: "Races",
+    StartingActivity.option_car_races: "Races",
+    StartingActivity.option_bike_races: "Races",
+    StartingActivity.option_plane_races: "Races",
+    StartingActivity.option_cd: "CD",
 }

@@ -37,7 +37,18 @@ SEWAGE_UNLOCK_ITEM = "Septic Avenger Activity Unlock Pass"
 SNATCH_UNLOCK_ITEM = "Snatch Activity Unlock Pass"
 TORCH_UNLOCK_ITEM = "Trail Blazing Activity Unlock Pass"
 
-ACTIVITY_UNLOCK_ITEMS = [
+HITMAN_UNLOCK_ITEM = "Hitman Activity Unlock Pass"
+CHOP_SHOP_UNLOCK_ITEM = "Chop Shop Activity Unlock Pass"
+CD_UNLOCK_ITEM = "CD Collectible Unlock Pass"
+TAGS_UNLOCK_ITEM = "Tags Collectible Unlock Pass"
+
+CAR_RACES_UNLOCK_ITEM = "Car Races Activity Unlock Pass"
+BIKE_RACES_UNLOCK_ITEM = "Bike Races Activity Unlock Pass"
+PLANE_RACES_UNLOCK_ITEM = "Plane Races Activity Unlock Pass"
+HELICOPTER_RACES_UNLOCK_ITEM = "Helicopter Races Activity Unlock Pass"
+BOAT_RACES_UNLOCK_ITEM = "Boat Races Activity Unlock Pass"
+
+LEVEL_ACTIVITY_UNLOCK_ITEMS = [
     INSURANCE_FRAUD_UNLOCK_ITEM,
     CROWD_CONTROL_UNLOCK_ITEM,
     DEMO_DERBY_UNLOCK_ITEM,
@@ -50,6 +61,18 @@ ACTIVITY_UNLOCK_ITEMS = [
     SEWAGE_UNLOCK_ITEM,
     SNATCH_UNLOCK_ITEM,
     TORCH_UNLOCK_ITEM,
+]
+
+PERSISTENT_ACTIVITY_UNLOCK_ITEMS = [
+    HITMAN_UNLOCK_ITEM,
+    CHOP_SHOP_UNLOCK_ITEM,
+    CD_UNLOCK_ITEM,
+    TAGS_UNLOCK_ITEM,
+    CAR_RACES_UNLOCK_ITEM,
+    BIKE_RACES_UNLOCK_ITEM,
+    PLANE_RACES_UNLOCK_ITEM,
+    HELICOPTER_RACES_UNLOCK_ITEM,
+    BOAT_RACES_UNLOCK_ITEM,
 ]
 
 ACTIVITY_UNLOCK_ITEMS_SETTINGS_MAPPING = {
@@ -65,6 +88,15 @@ ACTIVITY_UNLOCK_ITEMS_SETTINGS_MAPPING = {
     StartingActivity.option_septic_avenger: SEWAGE_UNLOCK_ITEM,
     StartingActivity.option_snatch: SNATCH_UNLOCK_ITEM,
     StartingActivity.option_trail_blazing: TORCH_UNLOCK_ITEM,
+    StartingActivity.option_hitman: HITMAN_UNLOCK_ITEM,
+    StartingActivity.option_chop_shop: CHOP_SHOP_UNLOCK_ITEM,
+    StartingActivity.option_cd: CD_UNLOCK_ITEM,
+    StartingActivity.option_tag: TAGS_UNLOCK_ITEM,
+    StartingActivity.option_bike_races: BIKE_RACES_UNLOCK_ITEM,
+    StartingActivity.option_plane_races: PLANE_RACES_UNLOCK_ITEM,
+    StartingActivity.option_car_races: CAR_RACES_UNLOCK_ITEM,
+    StartingActivity.option_boat_races: BOAT_RACES_UNLOCK_ITEM,
+    StartingActivity.option_helicopter_races: HELICOPTER_RACES_UNLOCK_ITEM,
 }
 
 ITEM_NAME_TO_ID = {
@@ -76,7 +108,12 @@ ITEM_NAME_TO_ID = {
     **{name: 400 + i for i, name in enumerate(CHEAT_ITEMS)},
     **{name: 500 + i for i, name in enumerate(TRAP_ITEMS)},
     **{name: 550 + i for i, name in enumerate(MONEY_ITEM_NAMES)},
-    **{name: 600 + i for i, name in enumerate(ACTIVITY_UNLOCK_ITEMS)},
+    **{
+        name: 600 + i
+        for i, name in enumerate(
+            LEVEL_ACTIVITY_UNLOCK_ITEMS + PERSISTENT_ACTIVITY_UNLOCK_ITEMS
+        )
+    },
 }
 
 DEFAULT_ITEM_CLASSIFICATION = {
@@ -88,7 +125,10 @@ DEFAULT_ITEM_CLASSIFICATION = {
     **{name: ItemClassification.filler for name in FILLER_UNLOCKABLES},
     **{name: ItemClassification.trap for name in TRAP_ITEMS},
     **{name: ItemClassification.filler for name in CHEAT_ITEMS},
-    **{name: ItemClassification.progression for name in ACTIVITY_UNLOCK_ITEMS},
+    **{
+        name: ItemClassification.progression
+        for name in LEVEL_ACTIVITY_UNLOCK_ITEMS + PERSISTENT_ACTIVITY_UNLOCK_ITEMS
+    },
 }
 
 
@@ -114,6 +154,12 @@ def create_item_with_correct_classification(world: SR2World, item: str) -> SR2It
 def get_all_items(world: SR2World) -> None:
     from .activities import get_starting_activity_item_name
     from .missions import get_required_respect_count
+
+    starting_activity_item = get_starting_activity_item_name(world)
+
+    world.get_location(get_mission_by_key("tss02").name).place_locked_item(
+        world.create_item(starting_activity_item)
+    )
 
     unfilled_locations_count = len(
         world.multiworld.get_unfilled_locations(world.player)
@@ -159,21 +205,10 @@ def get_all_items(world: SR2World) -> None:
         [world.create_item(BONUS_RESPECT_ITEM_NAME) for _ in range(bonus_respect_count)]
     )
 
-    starting_activity_item = get_starting_activity_item_name(world)
+    enabled_activity_items = get_enabled_unlock_items_list(world)
+    enabled_activity_items.remove(starting_activity_item)
 
-    world.get_location(get_mission_by_key("tss02").name).place_locked_item(
-        world.create_item(starting_activity_item)
-    )
-
-    activity_unlock_items_without_starting_activity = ACTIVITY_UNLOCK_ITEMS.copy()
-    activity_unlock_items_without_starting_activity.remove(starting_activity_item)
-
-    item_pool.extend(
-        [
-            world.create_item(name)
-            for name in activity_unlock_items_without_starting_activity
-        ]
-    )
+    item_pool.extend([world.create_item(name) for name in enabled_activity_items])
 
     available_slots = unfilled_locations_count - len(item_pool)
 
@@ -191,3 +226,31 @@ def get_all_items(world: SR2World) -> None:
     item_pool.extend(world.create_filler() for _ in range(remaining_slots))
 
     world.multiworld.itempool += item_pool
+
+
+def get_race_unlock_item(race_key: str) -> str:
+    if race_key.startswith("car_"):
+        return CAR_RACES_UNLOCK_ITEM
+    if race_key.startswith("bike_"):
+        return BIKE_RACES_UNLOCK_ITEM
+    if race_key.startswith("plane_"):
+        return PLANE_RACES_UNLOCK_ITEM
+    if race_key.startswith("heli_"):
+        return HELICOPTER_RACES_UNLOCK_ITEM
+    if race_key.startswith(("boat_", "jetski_")):
+        return BOAT_RACES_UNLOCK_ITEM
+    raise ValueError(f"Unknown race class: {race_key}")
+
+
+def get_enabled_unlock_items_list(world: SR2World) -> list[str]:
+    from .activities import get_enabled_activity_list
+
+    enabled_items = []
+
+    enabled_activities = get_enabled_activity_list(world)
+
+    for [key, item] in ACTIVITY_UNLOCK_ITEMS_SETTINGS_MAPPING.items():
+        if key in enabled_activities:
+            enabled_items.append(item)
+
+    return enabled_items

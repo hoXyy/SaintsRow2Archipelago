@@ -20,6 +20,10 @@ class TestBrotherhoodOnly(SR2TestBase):
     options = {"required_gang_arcs": {BROTHERHOOD_ARC_NAME}}
 
 
+class TestUltorOnly(SR2TestBase):
+    options = {"required_gang_arcs": {ULTOR_EPILOGUE_ARC_NAME}}
+
+
 class TestFullGame(SR2TestBase):
     options = {
         "required_gang_arcs": {
@@ -39,17 +43,6 @@ class TestInvalidOptions(SR2TestBase):
         self.options = {"required_gang_arcs": set()}
 
         with self.assertRaisesRegex(OptionError, "enable any gang arcs"):
-            self.world_setup()
-
-    def test_epilogue_requires_every_gang(self) -> None:
-        self.options = {
-            "required_gang_arcs": {
-                RONIN_ARC_NAME,
-                ULTOR_EPILOGUE_ARC_NAME,
-            },
-        }
-
-        with self.assertRaisesRegex(OptionError, "All gang arcs"):
             self.world_setup()
 
     def test_secret_goal_requires_secret_location(self) -> None:

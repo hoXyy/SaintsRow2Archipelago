@@ -1,6 +1,7 @@
 from .bases import SR2TestBase
 from ..activities import (
     ACTIVITIES_LEVEL_BASED,
+    ACTIVITY_STARTING_ACTIVITY_ITEM_MAPPING,
     CHOP_SHOP_LISTS,
     HITMAN_LISTS,
     RACES,
@@ -18,9 +19,11 @@ class TestActivityLocations(SR2TestBase):
                 district for instance in instances for district in instance.values()
             ]
 
-            unlock_mission_key = "tss04" if activity == "Heli Assault" else "tss02"
-            unlock_item = self.get_item_by_name(
-                get_mission_complete_item_name(get_mission_by_key(unlock_mission_key))
+            tss02_complete_item = self.get_item_by_name(
+                get_mission_complete_item_name(get_mission_by_key("tss02"))
+            )
+            activity_unlock_item = self.get_item_by_name(
+                ACTIVITY_STARTING_ACTIVITY_ITEM_MAPPING[activity]
             )
 
             for district in districts:
@@ -45,7 +48,8 @@ class TestActivityLocations(SR2TestBase):
                     self.assertFalse(level_2.access_rule(state))
                     self.assertFalse(level_2_event.access_rule(state))
 
-                    state.collect(unlock_item, prevent_sweep=True)
+                    state.collect(tss02_complete_item, prevent_sweep=True)
+                    state.collect(activity_unlock_item, prevent_sweep=True)
 
                     self.assertTrue(level_1.access_rule(state))
                     self.assertFalse(level_2.access_rule(state))
@@ -86,8 +90,6 @@ class TestActivityLocations(SR2TestBase):
 
     def test_activity_start_access_rules(self) -> None:
         for activity in ACTIVITIES_LEVEL_BASED:
-            is_heli_assault = activity == "Heli Assault"
-
             districts = [
                 value for d in ACTIVITIES_LEVEL_BASED[activity] for value in d.values()
             ]
@@ -98,15 +100,17 @@ class TestActivityLocations(SR2TestBase):
                     lvl1_location = self.world.get_location(
                         f"{activity} ({district}) - Level 1"
                     )
-                    complete_item = self.get_item_by_name(
-                        get_mission_complete_item_name(
-                            get_mission_by_key("tss04" if is_heli_assault else "tss02")
-                        )
+                    tss02_complete_item = self.get_item_by_name(
+                        get_mission_complete_item_name(get_mission_by_key("tss02"))
+                    )
+                    activity_unlock_item = self.get_item_by_name(
+                        ACTIVITY_STARTING_ACTIVITY_ITEM_MAPPING[activity]
                     )
 
                     self.assertFalse(lvl1_location.can_reach(state))
 
-                    state.collect(complete_item)
+                    state.collect(tss02_complete_item, prevent_sweep=True)
+                    state.collect(activity_unlock_item, prevent_sweep=True)
 
                     self.assertTrue(lvl1_location.can_reach(state))
 

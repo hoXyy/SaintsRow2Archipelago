@@ -57,16 +57,6 @@ class SR2World(World):
         if len(enabled_gang_arcs) == 0:
             raise OptionError("You didn't enable any gang arcs.")
 
-        if sr2_options.ULTOR_EPILOGUE_ARC_NAME in enabled_gang_arcs:
-            if not {
-                sr2_options.RONIN_ARC_NAME,
-                sr2_options.SAMEDI_ARC_NAME,
-                sr2_options.BROTHERHOOD_ARC_NAME,
-            }.issubset(enabled_gang_arcs):
-                raise OptionError(
-                    "All gang arcs need to be enabled to be able to do the epilogue."
-                )
-
     def get_filler_item_name(self) -> str:
         return items.get_random_filler_item_name(self)
 
