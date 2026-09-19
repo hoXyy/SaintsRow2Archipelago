@@ -76,7 +76,10 @@ class SR2World(World):
     def fill_slot_data(self) -> dict[str, object]:
         selected_names = {
             item.name
-            for item in self.multiworld.get_items()
+            for item in (
+                *self.multiworld.get_items(),
+                *self.multiworld.precollected_items[self.player],
+            )
             if item.player == self.player and item.code is not None
         }
         unlockable_names = set(USEFUL_UNLOCKABLES) | set(FILLER_UNLOCKABLES)
