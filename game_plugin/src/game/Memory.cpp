@@ -12,21 +12,6 @@ namespace sr2ap {
 namespace {
 constexpr std::size_t kDecodeBufferSize{ZYDIS_MAX_INSTRUCTION_LENGTH + 1};
 
-bool HasAccess(DWORD protect, bool executable) {
-    if ((protect & (PAGE_GUARD | PAGE_NOACCESS)) != 0) {
-        return false;
-    }
-    const auto basic = protect & 0xFF;
-    if (executable) {
-        return basic == PAGE_EXECUTE || basic == PAGE_EXECUTE_READ ||
-               basic == PAGE_EXECUTE_READWRITE ||
-               basic == PAGE_EXECUTE_WRITECOPY;
-    }
-    return basic == PAGE_READONLY || basic == PAGE_READWRITE ||
-           basic == PAGE_WRITECOPY || basic == PAGE_EXECUTE_READ ||
-           basic == PAGE_EXECUTE_READWRITE || basic == PAGE_EXECUTE_WRITECOPY;
-}
-
 bool DecodeInstruction(
     const std::uint8_t* bytes, std::size_t size,
     ZydisDecodedInstruction& instruction,
