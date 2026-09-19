@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
+
+from Options import OptionError
 from worlds.generic.Rules import add_rule, add_item_rule
 from BaseClasses import Location
 
@@ -27,6 +29,7 @@ from .activities import (
     HITMAN_LISTS,
     RACES,
     MEDAL_STRINGS,
+    ACTIVITY_STARTING_ACTIVITY_ITEM_MAPPING,
 )
 from .items import RESPECT_ITEM_NAME
 from .options import (
@@ -197,16 +200,13 @@ def set_mission_rules(world: SR2World) -> None:
 def set_activity_rules(world: SR2World) -> None:
     location_cache = world.multiworld.regions.location_cache[world.player]
     tss02_complete_item = get_mission_complete_item_name(get_mission_by_key("tss02"))
-    tss04_complete_item = get_mission_complete_item_name(get_mission_by_key("tss04"))
 
     for activity in ACTIVITIES_LEVEL_BASED:
-        # Activities unlock after Appointed Defender except Heli Assault which unlocks after Three Kings
-        is_heli_assault = activity == "Heli Assault"
         activity_locations = [
             value for d in ACTIVITIES_LEVEL_BASED[activity] for value in d.values()
         ]
 
-        unlock_item = tss04_complete_item if is_heli_assault else tss02_complete_item
+        unlock_item = ACTIVITY_STARTING_ACTIVITY_ITEM_MAPPING[activity]
 
         for district in activity_locations:
             for level in range(1, 7):
@@ -214,11 +214,18 @@ def set_activity_rules(world: SR2World) -> None:
 
                 if curr_key not in location_cache:
                     continue
-                    
+
                 curr_location = world.get_location(curr_key)
 
                 if level == 1:
                     prerequisite_item = unlock_item
+
+                    add_rule(
+                        curr_location,
+                        lambda state, tss02_item=tss02_complete_item: state.has(
+                            tss02_item, world.player
+                        ),
+                    )
                 else:
                     prev_key = f"{activity} ({district}) - Level {level - 1}"
                     prerequisite_item = f"Item: {prev_key} Complete"
@@ -313,9 +320,9 @@ def set_completion_rules(world: SR2World) -> None:
 
 
 def mark_as_unlocked_after_intro(
-        world: SR2World,
-        location_cache: dict[str, Location],
-        missions: list[Mission | Stronghold],
+    world: SR2World,
+    location_cache: dict[str, Location],
+    missions: list[Mission | Stronghold],
 ):
     tss04_complete_item = get_mission_complete_item_name(get_mission_by_key("tss04"))
 
@@ -340,10 +347,10 @@ def mark_as_unlocked_after_intro(
 
 
 def mark_as_needing_all_strongholds(
-        world: SR2World,
-        location_cache: dict[str, Location],
-        mission: Mission | Stronghold,
-        strongholds: list[Stronghold],
+    world: SR2World,
+    location_cache: dict[str, Location],
+    mission: Mission | Stronghold,
+    strongholds: list[Stronghold],
 ):
     if mission.name in location_cache:
         add_rule(
@@ -370,6 +377,6 @@ def set_respect_placement_rules(world: SR2World) -> None:
             add_item_rule(
                 location,
                 lambda item: (
-                        item.name != RESPECT_ITEM_NAME or item.player != world.player
+                    item.name != RESPECT_ITEM_NAME or item.player != world.player
                 ),
             )

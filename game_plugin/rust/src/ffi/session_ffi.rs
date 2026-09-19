@@ -6,6 +6,8 @@ pub(crate) mod bridge {
     enum GameplayRequestKind {
         None,
         InstallPolicies,
+        ResetPersistentItems,
+        ReplayPersistentItem,
         ActivateItem,
     }
     struct SessionRequest {
@@ -13,6 +15,7 @@ pub(crate) mod bridge {
         name: String,
         managed_cheats: Vec<String>,
         managed_unlockables: Vec<String>,
+        persistent_items: Vec<String>,
         exclusive_respect: bool,
         block_vanilla_unlockables: bool,
         notoriety_traps: bool,
@@ -56,6 +59,7 @@ fn session_next_request(session: &mut SessionRuntime, interactive: bool) -> brid
         name: String::new(),
         managed_cheats: Vec::new(),
         managed_unlockables: Vec::new(),
+        persistent_items: Vec::new(),
         exclusive_respect: false,
         block_vanilla_unlockables: false,
         notoriety_traps: false,
@@ -65,12 +69,20 @@ fn session_next_request(session: &mut SessionRuntime, interactive: bool) -> brid
             result.kind = bridge::GameplayRequestKind::InstallPolicies;
             result.managed_cheats = session.managed_cheats;
             result.managed_unlockables = session.managed_unlockables;
+            result.persistent_items = session.persistent_items;
             result.exclusive_respect = session.exclusive_respect;
             result.block_vanilla_unlockables = session.block_vanilla_unlockables;
             result.notoriety_traps = session.notoriety_traps;
         }
         Some(GameplayRequest::ActivateItem(name)) => {
             result.kind = bridge::GameplayRequestKind::ActivateItem;
+            result.name = name;
+        }
+        Some(GameplayRequest::ResetPersistentItems) => {
+            result.kind = bridge::GameplayRequestKind::ResetPersistentItems;
+        }
+        Some(GameplayRequest::ReplayPersistentItem(name)) => {
+            result.kind = bridge::GameplayRequestKind::ReplayPersistentItem;
             result.name = name;
         }
         None => {}

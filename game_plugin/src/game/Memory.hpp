@@ -79,11 +79,21 @@ std::optional<std::array<T, N>> ReadMemoryIntoArray(std::uintptr_t address) {
 }
 
 template <std::size_t N>
-bool MatchesBytes(std::uintptr_t address,
+bool MatchesBytes(const std::uintptr_t address,
                   const std::array<std::uint8_t, N>& expected) {
     std::array<std::uint8_t, N> actual{};
 
     return SafeCopy(reinterpret_cast<const void*>(address), actual.data(), N) &&
            actual == expected;
 }
+
+template <std::size_t N>
+bool ValidateHookTarget(const std::uintptr_t address,
+                        const std::array<std::uint8_t, N>& expected) {
+    return IsExecutableAddress(address) &&
+           DetectDetour(reinterpret_cast<const void*>(address)) ==
+               DetourKind::None &&
+           MatchesBytes(address, expected);
+}
+
 }  // namespace sr2ap

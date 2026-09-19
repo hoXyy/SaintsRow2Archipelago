@@ -4,7 +4,6 @@ from . import rules, regions, locations, items, options as sr2_options
 from .items_list import (
     CHEAT_ITEMS,
     FILLER_UNLOCKABLES,
-    MONEY_ITEM_NAMES,
     TRAP_ITEMS,
     USEFUL_UNLOCKABLES,
     WEAPON_ITEM_NAMES,
@@ -91,11 +90,7 @@ class SR2World(World):
             if item.player == self.player and item.code is not None
         }
         unlockable_names = set(USEFUL_UNLOCKABLES) | set(FILLER_UNLOCKABLES)
-        cheat_names = (
-            set(CHEAT_ITEMS)
-            | set(WEAPON_ITEM_NAMES)
-            | set(TRAP_CHEATS)
-        )
+        cheat_names = set(CHEAT_ITEMS) | set(WEAPON_ITEM_NAMES) | set(TRAP_CHEATS)
         selected_arcs = self.options.required_gang_arcs.value
         goal_locations = []
 

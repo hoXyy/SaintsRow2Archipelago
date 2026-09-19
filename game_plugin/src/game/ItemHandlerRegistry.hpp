@@ -12,6 +12,8 @@ class RespectController;
 struct ItemHandlerConfiguration {
     std::vector<std::string> managedCheats;
     std::vector<std::string> managedUnlockables;
+    std::vector<std::string> persistentItems;
+
     bool notorietyTraps{};
     bool exclusiveRespect{};
     bool blockVanillaUnlockables{};

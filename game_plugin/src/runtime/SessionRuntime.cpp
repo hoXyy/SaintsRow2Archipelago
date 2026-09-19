@@ -35,6 +35,7 @@ bool SessionRuntime::InstallPolicies(const rust::SessionRequest& request) {
     ItemHandlerConfiguration configuration{
         .managedCheats = Strings(request.managed_cheats),
         .managedUnlockables = Strings(request.managed_unlockables),
+        .persistentItems = Strings(request.persistent_items),
         .notorietyTraps = request.notoriety_traps,
         .exclusiveRespect = request.exclusive_respect,
         .blockVanillaUnlockables = request.block_vanilla_unlockables,
@@ -86,11 +87,20 @@ void SessionRuntime::PollNetwork(const GameContext& context) {
 
         bool accepted = false;
         try {
-            if (request.kind == rust::GameplayRequestKind::InstallPolicies) {
-                accepted = InstallPolicies(request);
-            } else {
-                accepted =
-                    ActivateItem({request.name.data(), request.name.size()});
+            switch (request.kind) {
+                case rust::GameplayRequestKind::InstallPolicies:
+                    accepted = InstallPolicies(request);
+                    break;
+                case rust::GameplayRequestKind::ResetPersistentItems:
+                    accepted = itemHandlers_.ResetState();
+                    break;
+                case rust::GameplayRequestKind::ReplayPersistentItem:
+                case rust::GameplayRequestKind::ActivateItem:
+                    accepted = ActivateItem(
+                        {request.name.data(), request.name.size()});
+                    break;
+                case rust::GameplayRequestKind::None:
+                    return;
             }
         } catch (const std::exception& error) {
             if (request.kind != rust::GameplayRequestKind::InstallPolicies) {

@@ -32,6 +32,7 @@ pub struct IncomingMessage {
     pub slot: u32,
     pub managed_unlockables: Vec<String>,
     pub managed_cheats: Vec<String>,
+    pub persistent_items: Vec<String>,
     pub exclusive_respect: bool,
     pub block_vanilla_unlockables: bool,
     pub notoriety_traps: bool,
@@ -104,6 +105,7 @@ struct SessionReadyMessage {
     slot: u32,
     managed_unlockables: Vec<String>,
     managed_cheats: Vec<String>,
+    persistent_items: Vec<String>,
     features: Features,
     enabled_progression: EnabledProgression,
 }
@@ -196,6 +198,10 @@ pub fn parse_incoming(input: &[u8]) -> IncomingMessage {
                     Ok(names) => names,
                     Err(error) => return invalid(error),
                 };
+                let persistent_items = match validate_names(session.persistent_items) {
+                    Ok(names) => names,
+                    Err(error) => return invalid(error),
+                };
                 IncomingMessage {
                     kind: IncomingKind::SessionReady,
                     protocol: session.protocol,
@@ -204,6 +210,7 @@ pub fn parse_incoming(input: &[u8]) -> IncomingMessage {
                     slot: session.slot,
                     managed_unlockables,
                     managed_cheats,
+                    persistent_items,
                     exclusive_respect: session.features.exclusive_respect,
                     block_vanilla_unlockables: session.features.block_vanilla_unlockables,
                     notoriety_traps: session.features.notoriety_traps,
@@ -386,13 +393,15 @@ mod tests {
     #[test]
     fn session_should_deduplicate_names_in_first_seen_order() {
         let message = parse_incoming(br#"{
-          "type":"session_ready","protocol":3,"seed_name":"seed","team":1,"slot":2,
+          "type":"session_ready","protocol":4,"seed_name":"seed","team":1,"slot":2,
           "managed_unlockables":["Taxi","Taxi","Boat"],"managed_cheats":[],
+          "persistent_items":["Tag Pass","Tag Pass"],
           "features":{"exclusive_respect":true,"block_vanilla_unlockables":false,"notoriety_traps":true},
           "enabled_progression":{"missions":true,"activities":false,"hitman":true,"chop_shop":false,"cds":true,"races":true}}
         "#);
         assert_eq!(message.kind, IncomingKind::SessionReady);
         assert_eq!(message.managed_unlockables, ["Taxi", "Boat"]);
+        assert_eq!(message.persistent_items, ["Tag Pass"]);
     }
 
     #[test]
