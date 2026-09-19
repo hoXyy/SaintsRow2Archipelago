@@ -1,5 +1,8 @@
 #include "HookActivityUnlockItemHandler.hpp"
 
+#include <atomic>
+#include <utility>
+
 #include "fmt/format.h"
 #include "game/controllers/HookActivityUnlockController.hpp"
 #include "util/Logger.hpp"

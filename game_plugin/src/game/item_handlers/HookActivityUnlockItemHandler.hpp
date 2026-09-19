@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 #include "game/GameThreadDispatcher.hpp"
 #include "game/ItemHandler.hpp"

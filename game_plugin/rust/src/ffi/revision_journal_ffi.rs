@@ -22,6 +22,7 @@ pub(crate) mod bridge {
             slot: u32,
             checksum: u32,
             next_index: u64,
+            persistent_items: &[String],
         ) -> Result<()>;
         fn revision_journal_acknowledge(
             journal: &mut RevisionJournal,
@@ -59,6 +60,7 @@ fn revision_journal_record(
     slot: u32,
     checksum: u32,
     next_index: u64,
+    persistent_items: &[String],
 ) -> Result<(), JournalError> {
     journal.record(
         revision_journal::decode_seed(seed_name)?,
@@ -66,6 +68,7 @@ fn revision_journal_record(
         slot,
         checksum,
         next_index,
+        persistent_items.to_vec(),
     );
     Ok(())
 }

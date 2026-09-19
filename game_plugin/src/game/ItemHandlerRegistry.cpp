@@ -40,7 +40,7 @@ ItemHandlers CreateItemHandlers(ItemHandlerConfiguration configuration,
 
     if (!configuration.persistentItems.empty()) {
         handlers.push_back(CreateHookActivityUnlockItemHandler(
-            dispatcher, configuration.persistentItems));
+            dispatcher, std::move(configuration.persistentItems)));
     }
 
     return handlers;
