@@ -20,11 +20,22 @@ constexpr std::size_t kInstructionSize{6};
 using Instruction = std::array<std::uint8_t, kInstructionSize>;
 constexpr Instruction kSaveLoadWriter{{0x89, 0x95, 0x00, 0x12, 0x00, 0x00}};
 
+inline constexpr std::ptrdiff_t kRespectNeededCapCheckRva = 0x001624BA;
+
 struct BlockedWriter {
     const char* name;
     std::ptrdiff_t rva;
     Instruction expected;
 };
+
+constexpr std::size_t kRespectNeededCapCheckSize{3};
+using RespectNeededCapCheck =
+    std::array<std::uint8_t, kRespectNeededCapCheckSize>;
+
+constexpr RespectNeededCapCheck kRespectNeededCapCheckExpected{
+    {0x0F, 0x9D, 0xC3}};
+
+constexpr RespectNeededCapCheck kRespectNeededCapCheckPatch{{0x90, 0x90, 0x90}};
 
 constexpr std::array<BlockedWriter, 3> kBlockedWriters{{
     {.name = "style_award",
@@ -90,6 +101,22 @@ struct RespectController::Implementation {
             }
         }
 
+        const auto respectNeededCapCheckAddress =
+            gameBase + kRespectNeededCapCheckRva;
+
+        const auto respectNeededCapCheckActual =
+            ReadMemoryIntoArray<std::uint8_t, kRespectNeededCapCheckSize>(
+                respectNeededCapCheckAddress);
+
+        if (!IsInsideModule(game->handle, reinterpret_cast<const void*>(
+                                              respectNeededCapCheckAddress)) ||
+            !IsExecutableAddress(respectNeededCapCheckAddress) ||
+            !respectNeededCapCheckActual ||
+            *respectNeededCapCheckActual != kRespectNeededCapCheckExpected) {
+            LogError("Respect", "Unexpected bytes at respect-needed cap check");
+            return false;
+        }
+
         exceptionHandler = AddVectoredExceptionHandler(1, &HandleException);
         if (!exceptionHandler) {
             LogError("Respect", "Failed to install save-load writer handler");
@@ -134,14 +161,32 @@ struct RespectController::Implementation {
             }
         }
 
+        const auto respectNeededCapCheckWriteResult = WriteExecutableMemory(
+            reinterpret_cast<void*>(respectNeededCapCheckAddress),
+            kRespectNeededCapCheckPatch);
+
+        if (respectNeededCapCheckWriteResult.bytesWritten) {
+            respectNeededCapCheckPatched = true;
+        }
+
+        if (!respectNeededCapCheckWriteResult) {
+            LogError("Respect",
+                     "Failed to disable respect-needed lifetime cap check");
+            Remove();
+            return false;
+        }
+
         installed = true;
         return true;
     }
 
     void Remove() {
+        RestoreRespectNeededCapCheck();
+
         if (patchedCount != 0) {
             Restore(patchedCount);
         }
+
         RestoreSaveLoadWriter();
         handlerActivity.Stop();
         while (!handlerActivity.IsIdle()) {
@@ -333,6 +378,28 @@ struct RespectController::Implementation {
         saveLoadPatched = false;
     }
 
+    void RestoreRespectNeededCapCheck() {
+        if (!respectNeededCapCheckPatched) {
+            return;
+        }
+
+        const auto address = gameBase + kRespectNeededCapCheckRva;
+
+        const auto actual =
+            ReadMemoryIntoArray<std::uint8_t, kRespectNeededCapCheckSize>(
+                address);
+
+        if (!actual || *actual != kRespectNeededCapCheckPatch) {
+            LogWarning("Respect",
+                       "Cap check changed; not restoring respect-needed patch");
+        } else if (!WriteExecutableMemory(reinterpret_cast<void*>(address),
+                                          kRespectNeededCapCheckExpected)) {
+            LogError("Respect", "Failed to restore respect-needed cap check");
+        }
+
+        respectNeededCapCheckPatched = false;
+    }
+
     inline static std::atomic<Implementation*> active{};
     inline static HandlerActivity handlerActivity;
     std::uintptr_t gameBase{};
@@ -343,6 +410,7 @@ struct RespectController::Implementation {
     void* exceptionHandler{};
     bool saveLoadPatched{};
     bool installed{};
+    bool respectNeededCapCheckPatched{};
 };
 
 RespectController::RespectController() = default;
