@@ -274,6 +274,17 @@ class StyleLevelLocationCount(Range):
     default = 7
 
 
+class AllowProgressionItemsOnHighStyleLevel(Choice):
+    """
+    Allow progression items on high Style Level locations.
+
+    NOTE: Getting to Style Level 9 and 10 requires A LOT of money! Keep that in mind when enabling this option!
+    """
+
+    display_name = "Allow progression items on high Style Level locations"
+    default = 0
+
+
 class IncludeTags(Toggle):
     """
     Whether to include all 50 tags as individual location checks.
@@ -361,6 +372,7 @@ class SR2Options(PerGameCommonOptions):
     trap_chance: TrapChance
     bonus_respect_percentage: BonusRespectPercentage
     style_level_location_count: StyleLevelLocationCount
+    allow_progression_items_on_high_style_level: AllowProgressionItemsOnHighStyleLevel
     money_filler_item_weight: MoneyFillerItemWeight
     weapon_filler_item_weight: WeaponFillerItemWeight
     vehicle_filler_item_weight: VehicleFillerItemWeight
@@ -405,6 +417,7 @@ option_groups = [
         "Other Location Options",
         [
             StyleLevelLocationCount,
+            AllowProgressionItemsOnHighStyleLevel,
             IncludeSecretMission,
         ],
     ),
