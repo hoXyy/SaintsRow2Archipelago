@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 
 from worlds.generic.Rules import add_rule, add_item_rule, forbid_items
 from BaseClasses import Location, LocationProgressType
-from .collectibles import CD_MAPPING, TAGS_MAPPING
+from .collectibles import CD_MAPPING, STYLE_LEVEL_LOCATIONS, TAGS_MAPPING
 
 if TYPE_CHECKING:
     from .world import SR2World
@@ -303,15 +303,28 @@ def set_collectible_rules(world: SR2World):
 def set_style_level_rules(world: SR2World):
     location_cache = world.multiworld.regions.location_cache[world.player]
 
-    # Too much money is needed to do these, so I'm not allowing putting progression items on these
-    for location in [
-        "Style Level - Level 8",
-        "Style Level - Level 9",
-        "Style Level - Level 10",
-    ]:
-        if location in location_cache:
-            world_location = world.get_location(location)
-            world_location.progress_type = LocationProgressType.EXCLUDED
+    # Too much money is needed to do these, so I'm not allowing putting progression items on these (unless the player wants it)
+    if bool(world.options.allow_progression_items_on_high_style_level.value) == False:
+        for location in [
+            "Style Level - Level 8",
+            "Style Level - Level 9",
+            "Style Level - Level 10",
+        ]:
+            if location in location_cache:
+                world_location = world.get_location(location)
+                world_location.progress_type = LocationProgressType.EXCLUDED
+
+    # Have a chance of a progression item to exist in the middle of the style level chain in addition to right at the end
+    if world.random.random() < 0.5:
+        candidates = [
+            name
+            for name in STYLE_LEVEL_LOCATIONS[3:6]  # Levels 4–6
+            if name in location_cache
+        ]
+
+        if candidates:
+            chosen = world.random.choice(candidates)
+            world.get_location(chosen).progress_type = LocationProgressType.PRIORITY
 
 
 def set_item_rules(world: SR2World):
