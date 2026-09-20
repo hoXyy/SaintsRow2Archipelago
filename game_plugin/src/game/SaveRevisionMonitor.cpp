@@ -130,6 +130,13 @@ struct SaveRevisionMonitor::Implementation {
                      "Exceptions suppressed inside load-call hook=" +
                          std::to_string(failures));
         }
+        const auto saveReadFailureCount =
+            saveReadFailures.exchange(0, std::memory_order_acq_rel);
+        if (saveReadFailureCount != 0) {
+            LogError("SaveRevision",
+                     "Could not read city-save checksum at save-call hook=" +
+                         std::to_string(saveReadFailureCount));
+        }
     }
 
     std::optional<std::uint32_t> CurrentChecksum() const {
@@ -178,24 +185,26 @@ struct SaveRevisionMonitor::Implementation {
             self->callbackFailures.fetch_add(1, std::memory_order_release);
         }
 
-        self->saveObject.store(context.eax, std::memory_order_relaxed);
         if (const auto checksum = ReadChecksum(context.eax)) {
             self->loadChecksum.store(*checksum, std::memory_order_relaxed);
             self->loadSequence.fetch_add(1, std::memory_order_release);
         }
     }
 
-    static void SaveCallHook(safetyhook::Context&) noexcept {
+    static void SaveCallHook(safetyhook::Context& context) noexcept {
         auto hookLease = hookActivity.Acquire();
         auto* const self = active.load(std::memory_order_acquire);
         if (!hookLease || !self) {
             return;
         }
 
-        if (const auto checksum = ReadChecksum(
-                self->saveObject.load(std::memory_order_relaxed))) {
+        // At kSaveWriteOpenCallRva, EBP still holds the current serialized
+        // city-save buffer and its checksum has already been written at +0.
+        if (const auto checksum = ReadChecksum(context.ebp)) {
             self->saveChecksum.store(*checksum, std::memory_order_relaxed);
             self->saveSequence.fetch_add(1, std::memory_order_release);
+        } else {
+            self->saveReadFailures.fetch_add(1, std::memory_order_release);
         }
     }
 
@@ -206,13 +215,13 @@ struct SaveRevisionMonitor::Implementation {
     LoadStartingCallback loadStarting;
     safetyhook::MidHook loadHook;
     safetyhook::MidHook saveHook;
-    std::atomic<std::uintptr_t> saveObject;
     std::atomic<std::uint32_t> loadChecksum;
     std::atomic<std::uint32_t> saveChecksum;
     std::atomic<std::uint32_t> currentChecksum;
     std::atomic<std::uint64_t> loadSequence;
     std::atomic<std::uint64_t> saveSequence;
     std::atomic<std::uint32_t> callbackFailures;
+    std::atomic<std::uint32_t> saveReadFailures;
     std::uint64_t reportedLoad{};
     std::uint64_t reportedSave{};
 };

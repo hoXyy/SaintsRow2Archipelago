@@ -25,6 +25,7 @@ pub struct IncomingMessage {
     pub name: String,
     pub checksum: u32,
     pub next_index: u64,
+    pub snapshot_known: bool,
     pub accepted: bool,
     pub protocol: u32,
     pub seed_name: String,
@@ -66,6 +67,8 @@ struct SaveContextMessage {
     _message_type: String,
     checksum: u32,
     next_index: u64,
+    snapshot_known: bool,
+    persistent_items: Vec<String>,
 }
 
 #[derive(Deserialize)]
@@ -169,12 +172,20 @@ pub fn parse_incoming(input: &[u8]) -> IncomingMessage {
             Err(error) => *error,
         },
         "save_context" => match decode::<SaveContextMessage>(input) {
-            Ok(context) => IncomingMessage {
-                kind: IncomingKind::SaveContext,
-                checksum: context.checksum,
-                next_index: context.next_index,
-                ..IncomingMessage::default()
-            },
+            Ok(context) => {
+                let persistent_items = match validate_names(context.persistent_items) {
+                    Ok(names) => names,
+                    Err(error) => return invalid(error),
+                };
+                IncomingMessage {
+                    kind: IncomingKind::SaveContext,
+                    checksum: context.checksum,
+                    next_index: context.next_index,
+                    snapshot_known: context.snapshot_known,
+                    persistent_items,
+                    ..IncomingMessage::default()
+                }
+            }
             Err(error) => *error,
         },
         "save_revision_ack" => match decode::<SaveRevisionAcknowledgementMessage>(input) {
@@ -306,6 +317,8 @@ struct GameContext {
     needs_cursor: bool,
     next_index: u64,
     provisional: bool,
+    snapshot_known: bool,
+    persistent_items: Vec<String>,
     #[serde(rename = "type")]
     message_type: &'static str,
 }
@@ -316,11 +329,31 @@ pub fn serialize_game_context(
     provisional: bool,
     needs_cursor: bool,
 ) -> String {
+    serialize_game_context_with_snapshot(
+        checksum,
+        next_index,
+        provisional,
+        needs_cursor,
+        false,
+        Vec::new(),
+    )
+}
+
+pub fn serialize_game_context_with_snapshot(
+    checksum: Option<u32>,
+    next_index: u64,
+    provisional: bool,
+    needs_cursor: bool,
+    snapshot_known: bool,
+    persistent_items: Vec<String>,
+) -> String {
     serde_json::to_string(&GameContext {
         checksum,
         needs_cursor,
         next_index,
         provisional,
+        snapshot_known,
+        persistent_items,
         message_type: "game_context",
     })
     .unwrap_or_default()
@@ -372,6 +405,21 @@ mod tests {
     }
 
     #[test]
+    fn parser_should_read_reconciled_save_snapshot() {
+        let message = parse_incoming(
+            br#"{
+          "type":"save_context","checksum":42,"next_index":3,
+          "snapshot_known":true,"persistent_items":["Tag Pass"]}
+        "#,
+        );
+
+        assert_eq!(message.kind, IncomingKind::SaveContext);
+        assert!(message.snapshot_known);
+        assert_eq!(message.next_index, 3);
+        assert_eq!(message.persistent_items, ["Tag Pass"]);
+    }
+
+    #[test]
     fn session_should_enforce_utf8_byte_and_list_limits() {
         assert!(validate_name(&"x".repeat(MAXIMUM_NAME_SIZE)).is_ok());
         assert!(validate_name(&"é".repeat(MAXIMUM_NAME_SIZE / 2)).is_ok());
@@ -396,7 +444,7 @@ mod tests {
     #[test]
     fn session_should_deduplicate_names_in_first_seen_order() {
         let message = parse_incoming(br#"{
-          "type":"session_ready","protocol":4,"seed_name":"seed","team":1,"slot":2,
+          "type":"session_ready","protocol":5,"seed_name":"seed","team":1,"slot":2,
           "managed_unlockables":["Taxi","Taxi","Boat"],"managed_cheats":[],
           "persistent_items":["Tag Pass","Tag Pass"],
           "features":{"exclusive_respect":true,"block_vanilla_unlockables":false,"notoriety_traps":true},
@@ -414,6 +462,8 @@ mod tests {
         assert_eq!(value["type"], "game_context");
         assert!(value["checksum"].is_null());
         assert_eq!(value["next_index"], 4);
+        assert_eq!(value["snapshot_known"], false);
+        assert_eq!(value["persistent_items"], serde_json::json!([]));
 
         let rejection: serde_json::Value =
             serde_json::from_str(&serialize_session_rejection("reason", "message")).unwrap();

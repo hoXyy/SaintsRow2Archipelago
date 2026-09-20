@@ -25,7 +25,7 @@ struct SessionJournal {
     snapshots: BTreeMap<u32, SaveSnapshot>,
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Clone, Default)]
 pub(crate) struct RevisionJournal {
     sessions: BTreeMap<String, SessionJournal>,
 }
@@ -284,6 +284,23 @@ impl RevisionJournal {
                 persistent_items,
             },
         );
+    }
+
+    pub(crate) fn store_snapshot(
+        &mut self,
+        seed_name: &str,
+        team: u32,
+        slot: u32,
+        checksum: u32,
+        snapshot: SaveSnapshot,
+    ) -> Result<(), JournalError> {
+        validate_snapshot(&snapshot)?;
+        self.sessions
+            .entry(session_key(seed_name, team, slot))
+            .or_default()
+            .snapshots
+            .insert(checksum, snapshot);
+        Ok(())
     }
 
     pub(crate) fn acknowledge(
