@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from Options import OptionError
+
 from worlds.generic.Rules import add_rule, add_item_rule, forbid_items
-from BaseClasses import Location
+from BaseClasses import Location, LocationProgressType
 from .collectibles import CD_MAPPING, TAGS_MAPPING
 
 if TYPE_CHECKING:
@@ -56,6 +56,7 @@ def set_all_rules(world: SR2World) -> None:
     set_respect_placement_rules(world)
     set_item_rules(world)
     set_collectible_rules(world)
+    set_style_level_rules(world)
 
 
 def set_mission_rules(world: SR2World) -> None:
@@ -297,6 +298,20 @@ def set_collectible_rules(world: SR2World):
                 world.get_location(location),
                 lambda state: state.has(TAGS_UNLOCK_ITEM, world.player),
             )
+
+
+def set_style_level_rules(world: SR2World):
+    location_cache = world.multiworld.regions.location_cache[world.player]
+
+    # Too much money is needed to do these, so I'm not allowing putting progression items on these
+    for location in [
+        "Style Level - Level 8",
+        "Style Level - Level 9",
+        "Style Level - Level 10",
+    ]:
+        if location in location_cache:
+            world_location = world.get_location(location)
+            world_location.progress_type = LocationProgressType.EXCLUDED
 
 
 def set_item_rules(world: SR2World):
