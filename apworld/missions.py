@@ -399,6 +399,16 @@ MISSION_CHAINS = [
     ULTOR_EPILOGUE_CHAIN,
 ]
 
+ALL_MISSIONS = (
+    *(
+        mission
+        for chain in MISSION_CHAINS
+        for mission in (*chain["missions"], *chain["strongholds"])
+    ),
+    ULTOR_SECRET_MISSION,
+    STILWATER_CAVERNS_STRONGHOLD,
+)
+
 
 def get_mission_by_id(id: int) -> Mission:
     for chain in MISSION_CHAINS:
