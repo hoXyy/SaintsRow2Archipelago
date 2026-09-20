@@ -283,6 +283,58 @@ class IncludeTags(Toggle):
     default = 1
 
 
+class MoneyFillerItemWeight(Range):
+    """
+    The weights of a money filler item to be included in the item pool.
+    """
+
+    display_name = "Money Filler Item Weight"
+
+    range_start = 0
+    range_end = 100
+
+    default = 25
+
+
+class WeaponFillerItemWeight(Range):
+    """
+    The weights of a weapon filler item to be included in the item pool.
+    """
+
+    display_name = "Weapon Filler Item Weight"
+
+    range_start = 0
+    range_end = 100
+
+    default = 25
+
+
+class VehicleFillerItemWeight(Range):
+    """
+    The weights of a vehicle filler item to be included in the item pool.
+    """
+
+    display_name = "Vehicle Filler Item Weight"
+
+    range_start = 0
+    range_end = 100
+
+    default = 25
+
+
+class MiscFillerItemWeight(Range):
+    """
+    The weights of a misc. filler item to be included in the item pool.
+    """
+
+    display_name = "Misc. Filler Item Weight"
+
+    range_start = 0
+    range_end = 100
+
+    default = 25
+
+
 @dataclass
 class SR2Options(PerGameCommonOptions):
     required_gang_arcs: RequiredGangArcs
@@ -309,6 +361,10 @@ class SR2Options(PerGameCommonOptions):
     trap_chance: TrapChance
     bonus_respect_percentage: BonusRespectPercentage
     style_level_location_count: StyleLevelLocationCount
+    money_filler_item_weight: MoneyFillerItemWeight
+    weapon_filler_item_weight: WeaponFillerItemWeight
+    vehicle_filler_item_weight: VehicleFillerItemWeight
+    misc_filler_item_weight: MiscFillerItemWeight
 
 
 option_groups = [
@@ -334,6 +390,15 @@ option_groups = [
             IncludeSnatch,
             IncludeTorch,
             IncludeTags,
+        ],
+    ),
+    OptionGroup(
+        "Filler Item Weights Options",
+        [
+            MoneyFillerItemWeight,
+            WeaponFillerItemWeight,
+            VehicleFillerItemWeight,
+            MiscFillerItemWeight,
         ],
     ),
     OptionGroup(

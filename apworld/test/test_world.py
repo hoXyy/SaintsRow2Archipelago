@@ -4,7 +4,6 @@ from ..items_list import (
     FILLER_UNLOCKABLES,
     CHEAT_ITEMS,
     WEAPON_ITEM_NAMES,
-    MONEY_ITEM_NAMES,
     TRAP_CHEATS,
     TRAP_ITEMS,
 )
