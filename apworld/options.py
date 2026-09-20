@@ -271,7 +271,7 @@ class StyleLevelLocationCount(Range):
     range_start = 0
     range_end = 10
 
-    default = 10
+    default = 7
 
 
 class IncludeTags(Toggle):
