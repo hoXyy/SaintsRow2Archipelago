@@ -12,6 +12,7 @@ from ..missions import (
     BROTHERHOOD_CHAIN,
     MISSION_CHAINS,
     ULTOR_SECRET_MISSION,
+    STILWATER_CAVERNS_STRONGHOLD,
     get_mission_complete_event_name,
 )
 from ..options import (
@@ -89,6 +90,7 @@ class TestMissionPredecessors(SR2TestBase):
             ULTOR_EPILOGUE_ARC_NAME,
         },
         "include_secret_mission": 1,
+        "include_stilwater_caverns": 1,
     }
 
     def test_every_mission_and_event_require_their_predecessor(self) -> None:
@@ -99,6 +101,7 @@ class TestMissionPredecessors(SR2TestBase):
             for entry in (*chain["missions"], *chain["strongholds"])
         ]
         entries.append(ULTOR_SECRET_MISSION)
+        entries.append(STILWATER_CAVERNS_STRONGHOLD)
 
         for entry in entries:
             if entry.name not in location_cache or entry.unlocked_by is None:
@@ -110,9 +113,7 @@ class TestMissionPredecessors(SR2TestBase):
                     get_mission_complete_item_name(predecessor)
                 )
                 location = self.world.get_location(entry.name)
-                event = self.world.get_location(
-                    get_mission_complete_event_name(entry)
-                )
+                event = self.world.get_location(get_mission_complete_event_name(entry))
                 state = self.multiworld.get_all_state()
 
                 state.remove(predecessor_item)
@@ -144,6 +145,7 @@ class TestMissionPredecessorData(unittest.TestCase):
             for entry in (*chain["missions"], *chain["strongholds"])
         ]
         entries.append(ULTOR_SECRET_MISSION)
+        entries.append(STILWATER_CAVERNS_STRONGHOLD)
 
         for entry in entries:
             if entry.unlocked_by is None:
@@ -199,6 +201,16 @@ class TestSecretMissionLocationDisabled(SR2TestBase):
 
     def test_secret_mission_disabled(self) -> None:
         self.assertRaises(KeyError, self.world.get_location, ULTOR_SECRET_MISSION.name)
+
+
+class TestStilwaterCavernsLocationDisabled(SR2TestBase):
+    run_default_tests = False
+    options = {"include_stilwater_caverns": 0}
+
+    def test_stilwater_caverns_disabled(self) -> None:
+        self.assertRaises(
+            KeyError, self.world.get_location, STILWATER_CAVERNS_STRONGHOLD.name
+        )
 
 
 class TestEpilogueAccess(SR2TestBase):

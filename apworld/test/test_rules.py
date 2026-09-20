@@ -3,6 +3,7 @@ from ..missions import (
     ULTOR_SECRET_MISSION,
     get_mission_by_key,
     get_mission_complete_item_name,
+    STILWATER_CAVERNS_STRONGHOLD,
 )
 from ..options import (
     BROTHERHOOD_ARC_NAME,
@@ -123,6 +124,22 @@ class TestCompletionRules(SR2TestBase):
         state = self.multiworld.get_all_state()
         secret_item = self.get_item_by_name(
             get_mission_complete_item_name(ULTOR_SECRET_MISSION)
+        )
+
+        state.remove(secret_item)
+
+        self.assertFalse(self.multiworld.completion_condition[self.player](state))
+
+    def test_stilwater_caverns_is_additional_goal(self) -> None:
+        self.options = {
+            "required_gang_arcs": {RONIN_ARC_NAME},
+            "include_stilwater_caverns": 1,
+            "include_stilwater_caverns_as_goal": 1,
+        }
+        self.world_setup()
+        state = self.multiworld.get_all_state()
+        secret_item = self.get_item_by_name(
+            get_mission_complete_item_name(STILWATER_CAVERNS_STRONGHOLD)
         )
 
         state.remove(secret_item)

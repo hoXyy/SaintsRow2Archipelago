@@ -54,14 +54,7 @@ TSS_INTRO_CHAIN: MissionChain = {
             unlocked_by="tss03",
         ),
     ],
-    "strongholds": [
-        Mission(
-            id=5,
-            key="sh_tss_caverns",
-            name="Saints Stronghold: Stilwater Caverns",
-            unlocked_by="tss03",
-        )
-    ],
+    "strongholds": [],
 }
 
 
@@ -391,6 +384,13 @@ ULTOR_SECRET_MISSION = Mission(
     id=56, key="em01", name="Ultor Secret Mission: Revelation", unlocked_by="tss04"
 )
 
+STILWATER_CAVERNS_STRONGHOLD = Mission(
+    id=5,
+    key="sh_tss_caverns",
+    name="Saints Stronghold: Stilwater Caverns",
+    unlocked_by="tss03",
+)
+
 MISSION_CHAINS = [
     TSS_INTRO_CHAIN,
     RONIN_CHAIN,
@@ -445,6 +445,9 @@ def get_required_respect_count(world: SR2World) -> int:
         ) + len(ULTOR_EPILOGUE_CHAIN["strongholds"])
 
     if world.options.include_secret_mission.value == 1:
+        missions_to_complete += 1
+
+    if world.options.include_stilwater_caverns.value == 1:
         missions_to_complete += 1
 
     return missions_to_complete
@@ -503,13 +506,7 @@ def create_minimum_respect_table() -> dict[str, int]:
 
         return total_chain_cost
 
-    # The intro is special: Stilwater Caverns is not required to
-    # finish Three Kings, so don't include it in tss04's requirement.
-    add_chain(
-        TSS_INTRO_CHAIN,
-        strongholds_required_for_finale=False,
-    )
-
+    add_chain(TSS_INTRO_CHAIN)
     add_chain(RONIN_CHAIN)
     add_chain(SAMEDI_CHAIN)
     add_chain(BROTHERHOOD_CHAIN)
@@ -517,5 +514,6 @@ def create_minimum_respect_table() -> dict[str, int]:
 
     # special entry for Revelation
     table[ULTOR_SECRET_MISSION.key] = 3
+    table[STILWATER_CAVERNS_STRONGHOLD.key] = 2
 
     return table
