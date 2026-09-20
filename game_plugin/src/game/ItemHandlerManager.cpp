@@ -65,7 +65,7 @@ void ItemHandlerManager::Update() const {
 
 void ItemHandlerManager::Remove() {
     dispatcher_.Remove();
-    for (auto & handler : std::views::reverse(handlers_)) {
+    for (auto& handler : std::views::reverse(handlers_)) {
         handler->Remove();
     }
     handlers_.clear();
