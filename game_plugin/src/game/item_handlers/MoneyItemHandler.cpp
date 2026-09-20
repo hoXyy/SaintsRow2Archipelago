@@ -1,7 +1,5 @@
 #include "MoneyItemHandler.hpp"
 
-#include <stdint.h>
-
 #include <algorithm>
 #include <array>
 #include <string_view>
@@ -18,11 +16,13 @@ struct MoneyItem {
     std::int32_t amount;
 };
 
-constexpr std::array<MoneyItem, 3> supportedItems{{
-    {.itemName = "$1,000", .amount = 1000},
-    {.itemName = "$5,000", .amount = 5000},
-    {.itemName = "$10,000", .amount = 10000},
-}};
+constexpr std::array<MoneyItem, 6> supportedItems{
+    {{.itemName = "$1,000", .amount = 1000},
+     {.itemName = "$5,000", .amount = 5000},
+     {.itemName = "$10,000", .amount = 10000},
+     {.itemName = "$25,000", .amount = 25000},
+     {.itemName = "$50,000", .amount = 50000},
+     {.itemName = "$100,000", .amount = 100000}}};
 
 const MoneyItem* FindItem(const std::string_view itemName) noexcept {
     const auto found = std::ranges::find_if(
