@@ -47,7 +47,41 @@ class SR2World(World):
 
     origin_region_name = "Stilwater"
 
+    ut_can_gen_without_yaml = True
+
+    @staticmethod
+    def interpret_slot_data(slot_data: dict[str, object]) -> dict[str, object]:
+        return slot_data
+
+    def __init__(self, multiworld, player):
+        super().__init__(multiworld, player)
+        self.ut_checked_locations: frozenset[int] = frozenset()
+        self.ut_received_respect = 0
+        self.ut_spent_respect = 0
+
+    @property
+    def ut_available_respect(self) -> int:
+        return max(0, self.ut_received_respect - self.ut_spent_respect)
+
     def generate_early(self) -> None:
+        re_gen_passthrough = getattr(
+            self.multiworld,
+            "re_gen_passthrough",
+            {},
+        )
+
+        slot_data = re_gen_passthrough.get(self.game)
+
+        if slot_data is not None:
+            for option_name, value in slot_data.get("options", {}).items():
+                option = getattr(self.options, option_name, None)
+                if option is not None:
+                    setattr(
+                        self.options,
+                        option_name,
+                        option.from_any(value),
+                    )
+
         enabled_gang_arcs = self.options.required_gang_arcs.value
 
         filler_weight_total = sum(
@@ -170,4 +204,7 @@ class SR2World(World):
                 "tags": bool(self.options.include_tags.value),
                 "style_level": self.options.style_level_location_count > 0,
             },
+            "options": self.options.as_dict(
+                *sr2_options.SR2Options.__annotations__.keys()
+            ),
         }

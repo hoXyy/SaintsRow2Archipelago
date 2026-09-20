@@ -63,91 +63,46 @@ def set_all_rules(world: SR2World) -> None:
 def set_mission_rules(world: SR2World) -> None:
     location_cache = world.multiworld.regions.location_cache[world.player]
     minimum_respect_needed_table = create_minimum_respect_table()
+    is_ut = getattr(world.multiworld, "generation_is_fake", False)
 
     # Generic respect requirement rules for both missions and strongholds
     for chain in MISSION_CHAINS:
         for mission in chain["missions"]:
             add_mission_predecessor_rule(world, location_cache, mission)
 
-            if mission.name in location_cache:
-                respect_needed = minimum_respect_needed_table[mission.key]
-
-                if respect_needed > 0:
-                    add_rule(
-                        world.get_location(mission.name),
-                        lambda state, respect_needed=respect_needed: state.has(
-                            RESPECT_ITEM_NAME, world.player, respect_needed
-                        ),
-                    )
-
-                    if mission.creates_unlock_item:
-                        add_rule(
-                            world.get_location(
-                                get_mission_complete_event_name(mission)
-                            ),
-                            lambda state, respect_needed=respect_needed: state.has(
-                                RESPECT_ITEM_NAME, world.player, respect_needed
-                            ),
-                        )
+            add_mission_respect_rules(
+                world,
+                location_cache,
+                mission,
+                minimum_respect_needed_table[mission.key],
+                is_ut=is_ut,
+            )
 
         for stronghold in chain["strongholds"]:
             add_mission_predecessor_rule(world, location_cache, stronghold)
 
-            if stronghold.name in location_cache:
-                respect_needed = minimum_respect_needed_table[stronghold.key]
-
-                if respect_needed > 0:
-                    add_rule(
-                        world.get_location(stronghold.name),
-                        lambda state, respect_needed=respect_needed: state.has(
-                            RESPECT_ITEM_NAME, world.player, respect_needed
-                        ),
-                    )
-
-                    if stronghold.creates_unlock_item:
-                        add_rule(
-                            world.get_location(
-                                get_mission_complete_event_name(stronghold)
-                            ),
-                            lambda state, respect_needed=respect_needed: state.has(
-                                RESPECT_ITEM_NAME, world.player, respect_needed
-                            ),
-                        )
+            add_mission_respect_rules(
+                world,
+                location_cache,
+                stronghold,
+                minimum_respect_needed_table[stronghold.key],
+                is_ut=is_ut,
+            )
 
     # Mission access rules
 
-    # Add required respect count to Revelation
-    if ULTOR_SECRET_MISSION.name in location_cache:
-        respect_needed = minimum_respect_needed_table[ULTOR_SECRET_MISSION.key]
-        location = world.get_location(ULTOR_SECRET_MISSION.name)
+    for mission in (
+        ULTOR_SECRET_MISSION,
+        STILWATER_CAVERNS_STRONGHOLD,
+    ):
+        add_mission_predecessor_rule(world, location_cache, mission)
 
-        add_mission_predecessor_rule(world, location_cache, ULTOR_SECRET_MISSION)
-
-        add_rule(
-            location,
-            lambda state, respect_needed=respect_needed: state.has(
-                RESPECT_ITEM_NAME,
-                world.player,
-                respect_needed,
-            ),
-        )
-
-    # Add required respect count to Stilwater Caverns
-    if STILWATER_CAVERNS_STRONGHOLD.name in location_cache:
-        respect_needed = minimum_respect_needed_table[STILWATER_CAVERNS_STRONGHOLD.key]
-        location = world.get_location(STILWATER_CAVERNS_STRONGHOLD.name)
-
-        add_mission_predecessor_rule(
-            world, location_cache, STILWATER_CAVERNS_STRONGHOLD
-        )
-
-        add_rule(
-            location,
-            lambda state, respect_needed=respect_needed: state.has(
-                RESPECT_ITEM_NAME,
-                world.player,
-                respect_needed,
-            ),
+        add_mission_respect_rules(
+            world,
+            location_cache,
+            mission,
+            minimum_respect_needed_table[mission.key],
+            is_ut=is_ut,
         )
 
     # Mark each arc finale as needing all strongholds done
@@ -427,3 +382,55 @@ def add_mission_predecessor_rule(
             world.get_location(get_mission_complete_event_name(mission)),
             predecessor_rule,
         )
+
+
+def add_mission_respect_rules(
+    world: SR2World,
+    location_cache: dict[str, Location],
+    mission: Mission,
+    minimum_respect: int,
+    *,
+    is_ut: bool,
+) -> None:
+    if mission.name not in location_cache:
+        return
+
+    location = world.get_location(mission.name)
+
+    if is_ut:
+        if mission.required_respect > 0:
+            add_rule(
+                location,
+                lambda state, mission=mission: (
+                    world.ut_available_respect >= mission.required_respect
+                ),
+            )
+
+        if mission.creates_unlock_item:
+            event = world.get_location(get_mission_complete_event_name(mission))
+            add_rule(
+                event,
+                lambda state, mission=mission: (
+                    mission.id in world.ut_checked_locations
+                ),
+            )
+    else:
+        if minimum_respect > 0:
+            add_rule(
+                location,
+                lambda state, minimum_respect=minimum_respect: state.has(
+                    RESPECT_ITEM_NAME,
+                    world.player,
+                    minimum_respect,
+                ),
+            )
+
+            if mission.creates_unlock_item:
+                add_rule(
+                    world.get_location(get_mission_complete_event_name(mission)),
+                    lambda state, minimum_respect=minimum_respect: state.has(
+                        RESPECT_ITEM_NAME,
+                        world.player,
+                        minimum_respect,
+                    ),
+                )

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+tracker_loaded = False
+
 import asyncio
 import copy
 import json
@@ -8,9 +10,20 @@ import pkgutil
 from pathlib import Path
 from typing import Any
 
+try:
+    from worlds.tracker.TrackerClient import (
+        TrackerGameContext as SuperContext,
+        TrackerCommandProcessor as SuperCommandProcessor,
+    )
+
+    tracker_loaded = True
+except ModuleNotFoundError:
+    from CommonClient import (
+        CommonContext as SuperContext,
+        ClientCommandProcessor as SuperCommandProcessor,
+    )
+
 from CommonClient import (
-    ClientCommandProcessor,
-    CommonContext,
     get_base_parser,
     gui_enabled,
     logger,
@@ -35,7 +48,13 @@ from .collectibles import (
     TAGS_IDS,
     TAGS_MAPPING,
 )
-from .missions import MISSION_CHAINS, ULTOR_SECRET_MISSION
+from .missions import (
+    MISSION_CHAINS,
+    ULTOR_SECRET_MISSION,
+    STILWATER_CAVERNS_STRONGHOLD,
+    ALL_MISSIONS,
+)
+from .items import BONUS_RESPECT_ITEM_NAME, ITEM_NAME_TO_ID, RESPECT_ITEM_NAME
 
 PROTOCOL_VERSION = 5
 SLOT_DATA_PROTOCOL_VERSION = 4
@@ -49,6 +68,7 @@ def _mission_locations() -> dict[str, int]:
         for mission in (*chain["missions"], *chain["strongholds"]):
             result[mission.key] = mission.id
     result[ULTOR_SECRET_MISSION.key] = ULTOR_SECRET_MISSION.id
+    result[STILWATER_CAVERNS_STRONGHOLD.key] = STILWATER_CAVERNS_STRONGHOLD.id
     return result
 
 
@@ -79,7 +99,25 @@ CHOP_SHOP_LOCATIONS = _list_activities_locations("Chop Shop", CHOP_SHOP_LISTS)
 HITMAN_LOCATIONS = _list_activities_locations("Hitman", HITMAN_LISTS)
 
 
-class SR2CommandProcessor(ClientCommandProcessor):
+def calculate_ut_respect(
+    items_received: list[Any], checked_locations: set[int] | frozenset[int]
+) -> tuple[int, int]:
+    respect_item_ids = {
+        ITEM_NAME_TO_ID[RESPECT_ITEM_NAME],
+        ITEM_NAME_TO_ID[BONUS_RESPECT_ITEM_NAME],
+    }
+    received_respect = sum(
+        item.item in respect_item_ids for item in items_received
+    )
+    spent_respect = sum(
+        mission.required_respect
+        for mission in ALL_MISSIONS
+        if mission.id in checked_locations
+    )
+    return received_respect, spent_respect
+
+
+class SR2CommandProcessor(SuperCommandProcessor):
     def _cmd_plugin(self) -> bool:
         """Show the SR2 plugin bridge state."""
         connected = self.ctx.plugin_writer is not None
@@ -95,8 +133,9 @@ class SR2CommandProcessor(ClientCommandProcessor):
         return True
 
 
-class SR2Context(CommonContext):
+class SR2Context(SuperContext):
     game = "Saints Row 2"
+    tags = {"AP"}
     items_handling = 0b111
     command_processor = SR2CommandProcessor
 
@@ -122,17 +161,18 @@ class SR2Context(CommonContext):
         self.ledger_path = Path(user_path("saints_row_2", "item_ledger.json"))
         self.ledger = self._load_ledger()
 
-    def run_gui(self):
-        from kvui import GameManager
+    def make_gui(self):
+        base_manager = super().make_gui()
 
         icon_path = Path(user_path("saints_row_2", "client_icon.png"))
         icon_data = pkgutil.get_data(__package__, "icon.png")
+
         if icon_data is not None:
             icon_path.parent.mkdir(parents=True, exist_ok=True)
             if not icon_path.exists() or icon_path.read_bytes() != icon_data:
                 icon_path.write_bytes(icon_data)
 
-        class SR2Manager(GameManager):
+        class SR2Manager(base_manager):
             base_title = "Saints Row 2 Client"
 
             def __init__(self, ctx):
@@ -140,17 +180,31 @@ class SR2Context(CommonContext):
                 if icon_data is not None:
                     self.icon = str(icon_path)
 
-        self.ui = SR2Manager(self)
-        self.ui_task = asyncio.create_task(self.ui.async_run(), name="UI")
+        return SR2Manager
+
+    def updateTracker(self):
+        world = self.tracker_core.get_current_world()
+
+        if world is not None:
+            checked_locations = frozenset(self.checked_locations)
+            received_respect, spent_respect = calculate_ut_respect(
+                self.items_received,
+                checked_locations,
+            )
+
+            world.ut_checked_locations = checked_locations
+            world.ut_received_respect = received_respect
+            world.ut_spent_respect = spent_respect
+
+        return super().updateTracker()
 
     def on_package(self, cmd: str, args: dict[str, Any]) -> None:
+        super().on_package(cmd, args)
+
         if cmd == "RoomInfo":
             self.seed_name = args["seed_name"]
         elif cmd == "Connected":
             self.slot_data = args.get("slot_data")
-            # The AP server omits ReceivedItems when the initial inventory is
-            # empty. Connected therefore establishes a valid empty inventory;
-            # an immediately following ReceivedItems packet extends/replaces it.
             self.inventory_synced = True
             self.bridge_event.set()
         elif cmd == "ReceivedItems":
@@ -592,6 +646,9 @@ async def run_client(ctx: SR2Context) -> None:
     logger.info(f"Waiting for SR2 plugin on 127.0.0.1:{ctx.plugin_port}")
     ctx.server_task = asyncio.create_task(server_loop(ctx), name="ServerLoop")
     watcher = asyncio.create_task(bridge_watcher(ctx), name="SR2Bridge")
+    if tracker_loaded:
+        ctx.run_generator()
+
     if gui_enabled:
         ctx.run_gui()
     ctx.run_cli()
@@ -614,7 +671,7 @@ def launch(*launch_args: str) -> None:
         "--plugin-port",
         type=int,
         default=DEFAULT_PLUGIN_PORT,
-        help="localhost TCP port configured in SR2Archipelago.ini",
+        help="localhost TCP port configured in SR2Archipelago.toml",
     )
     args = parser.parse_args(launch_args)
     init_logging("SR2Client", exception_logger="Client")
