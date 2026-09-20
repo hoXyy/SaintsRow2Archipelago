@@ -41,6 +41,10 @@ def make_ready_context():
             "protocol": PROTOCOL_VERSION,
             "managed_unlockables": ["Vehicle: Taxi", "Vehicle: Taxi"],
             "managed_cheats": ["$1,000", "$1,000"],
+            "persistent_items": [
+                "CD Collectible Unlock Pass",
+                "CD Collectible Unlock Pass",
+            ],
             "features": {
                 "exclusive_respect": True,
                 "block_vanilla_unlockables": True,
@@ -353,6 +357,7 @@ class TestSessionReady(unittest.IsolatedAsyncioTestCase):
         ctx = make_ready_context()
         ctx.slot_data["managed_unlockables"] = ["B", "A", "B"]
         ctx.slot_data["managed_cheats"] = ["D", "C", "D"]
+        ctx.slot_data["persistent_items"] = ["F", "E", "F"]
 
         await send_session_ready(ctx)
 
@@ -360,6 +365,16 @@ class TestSessionReady(unittest.IsolatedAsyncioTestCase):
 
         self.assertEqual(["A", "B"], message["managed_unlockables"])
         self.assertEqual(["C", "D"], message["managed_cheats"])
+        self.assertEqual(["E", "F"], message["persistent_items"])
+
+    async def test_missing_persistent_items_is_not_sent(self) -> None:
+        ctx = make_ready_context()
+        del ctx.slot_data["persistent_items"]
+
+        await send_session_ready(ctx)
+
+        self.assertFalse(ctx.session_sent)
+        ctx.send_plugin.assert_not_awaited()
 
     async def test_wrong_protocol_is_not_sent(self) -> None:
         ctx = make_ready_context()

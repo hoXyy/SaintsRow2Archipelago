@@ -4,7 +4,6 @@ from . import rules, regions, locations, items, options as sr2_options
 from .items_list import (
     CHEAT_ITEMS,
     FILLER_UNLOCKABLES,
-    MONEY_ITEM_NAMES,
     TRAP_ITEMS,
     USEFUL_UNLOCKABLES,
     WEAPON_ITEM_NAMES,
@@ -58,16 +57,6 @@ class SR2World(World):
         if len(enabled_gang_arcs) == 0:
             raise OptionError("You didn't enable any gang arcs.")
 
-        if sr2_options.ULTOR_EPILOGUE_ARC_NAME in enabled_gang_arcs:
-            if not {
-                sr2_options.RONIN_ARC_NAME,
-                sr2_options.SAMEDI_ARC_NAME,
-                sr2_options.BROTHERHOOD_ARC_NAME,
-            }.issubset(enabled_gang_arcs):
-                raise OptionError(
-                    "All gang arcs need to be enabled to be able to do the epilogue."
-                )
-
     def get_filler_item_name(self) -> str:
         return items.get_random_filler_item_name(self)
 
@@ -87,15 +76,14 @@ class SR2World(World):
     def fill_slot_data(self) -> dict[str, object]:
         selected_names = {
             item.name
-            for item in self.multiworld.get_items()
+            for item in (
+                *self.multiworld.get_items(),
+                *self.multiworld.precollected_items[self.player],
+            )
             if item.player == self.player and item.code is not None
         }
         unlockable_names = set(USEFUL_UNLOCKABLES) | set(FILLER_UNLOCKABLES)
-        cheat_names = (
-            set(CHEAT_ITEMS)
-            | set(WEAPON_ITEM_NAMES)
-            | set(TRAP_CHEATS)
-        )
+        cheat_names = set(CHEAT_ITEMS) | set(WEAPON_ITEM_NAMES) | set(TRAP_CHEATS)
         selected_arcs = self.options.required_gang_arcs.value
         goal_locations = []
 
@@ -112,10 +100,13 @@ class SR2World(World):
             goal_locations.append(ULTOR_SECRET_MISSION.id)
 
         return {
-            "protocol": 3,
+            "protocol": 4,
             "goal_locations": goal_locations,
             "managed_unlockables": sorted(selected_names & unlockable_names),
             "managed_cheats": sorted(selected_names & cheat_names),
+            "persistent_items": sorted(
+                selected_names & set(items.PERSISTENT_ACTIVITY_UNLOCK_ITEMS)
+            ),
             "features": {
                 "exclusive_respect": bool(
                     selected_names
@@ -146,6 +137,7 @@ class SR2World(World):
                 "chop_shop": bool(self.options.include_chop_shop.value),
                 "cds": bool(self.options.include_cds.value),
                 "races": bool(self.options.include_races.value),
+                "tags": bool(self.options.include_tags.value),
                 "style_level": self.options.style_level_location_count > 0,
             },
         }

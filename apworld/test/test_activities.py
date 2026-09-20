@@ -1,12 +1,18 @@
 from .bases import SR2TestBase
 from ..activities import (
     ACTIVITIES_LEVEL_BASED,
+    ACTIVITY_STARTING_ACTIVITY_ITEM_MAPPING,
     CHOP_SHOP_LISTS,
     HITMAN_LISTS,
     RACES,
     MEDAL_STRINGS,
 )
 from ..missions import get_mission_complete_item_name, get_mission_by_key
+from ..items import (
+    CHOP_SHOP_UNLOCK_ITEM,
+    HITMAN_UNLOCK_ITEM,
+    get_race_unlock_item,
+)
 
 
 class TestActivityLocations(SR2TestBase):
@@ -18,9 +24,11 @@ class TestActivityLocations(SR2TestBase):
                 district for instance in instances for district in instance.values()
             ]
 
-            unlock_mission_key = "tss04" if activity == "Heli Assault" else "tss02"
-            unlock_item = self.get_item_by_name(
-                get_mission_complete_item_name(get_mission_by_key(unlock_mission_key))
+            tss02_complete_item = self.get_item_by_name(
+                get_mission_complete_item_name(get_mission_by_key("tss02"))
+            )
+            activity_unlock_item = self.get_item_by_name(
+                ACTIVITY_STARTING_ACTIVITY_ITEM_MAPPING[activity]
             )
 
             for district in districts:
@@ -45,7 +53,8 @@ class TestActivityLocations(SR2TestBase):
                     self.assertFalse(level_2.access_rule(state))
                     self.assertFalse(level_2_event.access_rule(state))
 
-                    state.collect(unlock_item, prevent_sweep=True)
+                    state.collect(tss02_complete_item, prevent_sweep=True)
+                    state.collect(activity_unlock_item, prevent_sweep=True)
 
                     self.assertTrue(level_1.access_rule(state))
                     self.assertFalse(level_2.access_rule(state))
@@ -86,8 +95,6 @@ class TestActivityLocations(SR2TestBase):
 
     def test_activity_start_access_rules(self) -> None:
         for activity in ACTIVITIES_LEVEL_BASED:
-            is_heli_assault = activity == "Heli Assault"
-
             districts = [
                 value for d in ACTIVITIES_LEVEL_BASED[activity] for value in d.values()
             ]
@@ -98,17 +105,94 @@ class TestActivityLocations(SR2TestBase):
                     lvl1_location = self.world.get_location(
                         f"{activity} ({district}) - Level 1"
                     )
-                    complete_item = self.get_item_by_name(
-                        get_mission_complete_item_name(
-                            get_mission_by_key("tss04" if is_heli_assault else "tss02")
-                        )
+                    tss02_complete_item = self.get_item_by_name(
+                        get_mission_complete_item_name(get_mission_by_key("tss02"))
+                    )
+                    activity_unlock_item = self.get_item_by_name(
+                        ACTIVITY_STARTING_ACTIVITY_ITEM_MAPPING[activity]
                     )
 
                     self.assertFalse(lvl1_location.can_reach(state))
 
-                    state.collect(complete_item)
+                    state.collect(tss02_complete_item, prevent_sweep=True)
+                    state.collect(activity_unlock_item, prevent_sweep=True)
 
                     self.assertTrue(lvl1_location.can_reach(state))
+
+    def test_chop_shop_requires_story_gate_and_unlock_pass(self) -> None:
+        list_name, vehicles = next(iter(CHOP_SHOP_LISTS.items()))
+        vehicle = next(iter(vehicles[0].values()))
+        location = self.world.get_location(f"Chop Shop ({list_name}) - {vehicle}")
+        state = self.get_fresh_state()
+
+        story_item = self.get_item_by_name(
+            get_mission_complete_item_name(get_mission_by_key("tss02"))
+        )
+        unlock_item = self.get_item_by_name(CHOP_SHOP_UNLOCK_ITEM)
+
+        self.assertFalse(location.access_rule(state))
+        state.collect(story_item, prevent_sweep=True)
+        self.assertFalse(location.access_rule(state))
+
+        state = self.get_fresh_state()
+        state.collect(unlock_item, prevent_sweep=True)
+        self.assertFalse(location.access_rule(state))
+        state.collect(story_item, prevent_sweep=True)
+        self.assertTrue(location.access_rule(state))
+
+    def test_hitman_requires_story_gate_and_unlock_pass(self) -> None:
+        list_name, targets = next(iter(HITMAN_LISTS.items()))
+        target = next(iter(targets[0].values()))
+        location = self.world.get_location(f"Hitman ({list_name}) - {target}")
+        state = self.get_fresh_state()
+
+        story_item = self.get_item_by_name(
+            get_mission_complete_item_name(get_mission_by_key("tss02"))
+        )
+        unlock_item = self.get_item_by_name(HITMAN_UNLOCK_ITEM)
+
+        self.assertFalse(location.access_rule(state))
+        state.collect(story_item, prevent_sweep=True)
+        self.assertFalse(location.access_rule(state))
+
+        state = self.get_fresh_state()
+        state.collect(unlock_item, prevent_sweep=True)
+        self.assertFalse(location.access_rule(state))
+        state.collect(story_item, prevent_sweep=True)
+        self.assertTrue(location.access_rule(state))
+
+    def test_each_race_class_requires_story_gate_and_its_unlock_pass(self) -> None:
+        representative_keys = [
+            "car_air1",
+            "bike_air",
+            "plane_air",
+            "heli_dt",
+            "boat_ht",
+            "jetski_cv",
+        ]
+        story_item_name = get_mission_complete_item_name(get_mission_by_key("tss02"))
+
+        for race_key in representative_keys:
+            race_name = RACES[race_key]
+            location = self.world.get_location(
+                f"{race_name} - {MEDAL_STRINGS['bronze']}"
+            )
+            state = self.get_fresh_state()
+            story_item = self.get_item_by_name(story_item_name)
+            unlock_item = self.get_item_by_name(get_race_unlock_item(race_key))
+
+            with self.subTest(race=race_key):
+                self.assertFalse(location.access_rule(state))
+                state.collect(story_item, prevent_sweep=True)
+                self.assertFalse(location.access_rule(state))
+
+                state = self.get_fresh_state()
+                unlock_item = self.get_item_by_name(get_race_unlock_item(race_key))
+                story_item = self.get_item_by_name(story_item_name)
+                state.collect(unlock_item, prevent_sweep=True)
+                self.assertFalse(location.access_rule(state))
+                state.collect(story_item, prevent_sweep=True)
+                self.assertTrue(location.access_rule(state))
 
 
 class TestChopShopDisabled(SR2TestBase):

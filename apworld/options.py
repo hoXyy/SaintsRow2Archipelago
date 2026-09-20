@@ -1,18 +1,18 @@
 from dataclasses import dataclass
 
-from Options import OptionGroup, PerGameCommonOptions, Toggle, OptionSet, Range
+from Options import OptionGroup, PerGameCommonOptions, Toggle, OptionSet, Range, Choice
 
 RONIN_ARC_NAME = "Ronin Arc"
 SAMEDI_ARC_NAME = "Sons of Samedi Arc"
 BROTHERHOOD_ARC_NAME = "Brotherhood Arc"
-ULTOR_EPILOGUE_ARC_NAME = "Ultor Epilogue"
+ULTOR_EPILOGUE_ARC_NAME = "Ultor Arc"
 
 
 class RequiredGangArcs(OptionSet):
     """
     Select which mission chain(s) you need to complete to finish your game.
 
-    Available options: Ronin Arc, Sons of Samedi Arc, Brotherhood Arc, Ultor Epilogue
+    Available options: Ronin Arc, Sons of Samedi Arc, Brotherhood Arc, Ultor Arc
     """
 
     display_name = "Required Gang Arcs"
@@ -27,9 +27,54 @@ class RequiredGangArcs(OptionSet):
     default = {RONIN_ARC_NAME}
 
 
+class StartingActivity(Choice):
+    """
+    Select which activity/collectible will be unlocked initially when you finish the mission Appointed Defender
+    """
+
+    display_name = "Starting Activity/Collectible"
+
+    option_crowd_control = 0
+    option_demo_derby = 1
+    option_drug_trafficking = 2
+    option_escort = 3
+    option_fight_club = 4
+    option_insurance_fraud = 5
+    option_fuzz = 6
+    option_heli_assault = 7
+    option_mayhem = 8
+    option_septic_avenger = 9
+    option_snatch = 10
+    option_trail_blazing = 11
+    option_chop_shop = 12
+    option_hitman = 13
+    option_cd = 14
+    option_tags = 15
+    option_car_races = 16
+    option_bike_races = 17
+    option_plane_races = 18
+    option_helicopter_races = 19
+    option_boat_races = 20
+
+    random_sentinel = -1
+
+    default = option_crowd_control
+
+    def __init__(self, value: int, randomized: bool = False):
+        super().__init__(value)
+        self.randomized = randomized
+
+    @classmethod
+    def from_text(cls, text: str):
+        if text.lower() == "random":
+            return cls(cls.default, randomized=True)
+
+        return super().from_text(text)
+
+
 class IncludeSecretMission(Toggle):
     """
-    Whether to include the secret Ultor mission in the locations list.
+    Whether to include the Ultor mission 'Revelation' in the locations list.
     """
 
     display_name = "Include the Ultor mission 'Revelation'"
@@ -229,9 +274,19 @@ class StyleLevelLocationCount(Range):
     default = 10
 
 
+class IncludeTags(Toggle):
+    """
+    Whether to include all 50 tags as individual location checks.
+    """
+
+    display_name = "Include Tags"
+    default = 1
+
+
 @dataclass
 class SR2Options(PerGameCommonOptions):
     required_gang_arcs: RequiredGangArcs
+    starting_activity: StartingActivity
     include_secret_mission: IncludeSecretMission
     include_secret_mission_as_goal: IncludeSecretMissionAsGoal
     include_crowd_control: IncludeCrowdControl
@@ -250,6 +305,7 @@ class SR2Options(PerGameCommonOptions):
     include_torch: IncludeTorch
     include_cds: IncludeCDs
     include_races: IncludeRaces
+    include_tags: IncludeTags
     trap_chance: TrapChance
     bonus_respect_percentage: BonusRespectPercentage
     style_level_location_count: StyleLevelLocationCount
@@ -258,12 +314,12 @@ class SR2Options(PerGameCommonOptions):
 option_groups = [
     OptionGroup("Goal Options", [RequiredGangArcs, IncludeSecretMissionAsGoal]),
     OptionGroup(
-        "Location Options",
+        "Activity & Collectibles Location Options",
         [
-            StyleLevelLocationCount,
-            IncludeSecretMission,
-            IncludeCrowdControl,
+            StartingActivity,
+            IncludeCDs,
             IncludeChopShop,
+            IncludeCrowdControl,
             IncludeDemoDerby,
             IncludeDrugTrafficking,
             IncludeEscort,
@@ -277,8 +333,39 @@ option_groups = [
             IncludeSewage,
             IncludeSnatch,
             IncludeTorch,
-            IncludeCDs,
+            IncludeTags,
+        ],
+    ),
+    OptionGroup(
+        "Other Location Options",
+        [
+            StyleLevelLocationCount,
+            IncludeSecretMission,
         ],
     ),
     OptionGroup("Item Options", [TrapChance, BonusRespectPercentage]),
 ]
+
+ACTIVITY_STARTING_ACTIVITY_OPTION_MAPPING = {
+    StartingActivity.option_crowd_control: "Crowd Control",
+    StartingActivity.option_trail_blazing: "Trail Blazing",
+    StartingActivity.option_snatch: "Snatch",
+    StartingActivity.option_septic_avenger: "Septic Avenger",
+    StartingActivity.option_mayhem: "Mayhem",
+    StartingActivity.option_insurance_fraud: "Insurance Fraud",
+    StartingActivity.option_heli_assault: "Heli Assault",
+    StartingActivity.option_fuzz: "FUZZ",
+    StartingActivity.option_fight_club: "Fight Club",
+    StartingActivity.option_escort: "Escort",
+    StartingActivity.option_drug_trafficking: "Drug Trafficking",
+    StartingActivity.option_demo_derby: "Demolition Derby",
+    StartingActivity.option_chop_shop: "Chop Shop",
+    StartingActivity.option_hitman: "Hitman",
+    StartingActivity.option_helicopter_races: "Races",
+    StartingActivity.option_boat_races: "Races",
+    StartingActivity.option_car_races: "Races",
+    StartingActivity.option_bike_races: "Races",
+    StartingActivity.option_plane_races: "Races",
+    StartingActivity.option_cd: "CD",
+    StartingActivity.option_tags: "Tags",
+}

@@ -14,7 +14,7 @@ use tokio::{
 };
 use tokio_util::codec::{Framed, LinesCodec};
 
-const HELLO_MESSAGE: &str = r#"{"game":"Saints Row 2","protocol":3,"type":"hello"}"#;
+const HELLO_MESSAGE: &str = r#"{"game":"Saints Row 2","protocol":4,"type":"hello"}"#;
 const MAX_LINE_LENGTH: usize = 64 * 1024;
 const OUTGOING_QUEUE_CAPACITY: usize = 128;
 const RECONNECT_DELAY: Duration = Duration::from_secs(2);

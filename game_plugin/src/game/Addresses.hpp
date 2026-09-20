@@ -97,4 +97,31 @@ inline constexpr std::ptrdiff_t kSaveLoadInternalCallRva = 0x0029600B;
 inline constexpr std::ptrdiff_t kSaveWriteOpenCallRva = 0x00295240;
 inline constexpr std::ptrdiff_t kCFileOpenRva = 0x007FDC20;
 
+// Hitman and Chop Shop category visibility.
+inline constexpr std::ptrdiff_t kChopShopSetAllEnabledRva = 0x00200920;
+inline constexpr std::ptrdiff_t kHitmanSetAllEnabledRva = 0x0023E250;
+
+// Collectible visibility.
+inline constexpr std::ptrdiff_t kCdSetAllPickupsEnabledRva = 0x00534060;
+inline constexpr std::ptrdiff_t kTagSetAllSpotsEnabledRva = 0x00226B00;
+
+// Race visibility.
+inline constexpr std::ptrdiff_t kRaceToggleAllRva = 0x00280C80;
+inline constexpr std::ptrdiff_t kTriggerEnableRva = 0x0066BCE0;
+
+// Native story gate and current gameplay instance.
+inline constexpr std::ptrdiff_t kDiversionsAreStoryLockedRva = 0x00203F80;
+inline constexpr std::ptrdiff_t kCurrentGameplayInstanceRva = 0x023B3C60;
+
+// Race records.
+inline constexpr std::size_t kRacingRecordStartTriggerOffset = 0x18;
+
+// Tags.
+inline constexpr std::ptrdiff_t kTagSpotHeadRva = 0x023A3FB4;
+inline constexpr std::size_t kTagSpotFlagsOffset = 0x00;
+inline constexpr std::size_t kTagSpotMetadataOffset = 0x04;
+inline constexpr std::size_t kTagSpotNextOffset = 0x10;
+inline constexpr std::size_t kTagIdentityHashOffset = 0x00;
+inline constexpr std::size_t kExpectedTagCount = 50;
+
 }  // namespace sr2ap::addresses

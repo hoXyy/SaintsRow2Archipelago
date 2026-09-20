@@ -17,4 +17,3 @@ write_status_file = false
 enable_hotkeys = false
 module_report_hotkey = 0x76
 snapshot_hotkey = 0x77
-address_dump_hotkey = 0x78

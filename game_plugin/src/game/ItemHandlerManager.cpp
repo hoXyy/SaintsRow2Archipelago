@@ -1,5 +1,6 @@
 #include "ItemHandlerManager.hpp"
 
+#include <ranges>
 #include <utility>
 
 namespace sr2ap {
@@ -46,6 +47,16 @@ void ItemHandlerManager::PermitNextSaveRestore(
     respectController_.PermitNextSaveRestore(threadId);
 }
 
+bool ItemHandlerManager::ResetState() const {
+    for (const auto& handler : handlers_) {
+        if (!handler->ResetState()) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 void ItemHandlerManager::Update() const {
     for (auto& handler : handlers_) {
         handler->Update();
@@ -54,9 +65,8 @@ void ItemHandlerManager::Update() const {
 
 void ItemHandlerManager::Remove() {
     dispatcher_.Remove();
-    for (auto handler = handlers_.rbegin(); handler != handlers_.rend();
-         ++handler) {
-        (*handler)->Remove();
+    for (auto & handler : std::views::reverse(handlers_)) {
+        handler->Remove();
     }
     handlers_.clear();
     installed_ = false;

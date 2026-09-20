@@ -26,10 +26,17 @@ from .activities import (
     RACES,
     MEDAL_STRINGS,
 )
-from .collectibles import CD_IDS, CD_MAPPING, STYLE_LEVEL_LOCATIONS, STYLE_LEVEL_IDS
+from .collectibles import (
+    CD_IDS,
+    CD_MAPPING,
+    STYLE_LEVEL_LOCATIONS,
+    STYLE_LEVEL_IDS,
+    TAGS_IDS,
+    TAGS_MAPPING,
+)
 from .missions import MISSION_CHAINS, ULTOR_SECRET_MISSION
 
-PROTOCOL_VERSION = 3
+PROTOCOL_VERSION = 4
 DEFAULT_PLUGIN_PORT = 38282
 RETRY_SECONDS = 1.0
 
@@ -234,6 +241,7 @@ async def send_session_ready(ctx: SR2Context) -> None:
         "protocol",
         "managed_unlockables",
         "managed_cheats",
+        "persistent_items",
         "features",
         "enabled_progression",
     }
@@ -257,6 +265,7 @@ async def send_session_ready(ctx: SR2Context) -> None:
         "slot": ctx.slot,
         "managed_unlockables": sorted(set(ctx.slot_data["managed_unlockables"])),
         "managed_cheats": sorted(set(ctx.slot_data["managed_cheats"])),
+        "persistent_items": sorted(set(ctx.slot_data["persistent_items"])),
         "features": ctx.slot_data["features"],
         "enabled_progression": ctx.slot_data["enabled_progression"],
     }
@@ -358,6 +367,8 @@ async def process_progression(ctx: SR2Context, message: dict[str, Any]) -> None:
     elif category == "style_level":
         for location in STYLE_LEVEL_LOCATIONS[:current]:
             locations.append(STYLE_LEVEL_IDS[location])
+    elif category == "tag" and key in TAGS_MAPPING:
+        locations.append(TAGS_IDS[TAGS_MAPPING[key]])
 
     ctx.observed_locations.update(locations)
     await submit_observed_locations(ctx)

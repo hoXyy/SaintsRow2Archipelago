@@ -1,7 +1,12 @@
 from collections import Counter
 
 from .bases import SR2TestBase
-from ..items import RESPECT_ITEM_NAME, BONUS_RESPECT_ITEM_NAME
+from ..items import (
+    RESPECT_ITEM_NAME,
+    BONUS_RESPECT_ITEM_NAME,
+    PERSISTENT_ACTIVITY_UNLOCK_ITEMS,
+    get_enabled_unlock_items_list,
+)
 from ..items_list import (
     TRAP_ITEMS,
     FILLER_UNLOCKABLES,
@@ -45,6 +50,17 @@ class TestFullGameItemPool(SR2TestBase):
             get_required_respect_count(self.world),
             counts[RESPECT_ITEM_NAME],
         )
+
+    def test_each_enabled_unlock_pass_is_generated_once(self) -> None:
+        counts = Counter(
+            item.name
+            for item in self.multiworld.get_items()
+            if item.player == self.player
+        )
+
+        for item_name in get_enabled_unlock_items_list(self.world):
+            with self.subTest(item=item_name):
+                self.assertEqual(1, counts[item_name])
 
 
 class TestRoninOnlyItemPool(SR2TestBase):
@@ -191,6 +207,12 @@ class TestItemClassification(SR2TestBase):
     def test_respect_is_progression(self) -> None:
         respect_item = self.world.create_item(RESPECT_ITEM_NAME)
         self.assertEqual(respect_item.advancement, True)
+
+    def test_persistent_unlock_items_are_progression(self) -> None:
+        for item_name in PERSISTENT_ACTIVITY_UNLOCK_ITEMS:
+            with self.subTest(item=item_name):
+                item = self.world.create_item(item_name)
+                self.assertTrue(item.advancement)
 
     def test_traps_are_traps(self) -> None:
         for trap in TRAP_ITEMS:

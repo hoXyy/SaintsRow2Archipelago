@@ -783,9 +783,6 @@
 				<Hood>sr2_ul_mall01</Hood>
 				</Rewards>
 			<Prerequisites>
-				<Prereq>bh11</Prereq>
-				<Prereq>rn11</Prereq>
-				<Prereq>ss11</Prereq>
 				<Prereq>ep01</Prereq>
 				</Prerequisites>
 			<Setup>sh_tss_ugmall_setup</Setup>
@@ -2258,10 +2255,7 @@
 		<Silent>
 			<Cutscene>TSSE-INTRO</Cutscene>
 			<Prerequisites>
-				<Prereq>bh11</Prereq>
-				<Prereq>ss11</Prereq>
-				<Prereq>rn11</Prereq>
-				<Prereq>sh_tss_caverns</Prereq>
+				<Prereq>tss04</Prereq>
 				</Prerequisites>
 			</Silent>
 		<_Editor>

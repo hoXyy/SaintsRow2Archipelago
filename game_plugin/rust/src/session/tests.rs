@@ -32,10 +32,11 @@ impl Drop for Fixture {
 fn session(seed: &str) -> IncomingMessage {
     IncomingMessage {
         kind: IncomingKind::SessionReady,
-        protocol: 3,
+        protocol: SESSION_PROTOCOL,
         seed_name: seed.into(),
         slot: 1,
         missions: true,
+        persistent_items: vec!["persistent".into()],
         ..IncomingMessage::default()
     }
 }
@@ -48,13 +49,18 @@ fn activate(runtime: &mut SessionRuntime) {
     runtime.update_readiness(false, true);
     runtime.outgoing.clear();
 }
-fn item(index: u64) -> IncomingMessage {
+
+fn named_item(index: u64, name: &str) -> IncomingMessage {
     IncomingMessage {
         kind: IncomingKind::Item,
         index,
-        name: "item".into(),
+        name: name.into(),
         ..IncomingMessage::default()
     }
+}
+
+fn item(index: u64) -> IncomingMessage {
+    named_item(index, "item")
 }
 fn last_message(runtime: &SessionRuntime) -> serde_json::Value {
     serde_json::from_str(runtime.outgoing.last().unwrap()).unwrap()
@@ -127,6 +133,8 @@ fn save_load_invalidates_pending_result_and_requires_matching_cursor() {
     runtime.save_loaded(42);
     assert!(runtime.report_result(true).is_err());
     assert!(runtime.handle_message(item(0), true).is_none());
+    runtime.update_readiness(true, false);
+    assert_eq!(runtime.delivery.context, Context::AwaitingCursor);
     for checksum in [41, 42] {
         runtime.handle_message(
             IncomingMessage {
@@ -141,11 +149,13 @@ fn save_load_invalidates_pending_result_and_requires_matching_cursor() {
     }
     assert_eq!(runtime.delivery.next_index, 7);
     runtime.update_readiness(true, false);
+    assert_eq!(runtime.delivery.context, Context::ActiveRevision);
+    runtime.update_readiness(false, true);
+    assert_eq!(runtime.delivery.next_index, 7);
+    assert_eq!(runtime.delivery.context, Context::ActiveRevision);
+    runtime.update_readiness(true, false);
     assert_eq!(runtime.delivery.context, Context::Waiting);
     assert_eq!(runtime.delivery.checksum, None);
-    runtime.update_readiness(false, true);
-    assert_eq!(runtime.delivery.next_index, 0);
-    assert_eq!(runtime.delivery.context, Context::Provisional);
 }
 
 #[test]
@@ -251,5 +261,90 @@ fn maximum_cursor_is_rejected_without_execution_or_wraparound() {
     runtime.delivery.next_index = u64::MAX;
     assert!(runtime.handle_message(item(u64::MAX), true).is_none());
     assert_eq!(runtime.delivery.next_index, u64::MAX);
+    assert_eq!(last_message(runtime)["accepted"], false);
+}
+
+#[test]
+fn persistent_items_should_round_trip_through_a_save_snapshot() {
+    let mut fixture = Fixture::new();
+    let runtime = &mut fixture.runtime;
+    activate(runtime);
+
+    let Some(GameplayRequest::ActivateItem(name)) =
+        runtime.handle_message(named_item(0, "persistent"), true)
+    else {
+        panic!()
+    };
+    assert_eq!(name, "persistent");
+    runtime.report_result(true).unwrap();
+    runtime.save_written(42);
+
+    let snapshot = runtime
+        .revisions
+        .journal
+        .snapshot("seed", 0, 1, 42)
+        .unwrap();
+    assert_eq!(snapshot.next_index, 1);
+    assert_eq!(snapshot.persistent_items, ["persistent"]);
+
+    runtime.set_save_monitoring(true);
+    runtime.save_loaded(42);
+    runtime.handle_message(
+        IncomingMessage {
+            kind: IncomingKind::SaveContext,
+            checksum: 42,
+            next_index: 1,
+            ..IncomingMessage::default()
+        },
+        true,
+    );
+
+    assert!(matches!(
+        runtime.next_request(true),
+        Some(GameplayRequest::ResetPersistentItems)
+    ));
+    runtime.report_result(true).unwrap();
+
+    let Some(GameplayRequest::ReplayPersistentItem(name)) = runtime.next_request(true) else {
+        panic!()
+    };
+    assert_eq!(name, "persistent");
+    runtime.report_result(true).unwrap();
+
+    assert_eq!(runtime.delivery.next_index, 1);
+    assert!(matches!(runtime.restore, RestoreState::None));
+}
+
+#[test]
+fn rejected_restore_should_retry_reset_but_block_after_replay_failure() {
+    let mut fixture = Fixture::new();
+    let runtime = &mut fixture.runtime;
+    activate(runtime);
+    runtime.persistent_items.insert("persistent".into());
+    runtime.save_written(42);
+    runtime.save_loaded(42);
+
+    assert!(matches!(
+        runtime.next_request(true),
+        Some(GameplayRequest::ResetPersistentItems)
+    ));
+    runtime.report_result(false).unwrap();
+    assert!(runtime.next_request(true).is_none());
+    assert!(matches!(
+        runtime.next_request(true),
+        Some(GameplayRequest::ResetPersistentItems)
+    ));
+    runtime.report_result(true).unwrap();
+
+    assert!(matches!(
+        runtime.next_request(true),
+        Some(GameplayRequest::ReplayPersistentItem(_))
+    ));
+    runtime.report_result(false).unwrap();
+    assert!(matches!(runtime.restore, RestoreState::Failed));
+
+    runtime.delivery.context = Context::ActiveRevision;
+    runtime.delivery.next_index = 1;
+    assert!(runtime.handle_message(item(1), true).is_none());
     assert_eq!(last_message(runtime)["accepted"], false);
 }

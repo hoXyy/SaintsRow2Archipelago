@@ -18,7 +18,6 @@ from .missions import (
     get_mission_complete_event_name,
     get_mission_complete_item_name,
     Mission,
-    Stronghold,
 )
 from .activities import (
     ACTIVITIES_LEVEL_BASED,
@@ -35,7 +34,14 @@ from .options import (
     BROTHERHOOD_ARC_NAME,
     ULTOR_EPILOGUE_ARC_NAME,
 )
-from .collectibles import CD_MAPPING, CD_IDS, STYLE_LEVEL_IDS, STYLE_LEVEL_LOCATIONS
+from .collectibles import (
+    CD_MAPPING,
+    CD_IDS,
+    STYLE_LEVEL_IDS,
+    STYLE_LEVEL_LOCATIONS,
+    TAGS_MAPPING,
+    TAGS_IDS,
+)
 
 from .items import SR2Item
 
@@ -98,10 +104,6 @@ def create_mission_locations(world: SR2World) -> None:
         for stronghold in ULTOR_EPILOGUE_CHAIN["strongholds"]:
             add_check_with_completion_event(world, region, stronghold)
 
-        # This stronghold is only required to beat the game, not to beat all of the gang arcs
-        for stronghold in TSS_INTRO_CHAIN["strongholds"]:
-            add_check_with_completion_event(world, region, stronghold)
-
     if world.options.include_secret_mission.value == 1:
         add_check_with_completion_event(world, region, ULTOR_SECRET_MISSION)
 
@@ -111,7 +113,6 @@ def create_activities_location(world: SR2World) -> None:
 
     for activity in ACTIVITIES_LEVEL_BASED:
         if is_activity_enabled_in_options(world, activity):
-            is_respect_safe = activity != "Heli Assault"
             activity_locations = [
                 value for d in ACTIVITIES_LEVEL_BASED[activity] for value in d.values()
             ]
@@ -126,7 +127,7 @@ def create_activities_location(world: SR2World) -> None:
                             curr_key,
                             ACTIVITY_LEVEL_IDS[curr_key],
                             region,
-                            respect_safe=is_respect_safe,
+                            respect_safe=True,
                         )
                     )
 
@@ -137,7 +138,7 @@ def create_activities_location(world: SR2World) -> None:
                             f"Event: {curr_key} Complete",
                             None,
                             region,
-                            respect_safe=is_respect_safe,
+                            respect_safe=True,
                         )
 
                         completion_event.place_locked_item(
@@ -209,6 +210,12 @@ def create_collectible_locations(world: SR2World) -> None:
                 SR2Location(world.player, cd, CD_IDS[cd], region, respect_safe=True)
             )
 
+    if world.options.include_tags.value == 1:
+        for tag in TAGS_MAPPING.values():
+            region.locations.append(
+                SR2Location(world.player, tag, TAGS_IDS[tag], region, respect_safe=True)
+            )
+
 
 def create_style_level_locations(world: SR2World) -> None:
     region = world.get_region("Stilwater")
@@ -228,7 +235,7 @@ def create_style_level_locations(world: SR2World) -> None:
 
 
 def add_check_with_completion_event(
-    world: SR2World, region: Region, mission: Mission | Stronghold
+    world: SR2World, region: Region, mission: Mission
 ) -> None:
     region.locations.append(
         SR2Location(

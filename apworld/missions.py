@@ -20,49 +20,46 @@ class Mission:
     key: str
     name: str
     required_respect: int = 1
-    creates_unlock_item: bool = False
-
-
-@dataclass
-class Stronghold:
-    id: int
-    key: str
-    name: str
-    unlocked_by: str
-    creates_unlock_item: bool = (
-        True  # All strongholds are needed to start the final mission of a gang arc
-    )
+    unlocked_by: str | None = None
+    creates_unlock_item: bool = True
 
 
 class MissionChain(TypedDict):
     missions: list[Mission]
-    strongholds: list[Stronghold]
+    strongholds: list[Mission]
 
 
 TSS_INTRO_CHAIN: MissionChain = {
     "missions": [
-        Mission(1, "tss01", "Saints Mission #01: Jailbreak", 0),
         Mission(
-            2,
-            "tss02",
-            "Saints Mission #02: Appointed Defender",
-            0,
-            creates_unlock_item=True,
+            id=1, key="tss01", name="Saints Mission #01: Jailbreak", required_respect=0
         ),
         Mission(
-            3, "tss03", "Saints Mission #03: Down Payment", creates_unlock_item=True
+            id=2,
+            key="tss02",
+            name="Saints Mission #02: Appointed Defender",
+            required_respect=0,
+            unlocked_by="tss01",
         ),
         Mission(
-            4, "tss04", "Saints Mission #04: Three Kings", creates_unlock_item=True
+            id=3,
+            key="tss03",
+            name="Saints Mission #03: Down Payment",
+            unlocked_by="tss02",
+        ),
+        Mission(
+            id=4,
+            key="tss04",
+            name="Saints Mission #04: Three Kings",
+            unlocked_by="tss03",
         ),
     ],
     "strongholds": [
-        Stronghold(
-            5,
-            "sh_tss_caverns",
-            "Saints Stronghold: Stilwater Caverns",
-            "tss03",
-            creates_unlock_item=True,
+        Mission(
+            id=5,
+            key="sh_tss_caverns",
+            name="Saints Stronghold: Stilwater Caverns",
+            unlocked_by="tss03",
         )
     ],
 }
@@ -71,52 +68,87 @@ TSS_INTRO_CHAIN: MissionChain = {
 RONIN_CHAIN: MissionChain = {
     "missions": [
         Mission(
-            6, "rn01", "Ronin Mission #01: Saint's Seven", creates_unlock_item=True
-        ),
-        Mission(7, "rn02", "Ronin Mission #02: Laundry Day", creates_unlock_item=True),
-        Mission(8, "rn03", "Ronin Mission #03: Road Rage", creates_unlock_item=True),
-        Mission(9, "rn04", "Ronin Mission #04: Bleeding Out"),
-        Mission(
-            10,
-            "rn05",
-            "Ronin Mission #05: Orange Threat Level",
-            creates_unlock_item=True,
+            id=6,
+            key="rn01",
+            name="Ronin Mission #01: Saint's Seven",
+            unlocked_by="tss04",
         ),
         Mission(
-            11,
-            "rn06",
-            "Ronin Mission #06: Kanto Connection",
+            id=7,
+            key="rn02",
+            name="Ronin Mission #02: Laundry Day",
+            unlocked_by="rn01",
         ),
         Mission(
-            12,
-            "rn07",
-            "Ronin Mission #07: Visiting Hours",
+            id=8, key="rn03", name="Ronin Mission #03: Road Rage", unlocked_by="rn02"
         ),
-        Mission(13, "rn08", "Ronin Mission #08: Room Service"),
-        Mission(14, "rn09", "Ronin Mission #09: Rest in Peace"),
-        Mission(15, "rn10", "Ronin Mission #10: Good D"),
         Mission(
-            16,
-            "rn11",
-            "Ronin Final Mission: One Man's Junk...",
-            creates_unlock_item=True,
+            id=9, key="rn04", name="Ronin Mission #04: Bleeding Out", unlocked_by="rn03"
+        ),
+        Mission(
+            id=10,
+            key="rn05",
+            name="Ronin Mission #05: Orange Threat Level",
+            unlocked_by="rn04",
+        ),
+        Mission(
+            id=11,
+            key="rn06",
+            name="Ronin Mission #06: Kanto Connection",
+            unlocked_by="rn05",
+        ),
+        Mission(
+            id=12,
+            key="rn07",
+            name="Ronin Mission #07: Visiting Hours",
+            unlocked_by="rn06",
+        ),
+        Mission(
+            id=13,
+            key="rn08",
+            name="Ronin Mission #08: Room Service",
+            unlocked_by="rn07",
+        ),
+        Mission(
+            id=14,
+            key="rn09",
+            name="Ronin Mission #09: Rest in Peace",
+            unlocked_by="rn08",
+        ),
+        Mission(
+            id=15, key="rn10", name="Ronin Mission #10: Good D", unlocked_by="rn09"
+        ),
+        Mission(
+            id=16,
+            key="rn11",
+            name="Ronin Final Mission: One Man's Junk...",
+            unlocked_by="rn10",
         ),
     ],
     "strongholds": [
-        Stronghold(
-            17, "sh_rn_stripclub", "Ronin Stronghold: Suburbs Strip Club", "rn01"
+        Mission(
+            id=17,
+            key="sh_rn_stripclub",
+            name="Ronin Stronghold: Suburbs Strip Club",
+            unlocked_by="rn01",
         ),
-        Stronghold(
-            18,
-            "sh_rn_sciencemuseum",
-            "Ronin Stronghold: Humbolt Park Science Museum",
-            "rn02",
+        Mission(
+            id=18,
+            key="sh_rn_sciencemuseum",
+            name="Ronin Stronghold: Humbolt Park Science Museum",
+            unlocked_by="rn02",
         ),
-        Stronghold(
-            19, "sh_rn_museum_pier", "Ronin Stronghold: Amberbrook Museum Pier", "rn03"
+        Mission(
+            id=19,
+            key="sh_rn_museum_pier",
+            name="Ronin Stronghold: Amberbrook Museum Pier",
+            unlocked_by="rn03",
         ),
-        Stronghold(
-            20, "sh_rn_rec_center", "Ronin Stronghold: New Hennequet Rec Center", "rn05"
+        Mission(
+            id=20,
+            key="sh_rn_rec_center",
+            name="Ronin Stronghold: New Hennequet Rec Center",
+            unlocked_by="rn05",
         ),
     ],
 }
@@ -125,78 +157,96 @@ RONIN_CHAIN: MissionChain = {
 SAMEDI_CHAIN: MissionChain = {
     "missions": [
         Mission(
-            21,
-            "ss01",
-            "Sons of Samedi Mission #01: Got Dust, Will Travel",
-            creates_unlock_item=True,
+            id=21,
+            key="ss01",
+            name="Sons of Samedi Mission #01: Got Dust, Will Travel",
+            unlocked_by="tss04",
         ),
         Mission(
-            22,
-            "ss02",
-            "Sons of Samedi Mission #02: File in the Cake",
-            creates_unlock_item=True,
+            id=22,
+            key="ss02",
+            name="Sons of Samedi Mission #02: File in the Cake",
+            unlocked_by="ss01",
         ),
         Mission(
-            23,
-            "ss03",
-            "Sons of Samedi Mission #03: Airborne Assault",
-            creates_unlock_item=True,
-        ),
-        Mission(24, "ss04", "Sons of Samedi Mission #04: Veteran Child"),
-        Mission(
-            25,
-            "ss05",
-            "Sons of Samedi Mission #05: Burning Down The House",
-            creates_unlock_item=True,
-        ),
-        Mission(26, "ss06", "Sons of Samedi Mission #06: Bad Trip"),
-        Mission(
-            27,
-            "ss07",
-            "Sons of Samedi Mission #07: Bonding Experience",
-        ),
-        Mission(28, "ss08", "Sons of Samedi Mission #08: Riot Control"),
-        Mission(
-            29,
-            "ss09",
-            "Sons of Samedi Mission #09: Eternal Sunshine",
+            id=23,
+            key="ss03",
+            name="Sons of Samedi Mission #03: Airborne Assault",
+            unlocked_by="ss02",
         ),
         Mission(
-            30,
-            "ss10",
-            "Sons of Samedi Mission #10: Assault on Precinct 31",
+            id=24,
+            key="ss04",
+            name="Sons of Samedi Mission #04: Veteran Child",
+            unlocked_by="ss03",
         ),
         Mission(
-            31,
-            "ss11",
-            "Sons of Samedi Final Mission: The Shopping Maul",
-            creates_unlock_item=True,
+            id=25,
+            key="ss05",
+            name="Sons of Samedi Mission #05: Burning Down The House",
+            unlocked_by="ss04",
+        ),
+        Mission(
+            id=26,
+            key="ss06",
+            name="Sons of Samedi Mission #06: Bad Trip",
+            unlocked_by="ss05",
+        ),
+        Mission(
+            id=27,
+            key="ss07",
+            name="Sons of Samedi Mission #07: Bonding Experience",
+            unlocked_by="ss06",
+        ),
+        Mission(
+            id=28,
+            key="ss08",
+            name="Sons of Samedi Mission #08: Riot Control",
+            unlocked_by="ss07",
+        ),
+        Mission(
+            id=29,
+            key="ss09",
+            name="Sons of Samedi Mission #09: Eternal Sunshine",
+            unlocked_by="ss08",
+        ),
+        Mission(
+            id=30,
+            key="ss10",
+            name="Sons of Samedi Mission #10: Assault on Precinct 31",
+            unlocked_by="ss09",
+        ),
+        Mission(
+            id=31,
+            key="ss11",
+            name="Sons of Samedi Final Mission: The Shopping Maul",
+            unlocked_by="ss10",
         ),
     ],
     "strongholds": [
-        Stronghold(
-            32,
-            "sh_ss_trailerpark",
-            "Sons of Samedi Stronghold: Elysian Fields Trailer Park",
-            "ss01",
+        Mission(
+            id=32,
+            key="sh_ss_trailerpark",
+            name="Sons of Samedi Stronghold: Elysian Fields Trailer Park",
+            unlocked_by="ss01",
         ),
-        Stronghold(
-            33,
-            "sh_ss_crackhouse",
-            "Sons of Samedi Stronghold: Bavogian Plaza Drug Labs",
-            "ss02",
+        Mission(
+            id=33,
+            key="sh_ss_crackhouse",
+            name="Sons of Samedi Stronghold: Bavogian Plaza Drug Labs",
+            unlocked_by="ss02",
         ),
-        Stronghold(
-            34,
-            "sh_ss_student_union",
-            "Sons of Samedi Stronghold: Stilwater University Student Union",
-            "ss03",
+        Mission(
+            id=34,
+            key="sh_ss_student_union",
+            name="Sons of Samedi Stronghold: Stilwater University Student Union",
+            unlocked_by="ss03",
         ),
-        Stronghold(
-            35,
-            "sh_ss_fishingdock",
-            "Sons of Samedi Stronghold: Sunnyvale Gardens Fishing Dock",
-            "ss05",
+        Mission(
+            id=35,
+            key="sh_ss_fishingdock",
+            name="Sons of Samedi Stronghold: Sunnyvale Gardens Fishing Dock",
+            unlocked_by="ss05",
         ),
     ],
 }
@@ -204,66 +254,97 @@ SAMEDI_CHAIN: MissionChain = {
 
 BROTHERHOOD_CHAIN: MissionChain = {
     "missions": [
-        Mission(36, "bh01", "Brotherhood Mission #01: First Impressions"),
         Mission(
-            37,
-            "bh02",
-            "Brotherhood Mission #02: Reunion Tour",
-            creates_unlock_item=True,
+            id=36,
+            key="bh01",
+            name="Brotherhood Mission #01: First Impressions",
+            unlocked_by="tss04",
         ),
         Mission(
-            38,
-            "bh03",
-            "Brotherhood Mission #03: Waste Not Want Not",
-            creates_unlock_item=True,
+            id=37,
+            key="bh02",
+            name="Brotherhood Mission #02: Reunion Tour",
+            unlocked_by="bh01",
         ),
         Mission(
-            39, "bh04", "Brotherhood Mission #04: Red Asphalt", creates_unlock_item=True
+            id=38,
+            key="bh03",
+            name="Brotherhood Mission #03: Waste Not Want Not",
+            unlocked_by="bh02",
         ),
         Mission(
-            40,
-            "bh05",
-            "Brotherhood Mission #05: Bank Error in Your Favor",
-            creates_unlock_item=True,
+            id=39,
+            key="bh04",
+            name="Brotherhood Mission #04: Red Asphalt",
+            unlocked_by="bh03",
         ),
         Mission(
-            41,
-            "bh06",
-            "Brotherhood Mission #06: Thank you and Goodnight!",
+            id=40,
+            key="bh05",
+            name="Brotherhood Mission #05: Bank Error in Your Favor",
+            unlocked_by="bh04",
         ),
-        Mission(42, "bh07", "Brotherhood Mission #07: Retribution"),
-        Mission(43, "bh08", "Brotherhood Mission #08: Jail Bait"),
         Mission(
-            44,
-            "bh09",
-            "Brotherhood Mission #09: The Enemy of my Enemy",
+            id=41,
+            key="bh06",
+            name="Brotherhood Mission #06: Thank you and Goodnight!",
+            unlocked_by="bh05",
         ),
-        Mission(45, "bh10", "Brotherhood Mission #10: The Siege"),
         Mission(
-            46, "bh11", "Brotherhood Final Mission: Showdown", creates_unlock_item=True
+            id=42,
+            key="bh07",
+            name="Brotherhood Mission #07: Retribution",
+            unlocked_by="bh06",
+        ),
+        Mission(
+            id=43,
+            key="bh08",
+            name="Brotherhood Mission #08: Jail Bait",
+            unlocked_by="bh07",
+        ),
+        Mission(
+            id=44,
+            key="bh09",
+            name="Brotherhood Mission #09: The Enemy of my Enemy",
+            unlocked_by="bh08",
+        ),
+        Mission(
+            id=45,
+            key="bh10",
+            name="Brotherhood Mission #10: The Siege",
+            unlocked_by="bh09",
+        ),
+        Mission(
+            id=46,
+            key="bh11",
+            name="Brotherhood Final Mission: Showdown",
+            unlocked_by="bh10",
         ),
     ],
     "strongholds": [
-        Stronghold(
-            47,
-            "sh_bh_apartments",
-            "Brotherhood Stronghold: Sommerset Apartments",
-            "bh02",
+        Mission(
+            id=47,
+            key="sh_bh_apartments",
+            name="Brotherhood Stronghold: Sommerset Apartments",
+            unlocked_by="bh02",
         ),
-        Stronghold(
-            48,
-            "sh_bh_chinatown",
-            "Brotherhood Stronghold: Imperial Square Pagodas",
-            "bh03",
+        Mission(
+            id=48,
+            key="sh_bh_chinatown",
+            name="Brotherhood Stronghold: Imperial Square Pagodas",
+            unlocked_by="bh03",
         ),
-        Stronghold(
-            49, "sh_bh_docks", "Brotherhood Stronghold: Poseidon Alley Docks", "bh04"
+        Mission(
+            id=49,
+            key="sh_bh_docks",
+            name="Brotherhood Stronghold: Poseidon Alley Docks",
+            unlocked_by="bh04",
         ),
-        Stronghold(
-            50,
-            "sh_bh_airport",
-            "Brotherhood Stronghold: Wardill Airport Hangars",
-            "bh05",
+        Mission(
+            id=50,
+            key="sh_bh_airport",
+            name="Brotherhood Stronghold: Wardill Airport Hangars",
+            unlocked_by="bh05",
         ),
     ],
 }
@@ -272,32 +353,42 @@ BROTHERHOOD_CHAIN: MissionChain = {
 ULTOR_EPILOGUE_CHAIN: MissionChain = {
     "missions": [
         Mission(
-            51,
-            "ep01",
-            "Ultor Epilogue Mission #01: Picking a Fight",
-            creates_unlock_item=True,
+            id=51,
+            key="ep01",
+            name="Ultor Mission #01: Picking a Fight",
+            unlocked_by="tss04",
         ),
-        Mission(52, "ep02", "Ultor Epilogue Mission #02: Pyramid Scheme"),
-        Mission(53, "ep03", "Ultor Epilogue Mission #03: Salting the Earth... Again"),
         Mission(
-            54,
-            "ep04",
-            "Ultor Epilogue Final Mission: ...and a Better Life",
-            creates_unlock_item=True,
+            id=52,
+            key="ep02",
+            name="Ultor Mission #02: Pyramid Scheme",
+            unlocked_by="ep01",
+        ),
+        Mission(
+            id=53,
+            key="ep03",
+            name="Ultor Mission #03: Salting the Earth... Again",
+            unlocked_by="ep02",
+        ),
+        Mission(
+            id=54,
+            key="ep04",
+            name="Ultor Final Mission: ...and a Better Life",
+            unlocked_by="ep03",
         ),
     ],
     "strongholds": [
-        Stronghold(
-            55,
-            "sh_tss_ugmall",
-            "Ultor Epilogue Stronghold: Rounds Square Shopping Center",
-            "ep01",
+        Mission(
+            id=55,
+            key="sh_tss_ugmall",
+            name="Ultor Stronghold: Rounds Square Shopping Center",
+            unlocked_by="ep01",
         )
     ],
 }
 
 ULTOR_SECRET_MISSION = Mission(
-    56, "em01", "Ultor Secret Mission: Revelation", creates_unlock_item=True
+    id=56, key="em01", name="Ultor Secret Mission: Revelation", unlocked_by="tss04"
 )
 
 MISSION_CHAINS = [
@@ -309,7 +400,7 @@ MISSION_CHAINS = [
 ]
 
 
-def get_mission_by_id(id: int) -> Mission | Stronghold:
+def get_mission_by_id(id: int) -> Mission:
     for chain in MISSION_CHAINS:
         for entry in (*chain["missions"], *chain["strongholds"]):
             if entry.id == id:
@@ -318,7 +409,7 @@ def get_mission_by_id(id: int) -> Mission | Stronghold:
     raise LookupError(f"Mission or stronghold with id {id} not found")
 
 
-def get_mission_by_key(key: str) -> Mission | Stronghold:
+def get_mission_by_key(key: str) -> Mission:
     for chain in MISSION_CHAINS:
         for entry in (*chain["missions"], *chain["strongholds"]):
             if entry.key == key:
@@ -349,9 +440,6 @@ def get_required_respect_count(world: SR2World) -> int:
         ) + len(SAMEDI_CHAIN["strongholds"])
 
     if ULTOR_EPILOGUE_ARC_NAME in world.options.required_gang_arcs.value:
-        # Need to add the Saints stronghold here, as it's needed to complete the game but not needed to complete any of the gang arcs
-        missions_to_complete += len(TSS_INTRO_CHAIN["strongholds"])
-
         missions_to_complete += sum(
             mission.required_respect for mission in ULTOR_EPILOGUE_CHAIN["missions"]
         ) + len(ULTOR_EPILOGUE_CHAIN["strongholds"])
@@ -362,11 +450,11 @@ def get_required_respect_count(world: SR2World) -> int:
     return missions_to_complete
 
 
-def get_mission_complete_event_name(mission: Mission | Stronghold) -> str:
+def get_mission_complete_event_name(mission: Mission) -> str:
     return f"Event: {mission.name} Complete"
 
 
-def get_mission_complete_item_name(mission: Mission | Stronghold) -> str:
+def get_mission_complete_item_name(mission: Mission) -> str:
     return f"Item: {mission.name} Complete"
 
 
@@ -422,24 +510,10 @@ def create_minimum_respect_table() -> dict[str, int]:
         strongholds_required_for_finale=False,
     )
 
-    # The three gang arcs are independent of one another.
-    ronin_total = add_chain(RONIN_CHAIN)
-    brotherhood_total = add_chain(BROTHERHOOD_CHAIN)
-    samedi_total = add_chain(SAMEDI_CHAIN)
-
-    # The epilogue cannot begin until the previous story arcs are done.
-    pre_epilogue_respect = (
-        sum(m.required_respect for m in TSS_INTRO_CHAIN["missions"])
-        + len(TSS_INTRO_CHAIN["strongholds"])
-        + ronin_total
-        + brotherhood_total
-        + samedi_total
-    )
-
-    add_chain(
-        ULTOR_EPILOGUE_CHAIN,
-        base_respect=pre_epilogue_respect,
-    )
+    add_chain(RONIN_CHAIN)
+    add_chain(SAMEDI_CHAIN)
+    add_chain(BROTHERHOOD_CHAIN)
+    add_chain(ULTOR_EPILOGUE_CHAIN)
 
     # special entry for Revelation
     table[ULTOR_SECRET_MISSION.key] = 3

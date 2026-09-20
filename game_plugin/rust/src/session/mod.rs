@@ -7,16 +7,35 @@ use crate::{
 };
 use delivery::{Context, Delivery};
 use revision_sync::RevisionSync;
-use std::{collections::VecDeque, io, path::PathBuf};
+use std::{
+    collections::{BTreeSet, VecDeque},
+    io,
+    path::PathBuf,
+};
+
+const SESSION_PROTOCOL: u32 = 4;
 
 pub(crate) enum GameplayRequest {
     InstallPolicies(IncomingMessage),
+    ResetPersistentItems,
+    ReplayPersistentItem(String),
     ActivateItem(String),
 }
 
 enum Pending {
     Policies(IncomingMessage),
-    Item(u64),
+    ResetPersistentItems,
+    ReplayPersistentItem(String),
+    Item { index: u64, name: String },
+}
+
+#[derive(Default)]
+enum RestoreState {
+    #[default]
+    None,
+    NeedsReset(VecDeque<String>),
+    Replaying(VecDeque<String>),
+    Failed,
 }
 
 pub(crate) struct SessionRuntime {
@@ -25,6 +44,11 @@ pub(crate) struct SessionRuntime {
     session: Option<IncomingMessage>,
     delivery: Delivery,
     revisions: RevisionSync,
+    persistent_items: BTreeSet<String>,
+    restore: RestoreState,
+    restore_checksum: Option<u32>,
+    save_load_pending: bool,
+    defer_restore_once: bool,
     game_supported: bool,
     save_monitoring: bool,
     active: bool,
@@ -41,6 +65,11 @@ impl SessionRuntime {
             session: None,
             delivery: Delivery::default(),
             revisions: RevisionSync::new(path),
+            persistent_items: BTreeSet::new(),
+            restore: RestoreState::None,
+            restore_checksum: None,
+            save_load_pending: false,
+            defer_restore_once: false,
             game_supported,
             save_monitoring: false,
             active: false,
@@ -53,19 +82,23 @@ impl SessionRuntime {
     pub fn set_save_monitoring(&mut self, installed: bool) {
         self.save_monitoring = installed;
     }
+
     pub fn communications_active(&self) -> bool {
         self.active
     }
+
     pub fn connect(&mut self, port: u16) -> io::Result<()> {
         self.client = Some(TcpClient::new(port)?);
         Ok(())
     }
+
     pub fn shutdown(&mut self) {
         self.client = None;
         self.events.clear();
         self.pending = None;
         self.active = false;
     }
+
     fn send(&mut self, line: String) {
         #[cfg(test)]
         self.outgoing.push(line.clone());
@@ -75,9 +108,11 @@ impl SessionRuntime {
             }
         }
     }
+
     fn acknowledge(&mut self, index: u64, accepted: bool) {
         self.send(protocol::serialize_item_acknowledgement(index, accepted));
     }
+
     fn game_context(&mut self) {
         if !self.active || self.revisions.pending || self.delivery.context == Context::Waiting {
             return;
@@ -89,6 +124,7 @@ impl SessionRuntime {
             self.delivery.context == Context::AwaitingCursor,
         ));
     }
+
     fn send_revisions(&mut self) {
         let Some(session) = &self.session else {
             return;
@@ -100,6 +136,7 @@ impl SessionRuntime {
             ));
         }
     }
+
     fn begin_sync(&mut self) {
         let Some(session) = &self.session else {
             return;
@@ -114,9 +151,20 @@ impl SessionRuntime {
     }
 
     pub fn update_readiness(&mut self, main_menu: bool, loaded: bool) {
-        if main_menu && self.delivery.context != Context::Waiting {
+        if loaded && self.save_load_pending && self.delivery.context != Context::AwaitingCursor {
+            self.save_load_pending = false;
+        }
+
+        if main_menu && !self.save_load_pending && self.delivery.context != Context::Waiting {
             self.delivery = Delivery::default();
-            self.cancel_item();
+            self.cancel_gameplay_request();
+            self.persistent_items.clear();
+            self.restore_checksum = None;
+            self.restore = if self.session.is_some() {
+                RestoreState::NeedsReset(VecDeque::new())
+            } else {
+                RestoreState::None
+            };
             log::info!(target: "Items", "Gameplay ended; delivery context cleared");
         } else if loaded && self.delivery.context == Context::Waiting {
             self.delivery.context = Context::Provisional;
@@ -124,17 +172,50 @@ impl SessionRuntime {
             self.game_context();
         }
     }
-    fn cancel_item(&mut self) {
-        if matches!(self.pending, Some(Pending::Item { .. })) {
+
+    fn cancel_gameplay_request(&mut self) {
+        if matches!(
+            self.pending,
+            Some(
+                Pending::Item { .. }
+                    | Pending::ResetPersistentItems
+                    | Pending::ReplayPersistentItem(_)
+            )
+        ) {
             self.pending = None;
         }
     }
+
+    fn prepare_restore(&mut self, checksum: u32) {
+        let snapshot = self.session.as_ref().and_then(|session| {
+            self.revisions.journal.snapshot(
+                &session.seed_name,
+                session.team,
+                session.slot,
+                checksum,
+            )
+        });
+        let items = snapshot
+            .map(|snapshot| snapshot.persistent_items)
+            .unwrap_or_default();
+
+        self.persistent_items = items.iter().cloned().collect();
+        self.restore = RestoreState::NeedsReset(items.into());
+        self.defer_restore_once = false;
+    }
+
     pub fn save_loaded(&mut self, checksum: u32) {
-        self.cancel_item();
+        self.cancel_gameplay_request();
         self.delivery.load(checksum);
-        log::info!(target: "SaveRevision", "Loaded checksum={checksum:08X}; awaiting AP cursor");
+        self.restore_checksum = Some(checksum);
+        self.save_load_pending = true;
+        if self.session.is_some() {
+            self.prepare_restore(checksum);
+        }
+        log::info!(target: "SaveRevision", "Loaded checksum={checksum:08X}; awaiting AP cursor and persistent-item restore");
         self.game_context();
     }
+
     pub fn save_written(&mut self, checksum: u32) {
         if !self.delivery.ready() {
             log::warn!(target: "SaveRevision", "Generated save checksum before AP cursor was established");
@@ -154,6 +235,7 @@ impl SessionRuntime {
             session.slot,
             checksum,
             self.delivery.next_index,
+            self.persistent_items.iter().cloned().collect(),
         );
         if self.revisions.persist() && self.active {
             self.send_revisions();
@@ -183,9 +265,43 @@ impl SessionRuntime {
         }
     }
 
+    fn next_restore_request(&mut self, interactive: bool) -> Option<GameplayRequest> {
+        if !interactive || self.session.is_none() {
+            return None;
+        }
+        if self.defer_restore_once {
+            self.defer_restore_once = false;
+            return None;
+        }
+
+        match &self.restore {
+            RestoreState::NeedsReset(_) => {
+                self.pending = Some(Pending::ResetPersistentItems);
+                Some(GameplayRequest::ResetPersistentItems)
+            }
+            RestoreState::Replaying(items) => {
+                let Some(item) = items.front().cloned() else {
+                    self.restore = RestoreState::None;
+                    log::info!(target: "Items", "Persistent-item restore completed");
+                    return None;
+                };
+                self.pending = Some(Pending::ReplayPersistentItem(item.clone()));
+                Some(GameplayRequest::ReplayPersistentItem(item))
+            }
+            RestoreState::None | RestoreState::Failed => None,
+        }
+    }
+
+    fn restore_blocks_delivery(&self) -> bool {
+        !matches!(self.restore, RestoreState::None)
+    }
+
     pub fn next_request(&mut self, interactive: bool) -> Option<GameplayRequest> {
         if self.pending.is_some() {
             return None;
+        }
+        if let Some(request) = self.next_restore_request(interactive) {
+            return Some(request);
         }
         if let Some(client) = &mut self.client {
             self.events.extend(client.drain_events());
@@ -208,6 +324,7 @@ impl SessionRuntime {
         }
         None
     }
+
     fn handle_message(
         &mut self,
         message: IncomingMessage,
@@ -215,7 +332,10 @@ impl SessionRuntime {
     ) -> Option<GameplayRequest> {
         match message.kind {
             IncomingKind::SessionReady => {
-                if message.protocol != 3 || !self.game_supported || !self.revisions.available {
+                if message.protocol != SESSION_PROTOCOL
+                    || !self.game_supported
+                    || !self.revisions.available
+                {
                     log::warn!(target: "Session", "Rejected unsupported session protocol, executable, or revision journal");
                     return None;
                 }
@@ -233,6 +353,7 @@ impl SessionRuntime {
                     let policy = IncomingMessage {
                         managed_cheats: message.managed_cheats.clone(),
                         managed_unlockables: message.managed_unlockables.clone(),
+                        persistent_items: message.persistent_items.clone(),
                         exclusive_respect: message.exclusive_respect,
                         block_vanilla_unlockables: message.block_vanilla_unlockables,
                         notoriety_traps: message.notoriety_traps,
@@ -252,6 +373,19 @@ impl SessionRuntime {
                     && self.delivery.context == Context::AwaitingCursor
                     && self.delivery.checksum == Some(message.checksum)
                 {
+                    if let Some(session) = &self.session {
+                        if let Some(snapshot) = self.revisions.journal.snapshot(
+                            &session.seed_name,
+                            session.team,
+                            session.slot,
+                            message.checksum,
+                        ) {
+                            if snapshot.next_index != message.next_index {
+                                log::error!(target: "SaveRevision", "Rejected conflicting snapshot cursor checksum={:08X} journal={} client={}", message.checksum, snapshot.next_index, message.next_index);
+                                return None;
+                            }
+                        }
+                    }
                     self.delivery.next_index = message.next_index;
                     self.delivery.context = Context::ActiveRevision;
                     log::info!(target: "Items", "Save context ready checksum={:08X} next_index={}", message.checksum, message.next_index);
@@ -290,8 +424,9 @@ impl SessionRuntime {
                     || !interactive
                     || !self.revisions.available
                     || self.revisions.pending
+                    || self.restore_blocks_delivery()
                 {
-                    log::debug!(target: "Items", "Deferred item until delivery is ready index={}", message.index);
+                    log::debug!(target: "Items", "Deferred item until delivery and restore are ready index={}", message.index);
                     self.acknowledge(message.index, false);
                 } else if message.index < self.delivery.next_index {
                     log::info!(target: "Items", "Acknowledged duplicate index={}", message.index);
@@ -299,8 +434,13 @@ impl SessionRuntime {
                 } else if message.index != self.delivery.next_index || message.index == u64::MAX {
                     self.acknowledge(message.index, false);
                 } else {
-                    self.pending = Some(Pending::Item(message.index));
-                    return Some(GameplayRequest::ActivateItem(message.name));
+                    let index = message.index;
+                    let name = message.name;
+                    self.pending = Some(Pending::Item {
+                        index,
+                        name: name.clone(),
+                    });
+                    return Some(GameplayRequest::ActivateItem(name));
                 }
             }
             IncomingKind::Invalid => {
@@ -317,14 +457,51 @@ impl SessionRuntime {
                 log::info!(target: "Session", "AP gameplay policy activated seed={} team={} slot={}", session.seed_name, session.team, session.slot);
                 self.session = Some(session);
                 self.active = true;
+                if let Some(checksum) = self.restore_checksum {
+                    self.prepare_restore(checksum);
+                }
                 self.begin_sync();
             }
             Some(Pending::Policies(_)) => {
                 log::error!(target: "Session", "AP gameplay policy activation failed; session rejected")
             }
-            Some(Pending::Item(index)) => {
+            Some(Pending::ResetPersistentItems) => {
+                let RestoreState::NeedsReset(items) = std::mem::take(&mut self.restore) else {
+                    return Err("persistent reset completed in an invalid state");
+                };
+                if accepted {
+                    self.restore = RestoreState::Replaying(items);
+                } else {
+                    self.restore = RestoreState::NeedsReset(items);
+                    self.defer_restore_once = true;
+                    log::debug!(target: "Items", "Persistent reset was not ready; retrying on a later update");
+                }
+            }
+            Some(Pending::ReplayPersistentItem(item)) => {
+                let RestoreState::Replaying(items) = &mut self.restore else {
+                    return Err("persistent replay completed in an invalid state");
+                };
+                if !accepted || items.front() != Some(&item) {
+                    self.restore = RestoreState::Failed;
+                    log::error!(target: "Items", "Persistent item replay failed for `{item}`; new item delivery blocked");
+                } else {
+                    items.pop_front();
+                    if items.is_empty() {
+                        self.restore = RestoreState::None;
+                        log::info!(target: "Items", "Persistent-item restore completed");
+                    }
+                }
+            }
+            Some(Pending::Item { index, name }) => {
                 if accepted {
                     self.delivery.next_index = index + 1;
+                    if self
+                        .session
+                        .as_ref()
+                        .is_some_and(|session| session.persistent_items.contains(&name))
+                    {
+                        self.persistent_items.insert(name);
+                    }
                 } else {
                     log::warn!(target: "Items", "Controller rejected received item index={index}");
                 }

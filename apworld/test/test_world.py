@@ -9,11 +9,13 @@ from ..items_list import (
     TRAP_ITEMS,
 )
 from ..missions import get_mission_by_key, ULTOR_SECRET_MISSION
+from ..items import PERSISTENT_ACTIVITY_UNLOCK_ITEMS
 from ..options import (
     RONIN_ARC_NAME,
     BROTHERHOOD_ARC_NAME,
     SAMEDI_ARC_NAME,
     ULTOR_EPILOGUE_ARC_NAME,
+    StartingActivity,
 )
 
 
@@ -25,7 +27,7 @@ class TestSlotData(SR2TestBase):
         self.world_setup()
         slot_data = self.world.fill_slot_data()
 
-        self.assertEqual(slot_data["protocol"], 3)
+        self.assertEqual(slot_data["protocol"], 4)
 
     def test_default_enabled_progression(self) -> None:
         self.world_setup()
@@ -40,6 +42,7 @@ class TestSlotData(SR2TestBase):
             "hitman": True,
             "races": True,
             "style_level": True,
+            "tags": True,
         }
 
         self.assertEqual(slot_enabled_progression, expected_enabled_progression)
@@ -58,6 +61,7 @@ class TestSlotData(SR2TestBase):
             "hitman": True,
             "races": True,
             "style_level": True,
+            "tags": True,
         }
 
         self.assertEqual(slot_enabled_progression, expected_enabled_progression)
@@ -76,6 +80,7 @@ class TestSlotData(SR2TestBase):
             "hitman": True,
             "races": False,
             "style_level": True,
+            "tags": True,
         }
 
         self.assertEqual(slot_enabled_progression, expected_enabled_progression)
@@ -94,6 +99,7 @@ class TestSlotData(SR2TestBase):
             "hitman": True,
             "races": True,
             "style_level": True,
+            "tags": True,
         }
 
         self.assertEqual(slot_enabled_progression, expected_enabled_progression)
@@ -112,6 +118,7 @@ class TestSlotData(SR2TestBase):
             "hitman": False,
             "races": True,
             "style_level": True,
+            "tags": True,
         }
 
         self.assertEqual(slot_enabled_progression, expected_enabled_progression)
@@ -130,6 +137,7 @@ class TestSlotData(SR2TestBase):
             "include_sewage": 0,
             "include_snatch": 0,
             "include_torch": 0,
+            "starting_activity": StartingActivity.option_chop_shop,
         }
         self.world_setup()
         slot_data = self.world.fill_slot_data()
@@ -143,6 +151,7 @@ class TestSlotData(SR2TestBase):
             "hitman": True,
             "races": True,
             "style_level": True,
+            "tags": True,
         }
 
         self.assertEqual(slot_enabled_progression, expected_enabled_progression)
@@ -161,6 +170,26 @@ class TestSlotData(SR2TestBase):
             "hitman": True,
             "races": True,
             "style_level": False,
+            "tags": True,
+        }
+
+        self.assertEqual(slot_enabled_progression, expected_enabled_progression)
+
+    def test_enabled_progression_no_tags(self) -> None:
+        self.options = {"include_tags": 0}
+        self.world_setup()
+        slot_data = self.world.fill_slot_data()
+        slot_enabled_progression = slot_data["enabled_progression"]
+
+        expected_enabled_progression = {
+            "missions": True,
+            "activities": True,
+            "cds": True,
+            "chop_shop": True,
+            "hitman": True,
+            "races": True,
+            "style_level": True,
+            "tags": False,
         }
 
         self.assertEqual(slot_enabled_progression, expected_enabled_progression)
@@ -231,11 +260,10 @@ class TestSlotData(SR2TestBase):
         )
         expected_cheats = sorted(
             generated_names
-            & (
-                set(CHEAT_ITEMS)
-                | set(WEAPON_ITEM_NAMES)
-                | set(TRAP_CHEATS)
-            )
+            & (set(CHEAT_ITEMS) | set(WEAPON_ITEM_NAMES) | set(TRAP_CHEATS))
+        )
+        expected_persistent_items = sorted(
+            generated_names & set(PERSISTENT_ACTIVITY_UNLOCK_ITEMS)
         )
 
         self.assertEqual(
@@ -245,6 +273,10 @@ class TestSlotData(SR2TestBase):
         self.assertEqual(
             expected_cheats,
             slot_data["managed_cheats"],
+        )
+        self.assertEqual(
+            expected_persistent_items,
+            slot_data["persistent_items"],
         )
 
     def test_feature_defaults(self) -> None:

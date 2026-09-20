@@ -79,6 +79,81 @@ class TestMissionLogic(SR2TestBase):
                     self.assertTrue(location.access_rule(state))
 
 
+class TestMissionPredecessors(SR2TestBase):
+    run_default_tests = False
+    options = {
+        "required_gang_arcs": {
+            RONIN_ARC_NAME,
+            BROTHERHOOD_ARC_NAME,
+            SAMEDI_ARC_NAME,
+            ULTOR_EPILOGUE_ARC_NAME,
+        },
+        "include_secret_mission": 1,
+    }
+
+    def test_every_mission_and_event_require_their_predecessor(self) -> None:
+        location_cache = self.multiworld.regions.location_cache[self.player]
+        entries = [
+            entry
+            for chain in MISSION_CHAINS
+            for entry in (*chain["missions"], *chain["strongholds"])
+        ]
+        entries.append(ULTOR_SECRET_MISSION)
+
+        for entry in entries:
+            if entry.name not in location_cache or entry.unlocked_by is None:
+                continue
+
+            with self.subTest(entry=entry.key, predecessor=entry.unlocked_by):
+                predecessor = get_mission_by_key(entry.unlocked_by)
+                predecessor_item = self.get_item_by_name(
+                    get_mission_complete_item_name(predecessor)
+                )
+                location = self.world.get_location(entry.name)
+                event = self.world.get_location(
+                    get_mission_complete_event_name(entry)
+                )
+                state = self.multiworld.get_all_state()
+
+                state.remove(predecessor_item)
+
+                self.assertFalse(location.access_rule(state))
+                self.assertFalse(event.access_rule(state))
+
+                state.collect(predecessor_item, prevent_sweep=True)
+
+                self.assertTrue(location.access_rule(state))
+                self.assertTrue(event.access_rule(state))
+
+    def test_first_mission_and_event_have_no_predecessor_requirement(self) -> None:
+        first_mission = get_mission_by_key("tss01")
+        location = self.world.get_location(first_mission.name)
+        event = self.world.get_location(get_mission_complete_event_name(first_mission))
+        state = self.get_fresh_state()
+
+        self.assertIsNone(first_mission.unlocked_by)
+        self.assertTrue(location.access_rule(state))
+        self.assertTrue(event.access_rule(state))
+
+
+class TestMissionPredecessorData(unittest.TestCase):
+    def test_every_predecessor_key_resolves(self) -> None:
+        entries = [
+            entry
+            for chain in MISSION_CHAINS
+            for entry in (*chain["missions"], *chain["strongholds"])
+        ]
+        entries.append(ULTOR_SECRET_MISSION)
+
+        for entry in entries:
+            if entry.unlocked_by is None:
+                continue
+
+            with self.subTest(entry=entry.key, predecessor=entry.unlocked_by):
+                predecessor = get_mission_by_key(entry.unlocked_by)
+                self.assertEqual(entry.unlocked_by, predecessor.key)
+
+
 class TestStrongholds(SR2TestBase):
     run_default_tests = False
     options = {
@@ -128,43 +203,26 @@ class TestSecretMissionLocationDisabled(SR2TestBase):
 
 class TestEpilogueAccess(SR2TestBase):
     run_default_tests = False
-    options = {
-        "required_gang_arcs": {
-            RONIN_ARC_NAME,
-            SAMEDI_ARC_NAME,
-            BROTHERHOOD_ARC_NAME,
-            ULTOR_EPILOGUE_ARC_NAME,
-        }
-    }
+    options = {"required_gang_arcs": {ULTOR_EPILOGUE_ARC_NAME}}
 
-    def test_epilogue_requires_all_story_prerequisites(self) -> None:
+    def test_ultor_arc_requires_three_kings(self) -> None:
         ep01 = get_mission_by_key("ep01")
         ep01_location = self.world.get_location(ep01.name)
         ep01_event = self.world.get_location(get_mission_complete_event_name(ep01))
+        tss04_complete_item = self.get_item_by_name(
+            get_mission_complete_item_name(get_mission_by_key("tss04"))
+        )
+        state = self.multiworld.get_all_state()
 
-        prerequisites = [
-            get_mission_by_key("rn11"),
-            get_mission_by_key("ss11"),
-            get_mission_by_key("bh11"),
-            get_mission_by_key("sh_tss_caverns"),
-        ]
+        state.remove(tss04_complete_item)
 
-        for prerequisite in prerequisites:
-            with self.subTest(missing=prerequisite.key):
-                state = self.multiworld.get_all_state()
-                required_item = self.get_item_by_name(
-                    get_mission_complete_item_name(prerequisite)
-                )
+        self.assertFalse(ep01_location.access_rule(state))
+        self.assertFalse(ep01_event.access_rule(state))
 
-                state.remove(required_item)
+        state.collect(tss04_complete_item, prevent_sweep=True)
 
-                self.assertFalse(ep01_location.access_rule(state))
-                self.assertFalse(ep01_event.access_rule(state))
-
-                state.collect(required_item, prevent_sweep=True)
-
-                self.assertTrue(ep01_location.access_rule(state))
-                self.assertTrue(ep01_event.access_rule(state))
+        self.assertTrue(ep01_location.access_rule(state))
+        self.assertTrue(ep01_event.access_rule(state))
 
 
 class TestMinimumRespectTable(unittest.TestCase):
@@ -180,6 +238,8 @@ class TestMinimumRespectTable(unittest.TestCase):
             "rn11": 15,
             "ss11": 15,
             "bh11": 15,
+            "ep01": 1,
+            "ep04": 5,
             "em01": 3,
         }
 
@@ -228,4 +288,4 @@ class TestKnownEpilogueRespect(KnownRespectCountMixin, SR2TestBase):
             ULTOR_EPILOGUE_ARC_NAME,
         }
     }
-    expected_respect = 53
+    expected_respect = 52
