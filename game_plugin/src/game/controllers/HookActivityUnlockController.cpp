@@ -79,8 +79,40 @@ constexpr std::array kActivityUnlocks{
 constexpr std::array<std::uint8_t, 6> kExpectedChopShop{
     std::uint8_t{0x51}, 0x53, 0x8B, 0x5C, 0x24, 0x0C,
 };
+constexpr std::array<std::uint8_t, 12> kExpectedChopShopTriggers{
+    std::uint8_t{0x51},
+    0x80,
+    0x7C,
+    0x24,
+    0x0C,
+    0x00,
+    0x53,
+    0x55,
+    0x8B,
+    0x6C,
+    0x24,
+    0x10,
+};
+constexpr std::array<std::uint8_t, 13> kExpectedChopShopManager{
+    std::uint8_t{0x53},
+    0x8B,
+    0x5C,
+    0x24,
+    0x08,
+    0x56,
+    0x8B,
+    0xF1,
+    0x53,
+    0x56,
+    0x88,
+    0x5E,
+    0x14,
+};
 constexpr std::array<std::uint8_t, 9> kExpectedHitman{
     std::uint8_t{0x53}, 0x55, 0x56, 0x57, 0xBD, 0x1C, 0x12, 0xEA, 0x00,
+};
+constexpr std::array<std::uint8_t, 7> kExpectedHitmanManager{
+    std::uint8_t{0x83}, 0xEC, 0x08, 0x53, 0x55, 0x56, 0x57,
 };
 constexpr std::array<std::uint8_t, 7> kExpectedCd{
     std::uint8_t{0x56}, 0x8B, 0x35, 0x90, 0xD7, 0x15, 0x02,
@@ -239,6 +271,8 @@ struct HookActivityUnlockController::Implementation {
 
         nativeHitmanEnabled = storyUnlocked;
         nativeChopShopEnabled = storyUnlocked;
+        nativeHitmanAvailable = storyUnlocked;
+        nativeChopShopAvailable = storyUnlocked;
         nativeRacesEnabled = storyUnlocked;
         nativeCdsEnabled = true;
         nativeTagsEnabled = true;
@@ -387,7 +421,16 @@ struct HookActivityUnlockController::Implementation {
     void ResolveAddresses(const std::uintptr_t base) noexcept {
         gameBase = base;
         hitmanAddress = base + addresses::kHitmanSetAllEnabledRva;
+        hitmanManagerAddress = base + addresses::kHitmanSetManagerAvailableRva;
         chopShopAddress = base + addresses::kChopShopSetAllEnabledRva;
+        chopShopTriggersAddress =
+            base + addresses::kChopShopSetStartTriggersEnabledRva;
+        chopShopManagerAddress =
+            base + addresses::kChopShopSetManagerAvailableRva;
+        hitmanManager =
+            reinterpret_cast<void*>(base + addresses::kHitmanManagerRva);
+        chopShopManager =
+            reinterpret_cast<void*>(base + addresses::kChopShopManagerRva);
         cdAddress = base + addresses::kCdSetAllPickupsEnabledRva;
         tagAddress = base + addresses::kTagSetAllSpotsEnabledRva;
         raceAddress = base + addresses::kRaceToggleAllRva;
@@ -414,10 +457,24 @@ struct HookActivityUnlockController::Implementation {
         return CreateManagedHook(
                    managedHitman, hitmanHook, hitmanAddress, kExpectedHitman,
                    reinterpret_cast<void*>(&HitmanHook), "Hitman") &&
+               CreateManagedHook(managedHitman, hitmanManagerHook,
+                                 hitmanManagerAddress, kExpectedHitmanManager,
+                                 reinterpret_cast<void*>(&HitmanManagerHook),
+                                 "Hitman manager") &&
                CreateManagedHook(managedChopShop, chopShopHook, chopShopAddress,
                                  kExpectedChopShop,
                                  reinterpret_cast<void*>(&ChopShopHook),
                                  "Chop Shop") &&
+               CreateManagedHook(managedChopShop, chopShopTriggersHook,
+                                 chopShopTriggersAddress,
+                                 kExpectedChopShopTriggers,
+                                 reinterpret_cast<void*>(&ChopShopTriggersHook),
+                                 "Chop Shop triggers") &&
+               CreateManagedHook(managedChopShop, chopShopManagerHook,
+                                 chopShopManagerAddress,
+                                 kExpectedChopShopManager,
+                                 reinterpret_cast<void*>(&ChopShopManagerHook),
+                                 "Chop Shop manager") &&
                CreateManagedHook(managedCds, cdHook, cdAddress, kExpectedCd,
                                  reinterpret_cast<void*>(&CdHook), "CD") &&
                CreateManagedHook(managedTags, tagHook, tagAddress, kExpectedTag,
@@ -429,6 +486,9 @@ struct HookActivityUnlockController::Implementation {
 
     bool EnableManagedHooks() {
         return EnableHook(hitmanHook, "Hitman") &&
+               EnableHook(hitmanManagerHook, "Hitman manager") &&
+               EnableHook(chopShopTriggersHook, "Chop Shop triggers") &&
+               EnableHook(chopShopManagerHook, "Chop Shop manager") &&
                EnableHook(chopShopHook, "Chop Shop") &&
                EnableHook(cdHook, "CD") && EnableHook(tagHook, "tag") &&
                EnableHook(raceHook, "race");
@@ -440,20 +500,30 @@ struct HookActivityUnlockController::Implementation {
         success = DisableHook(tagHook, "tag") && success;
         success = DisableHook(cdHook, "CD") && success;
         success = DisableHook(chopShopHook, "Chop Shop") && success;
+        success =
+            DisableHook(chopShopManagerHook, "Chop Shop manager") && success;
+        success =
+            DisableHook(chopShopTriggersHook, "Chop Shop triggers") && success;
+        success = DisableHook(hitmanManagerHook, "Hitman manager") && success;
         success = DisableHook(hitmanHook, "Hitman") && success;
         return success;
     }
 
     bool AnyHookEnabled() const noexcept {
-        return hitmanHook.enabled() || chopShopHook.enabled() ||
-               cdHook.enabled() || tagHook.enabled() || raceHook.enabled();
+        return hitmanHook.enabled() || hitmanManagerHook.enabled() ||
+               chopShopHook.enabled() || chopShopTriggersHook.enabled() ||
+               chopShopManagerHook.enabled() || cdHook.enabled() ||
+               tagHook.enabled() || raceHook.enabled();
     }
 
     void ResetHookObjects() {
         raceHook.reset();
         tagHook.reset();
         cdHook.reset();
+        chopShopManagerHook.reset();
+        chopShopTriggersHook.reset();
         chopShopHook.reset();
+        hitmanManagerHook.reset();
         hitmanHook.reset();
     }
 
@@ -485,10 +555,16 @@ struct HookActivityUnlockController::Implementation {
 
     void ApplyCurrentPolicy() {
         if (managedHitman) {
+            hitmanManagerHook.thiscall<void>(
+                hitmanManager,
+                static_cast<std::uint8_t>(nativeHitmanAvailable && ownsHitman));
             hitmanHook.stdcall<void>(
                 static_cast<std::uint8_t>(nativeHitmanEnabled && ownsHitman));
         }
         if (managedChopShop) {
+            chopShopManagerHook.thiscall<void>(
+                chopShopManager, static_cast<std::uint8_t>(
+                                     nativeChopShopAvailable && ownsChopShop));
             chopShopHook.stdcall<void>(static_cast<std::uint8_t>(
                 nativeChopShopEnabled && ownsChopShop));
         }
@@ -507,22 +583,27 @@ struct HookActivityUnlockController::Implementation {
 
     void ApplyHitmanAfterReceipt() {
         const auto freeroam = IsFreeroam();
-        if (!nativeHitmanEnabled || !freeroam || !*freeroam) {
+        if (!nativeHitmanEnabled || !nativeHitmanAvailable || !freeroam ||
+            !*freeroam) {
             return;
         }
         const auto storyUnlocked = IsStoryUnlocked();
         if (storyUnlocked && *storyUnlocked) {
+            hitmanManagerHook.thiscall<void>(hitmanManager, std::uint8_t{1});
             hitmanHook.stdcall<void>(std::uint8_t{1});
         }
     }
 
     void ApplyChopShopAfterReceipt() {
         const auto freeroam = IsFreeroam();
-        if (!nativeChopShopEnabled || !freeroam || !*freeroam) {
+        if (!nativeChopShopEnabled || !nativeChopShopAvailable || !freeroam ||
+            !*freeroam) {
             return;
         }
         const auto storyUnlocked = IsStoryUnlocked();
         if (storyUnlocked && *storyUnlocked) {
+            chopShopManagerHook.thiscall<void>(chopShopManager,
+                                               std::uint8_t{1});
             chopShopHook.stdcall<void>(std::uint8_t{1});
         }
     }
@@ -618,6 +699,18 @@ struct HookActivityUnlockController::Implementation {
             static_cast<std::uint8_t>(requested != 0 && permitted));
     }
 
+    static void __fastcall HitmanManagerHook(void* const manager, void*,
+                                             const std::uint8_t requested) {
+        auto* const self = active.load(std::memory_order_acquire);
+        if (!self || !self->hitmanManagerHook) {
+            return;
+        }
+        self->nativeHitmanAvailable = requested != 0;
+        const bool permitted = !self->managedHitman || self->ownsHitman;
+        self->hitmanManagerHook.thiscall<void>(
+            manager, static_cast<std::uint8_t>(requested != 0 && permitted));
+    }
+
     static void __stdcall ChopShopHook(const std::uint8_t requested) {
         auto* const self = active.load(std::memory_order_acquire);
         if (!self || !self->chopShopHook) {
@@ -627,6 +720,29 @@ struct HookActivityUnlockController::Implementation {
         const bool permitted = !self->managedChopShop || self->ownsChopShop;
         self->chopShopHook.stdcall<void>(
             static_cast<std::uint8_t>(requested != 0 && permitted));
+    }
+
+    static void __stdcall ChopShopTriggersHook(void* const manager,
+                                               const std::uint8_t requested) {
+        auto* const self = active.load(std::memory_order_acquire);
+        if (!self || !self->chopShopTriggersHook) {
+            return;
+        }
+        const bool permitted = !self->managedChopShop || self->ownsChopShop;
+        self->chopShopTriggersHook.stdcall<void>(
+            manager, static_cast<std::uint8_t>(requested != 0 && permitted));
+    }
+
+    static void __fastcall ChopShopManagerHook(void* const manager, void*,
+                                               const std::uint8_t requested) {
+        auto* const self = active.load(std::memory_order_acquire);
+        if (!self || !self->chopShopManagerHook) {
+            return;
+        }
+        self->nativeChopShopAvailable = requested != 0;
+        const bool permitted = !self->managedChopShop || self->ownsChopShop;
+        self->chopShopManagerHook.thiscall<void>(
+            manager, static_cast<std::uint8_t>(requested != 0 && permitted));
     }
 
     static void __fastcall CdHook(const std::uint8_t requested) {
@@ -678,6 +794,8 @@ struct HookActivityUnlockController::Implementation {
 
     bool nativeHitmanEnabled{};
     bool nativeChopShopEnabled{};
+    bool nativeHitmanAvailable{};
+    bool nativeChopShopAvailable{};
     bool nativeCdsEnabled{true};
     bool nativeTagsEnabled{true};
     bool nativeRacesEnabled{};
@@ -685,7 +803,12 @@ struct HookActivityUnlockController::Implementation {
     std::uintptr_t gameBase{};
     ModuleInfo gameModule;
     std::uintptr_t hitmanAddress{};
+    std::uintptr_t hitmanManagerAddress{};
     std::uintptr_t chopShopAddress{};
+    std::uintptr_t chopShopTriggersAddress{};
+    std::uintptr_t chopShopManagerAddress{};
+    void* hitmanManager{};
+    void* chopShopManager{};
     std::uintptr_t cdAddress{};
     std::uintptr_t tagAddress{};
     std::uintptr_t raceAddress{};
@@ -694,7 +817,10 @@ struct HookActivityUnlockController::Implementation {
     std::uintptr_t gameplayInstanceAddress{};
 
     safetyhook::InlineHook hitmanHook;
+    safetyhook::InlineHook hitmanManagerHook;
     safetyhook::InlineHook chopShopHook;
+    safetyhook::InlineHook chopShopTriggersHook;
+    safetyhook::InlineHook chopShopManagerHook;
     safetyhook::InlineHook cdHook;
     safetyhook::InlineHook tagHook;
     safetyhook::InlineHook raceHook;

@@ -99,7 +99,13 @@ inline constexpr std::ptrdiff_t kCFileOpenRva = 0x007FDC20;
 
 // Hitman and Chop Shop category visibility.
 inline constexpr std::ptrdiff_t kChopShopSetAllEnabledRva = 0x00200920;
+inline constexpr std::ptrdiff_t kChopShopSetStartTriggersEnabledRva =
+    0x00200A60;
+inline constexpr std::ptrdiff_t kChopShopSetManagerAvailableRva = 0x00200F10;
 inline constexpr std::ptrdiff_t kHitmanSetAllEnabledRva = 0x0023E250;
+inline constexpr std::ptrdiff_t kHitmanSetManagerAvailableRva = 0x0023E2D0;
+inline constexpr std::ptrdiff_t kChopShopManagerRva = 0x00A9EC20;
+inline constexpr std::ptrdiff_t kHitmanManagerRva = 0x00AA11F8;
 
 // Collectible visibility.
 inline constexpr std::ptrdiff_t kCdSetAllPickupsEnabledRva = 0x00534060;
