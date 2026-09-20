@@ -18,6 +18,7 @@ from .missions import (
     get_mission_complete_event_name,
     get_mission_complete_item_name,
     Mission,
+    STILWATER_CAVERNS_STRONGHOLD,
 )
 from .activities import (
     ACTIVITIES_LEVEL_BASED,
@@ -106,6 +107,9 @@ def create_mission_locations(world: SR2World) -> None:
 
     if world.options.include_secret_mission.value == 1:
         add_check_with_completion_event(world, region, ULTOR_SECRET_MISSION)
+
+    if world.options.include_stilwater_caverns == 1:
+        add_check_with_completion_event(world, region, STILWATER_CAVERNS_STRONGHOLD)
 
 
 def create_activities_location(world: SR2World) -> None:
@@ -277,6 +281,9 @@ def generate_location_name_to_id() -> dict[str, int]:
     }
 
     mission_locations[ULTOR_SECRET_MISSION.name] = ULTOR_SECRET_MISSION.id
+    mission_locations[STILWATER_CAVERNS_STRONGHOLD.name] = (
+        STILWATER_CAVERNS_STRONGHOLD.id
+    )
 
     return {
         **mission_locations,

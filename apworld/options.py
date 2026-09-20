@@ -81,12 +81,32 @@ class IncludeSecretMission(Toggle):
     default = 0
 
 
+class IncludeStilwaterCaverns(Toggle):
+    """
+    Whether to include the Stilwater Caverns Saints stronghold in the locations list.
+    """
+
+    display_name = "Include Stilwater Caverns stronghold"
+    default = 0
+
+
 class IncludeSecretMissionAsGoal(Toggle):
     """
     Whether to include the Ultor mission 'Revelation' as part of the completion goal.
     """
 
-    display_name = "Include completing the Ultor mission 'Revelation' as a goal"
+    display_name = (
+        "Include completing the Ultor mission 'Revelation' in the completion goal"
+    )
+    default = 0
+
+
+class IncludeStilwaterCavernsAsGoal(Toggle):
+    """
+    Whether to include the Stilwater Caverns Saints stronghold as part of the completion goal.
+    """
+
+    display_name = "Include Stilwater Caverns stronghold in the completion goal"
     default = 0
 
 
@@ -352,6 +372,8 @@ class SR2Options(PerGameCommonOptions):
     starting_activity: StartingActivity
     include_secret_mission: IncludeSecretMission
     include_secret_mission_as_goal: IncludeSecretMissionAsGoal
+    include_stilwater_caverns: IncludeStilwaterCaverns
+    include_stilwater_caverns_as_goal: IncludeStilwaterCavernsAsGoal
     include_crowd_control: IncludeCrowdControl
     include_chop_shop: IncludeChopShop
     include_demo_derby: IncludeDemoDerby
@@ -380,7 +402,10 @@ class SR2Options(PerGameCommonOptions):
 
 
 option_groups = [
-    OptionGroup("Goal Options", [RequiredGangArcs, IncludeSecretMissionAsGoal]),
+    OptionGroup(
+        "Goal Options",
+        [RequiredGangArcs, IncludeSecretMissionAsGoal, IncludeStilwaterCavernsAsGoal],
+    ),
     OptionGroup(
         "Activity & Collectibles Location Options",
         [
@@ -405,6 +430,16 @@ option_groups = [
         ],
     ),
     OptionGroup(
+        "Other Location Options",
+        [
+            StyleLevelLocationCount,
+            AllowProgressionItemsOnHighStyleLevel,
+            IncludeSecretMission,
+            IncludeStilwaterCaverns,
+        ],
+    ),
+    OptionGroup("Item Options", [TrapChance, BonusRespectPercentage]),
+    OptionGroup(
         "Filler Item Weights Options",
         [
             MoneyFillerItemWeight,
@@ -413,15 +448,6 @@ option_groups = [
             MiscFillerItemWeight,
         ],
     ),
-    OptionGroup(
-        "Other Location Options",
-        [
-            StyleLevelLocationCount,
-            AllowProgressionItemsOnHighStyleLevel,
-            IncludeSecretMission,
-        ],
-    ),
-    OptionGroup("Item Options", [TrapChance, BonusRespectPercentage]),
 ]
 
 ACTIVITY_STARTING_ACTIVITY_OPTION_MAPPING = {

@@ -110,7 +110,9 @@ def generate_patched_game_files(world: "SR2World", output_directory: str) -> Non
 
     patch_files = {
         MISSIONS_TABLE_FILE_NAME: generate_patched_mission_chains_file(
-            enabled_arcs, bool(world.options.include_secret_mission.value)
+            enabled_arcs,
+            bool(world.options.include_secret_mission.value),
+            bool(world.options.include_stilwater_caverns.value),
         ),
         MISSION_GLOBALS_LUA_FILE_NAME: (
             patched_missions_global_file_content
@@ -138,7 +140,7 @@ def generate_patched_game_files(world: "SR2World", output_directory: str) -> Non
 
 
 def generate_patched_mission_chains_file(
-    enabled_arcs: Set[str], revelation_enabled: bool
+    enabled_arcs: Set[str], revelation_enabled: bool, stilwater_caverns_enabled: bool
 ) -> str:
     root = XmlTree.fromstring(MISSIONS_TABLE_FILE.read_bytes())
 
@@ -156,6 +158,11 @@ def generate_patched_mission_chains_file(
 
     if not revelation_enabled:
         mission = missions["em01"]
+        start_nav = mission.find("StartNav")
+        mission.remove(start_nav)
+
+    if not stilwater_caverns_enabled:
+        mission = missions["sh_tss_caverns"]
         start_nav = mission.find("StartNav")
         mission.remove(start_nav)
 

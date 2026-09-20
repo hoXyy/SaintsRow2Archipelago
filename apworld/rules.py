@@ -17,6 +17,7 @@ from .missions import (
     SAMEDI_CHAIN,
     BROTHERHOOD_CHAIN,
     ULTOR_EPILOGUE_CHAIN,
+    STILWATER_CAVERNS_STRONGHOLD,
     get_mission_by_key,
     get_mission_complete_event_name,
     get_mission_complete_item_name,
@@ -121,6 +122,24 @@ def set_mission_rules(world: SR2World) -> None:
         location = world.get_location(ULTOR_SECRET_MISSION.name)
 
         add_mission_predecessor_rule(world, location_cache, ULTOR_SECRET_MISSION)
+
+        add_rule(
+            location,
+            lambda state, respect_needed=respect_needed: state.has(
+                RESPECT_ITEM_NAME,
+                world.player,
+                respect_needed,
+            ),
+        )
+
+    # Add required respect count to Stilwater Caverns
+    if STILWATER_CAVERNS_STRONGHOLD.name in location_cache:
+        respect_needed = minimum_respect_needed_table[STILWATER_CAVERNS_STRONGHOLD.key]
+        location = world.get_location(STILWATER_CAVERNS_STRONGHOLD.name)
+
+        add_mission_predecessor_rule(
+            world, location_cache, STILWATER_CAVERNS_STRONGHOLD
+        )
 
         add_rule(
             location,
@@ -273,6 +292,11 @@ def set_completion_rules(world: SR2World) -> None:
     if world.options.include_secret_mission_as_goal.value == 1:
         needed_completion_items.append(
             get_mission_complete_item_name(ULTOR_SECRET_MISSION)
+        )
+
+    if world.options.include_stilwater_caverns_as_goal.value == 1:
+        needed_completion_items.append(
+            get_mission_complete_item_name(STILWATER_CAVERNS_STRONGHOLD)
         )
 
     world.set_completion_rule(

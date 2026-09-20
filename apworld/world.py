@@ -9,7 +9,11 @@ from .items_list import (
     WEAPON_ITEM_NAMES,
     TRAP_CHEATS,
 )
-from .missions import ULTOR_SECRET_MISSION, get_mission_by_key
+from .missions import (
+    ULTOR_SECRET_MISSION,
+    get_mission_by_key,
+    STILWATER_CAVERNS_STRONGHOLD,
+)
 from .patch import generate_patched_game_files
 
 
@@ -66,7 +70,15 @@ class SR2World(World):
             and self.options.include_secret_mission_as_goal.value == 1
         ):
             raise OptionError(
-                "You can't include the secret mission as a goal if it's not part of the locations."
+                "You can't include the secret mission as part of the goal if it's not part of the locations."
+            )
+
+        if (
+            self.options.include_stilwater_caverns.value == 0
+            and self.options.include_stilwater_caverns_as_goal.value == 1
+        ):
+            raise OptionError(
+                "You can't include the Stilwater Caverns as part of the goal if it's not part of the locations."
             )
 
         if len(enabled_gang_arcs) == 0:
@@ -113,6 +125,9 @@ class SR2World(World):
 
         if self.options.include_secret_mission_as_goal.value == 1:
             goal_locations.append(ULTOR_SECRET_MISSION.id)
+
+        if self.options.include_stilwater_caverns_as_goal.value == 1:
+            goal_locations.append(STILWATER_CAVERNS_STRONGHOLD.id)
 
         return {
             "protocol": 4,
