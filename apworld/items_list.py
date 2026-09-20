@@ -158,7 +158,7 @@ FILLER_UNLOCKABLES = [
 ]
 
 
-CHEAT_ITEMS = [
+MISC_CHEAT_ITEMS = [
     "Time: Midnight",
     "Time: Noon",
     "Weather: Clear Skies",
@@ -168,6 +168,9 @@ CHEAT_ITEMS = [
     "Remove Gang Notoriety",
     "Max Health",
     "Car Repair",
+]
+
+VEHICLE_CHEAT_ITEMS = [
     "Vehicle: Five-O",
     "Vehicle: Peewee",
     "Vehicle: Gyro Daddy",
@@ -199,3 +202,5 @@ CHEAT_ITEMS = [
     "Vehicle: Anchor",
     "Vehicle: Eiswolf",
 ]
+
+CHEAT_ITEMS = MISC_CHEAT_ITEMS + VEHICLE_CHEAT_ITEMS

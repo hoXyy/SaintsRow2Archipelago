@@ -14,8 +14,10 @@ if TYPE_CHECKING:
 
 from .items_list import (
     FILLER_UNLOCKABLES,
+    MISC_CHEAT_ITEMS,
     USEFUL_UNLOCKABLES,
     CHEAT_ITEMS,
+    VEHICLE_CHEAT_ITEMS,
     WEAPON_ITEM_NAMES,
     TRAP_ITEMS,
     MONEY_ITEM_NAMES,
@@ -140,9 +142,21 @@ def get_random_filler_item_name(world: SR2World) -> str:
     if world.random.randint(0, 99) < world.options.trap_chance.value:
         return world.random.choice(TRAP_ITEMS)
 
-    all_filler_items = MONEY_ITEM_NAMES + WEAPON_ITEM_NAMES + CHEAT_ITEMS
+    categories = [
+        MONEY_ITEM_NAMES,
+        WEAPON_ITEM_NAMES,
+        VEHICLE_CHEAT_ITEMS,
+        MISC_CHEAT_ITEMS,
+    ]
+    weights = [
+        world.options.money_filler_item_weight.value,
+        world.options.weapon_filler_item_weight.value,
+        world.options.vehicle_filler_item_weight.value,
+        world.options.misc_filler_item_weight.value,
+    ]
 
-    return world.random.choice(all_filler_items)
+    category = world.random.choices(categories, weights=weights, k=1)[0]
+    return world.random.choice(category)
 
 
 def create_item_with_correct_classification(world: SR2World, item: str) -> SR2Item:
