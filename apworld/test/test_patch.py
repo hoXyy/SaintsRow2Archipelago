@@ -18,16 +18,28 @@ def get_missions(xml: str):
 
 class TestMissionPatch(unittest.TestCase):
     def test_enabled_arc_keeps_start_nav(self) -> None:
-        xml = generate_patched_mission_chains_file({RONIN_ARC_NAME})
+        xml = generate_patched_mission_chains_file({RONIN_ARC_NAME}, False)
         missions = get_missions(xml)
 
         self.assertIsNotNone(missions["rn01"].find("StartNav"))
 
     def test_disabled_arc_removes_start_nav(self) -> None:
-        xml = generate_patched_mission_chains_file(set())
+        xml = generate_patched_mission_chains_file(set(), False)
         missions = get_missions(xml)
 
         self.assertIsNone(missions["rn01"].find("StartNav"))
+
+    def test_enabled_revelation_has_start_nav(self) -> None:
+        xml = generate_patched_mission_chains_file(set(), True)
+        missions = get_missions(xml)
+
+        self.assertIsNotNone(missions["em01"].find("StartNav"))
+
+    def test_disabled_revelation_has_no_start_nav(self) -> None:
+        xml = generate_patched_mission_chains_file(set(), False)
+        missions = get_missions(xml)
+
+        self.assertIsNone(missions["em01"].find("StartNav"))
 
     def test_menu_info_replaces_seed_and_player(self) -> None:
         world = SimpleNamespace(
