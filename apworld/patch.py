@@ -109,7 +109,9 @@ def generate_patched_game_files(world: "SR2World", output_directory: str) -> Non
     )
 
     patch_files = {
-        MISSIONS_TABLE_FILE_NAME: generate_patched_mission_chains_file(enabled_arcs),
+        MISSIONS_TABLE_FILE_NAME: generate_patched_mission_chains_file(
+            enabled_arcs, bool(world.options.include_secret_mission.value)
+        ),
         MISSION_GLOBALS_LUA_FILE_NAME: (
             patched_missions_global_file_content
             if not BROTHERHOOD_ARC_NAME in enabled_arcs
@@ -135,7 +137,9 @@ def generate_patched_game_files(world: "SR2World", output_directory: str) -> Non
     print(f"Wrote patched Saints Row 2 game files for player {world.player}")
 
 
-def generate_patched_mission_chains_file(enabled_arcs: Set[str]) -> str:
+def generate_patched_mission_chains_file(
+    enabled_arcs: Set[str], revelation_enabled: bool
+) -> str:
     root = XmlTree.fromstring(MISSIONS_TABLE_FILE.read_bytes())
 
     missions = {
@@ -149,6 +153,11 @@ def generate_patched_mission_chains_file(enabled_arcs: Set[str]) -> str:
         if arc not in enabled_arcs:
             if start_nav is not None:
                 mission.remove(start_nav)
+
+    if not revelation_enabled:
+        mission = missions["em01"]
+        start_nav = mission.find("StartNav")
+        mission.remove(start_nav)
 
     return XmlTree.tostring(root, encoding="unicode")
 
