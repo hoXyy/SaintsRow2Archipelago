@@ -274,7 +274,7 @@ class StyleLevelLocationCount(Range):
     default = 7
 
 
-class AllowProgressionItemsOnHighStyleLevel(Choice):
+class AllowProgressionItemsOnHighStyleLevel(Toggle):
     """
     Allow progression items on high Style Level locations.
 
