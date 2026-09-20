@@ -1,6 +1,9 @@
+import os
 import unittest
+from pathlib import Path
+from tempfile import TemporaryDirectory
 from types import SimpleNamespace
-from unittest.mock import AsyncMock, Mock
+from unittest.mock import AsyncMock, Mock, patch
 
 from NetUtils import ClientStatus
 from ..activities import ACTIVITY_LEVEL_IDS, RACES, MEDAL_STRINGS
@@ -11,6 +14,9 @@ from ..client import (
     CHOP_SHOP_LOCATIONS,
     submit_observed_locations,
     PROTOCOL_VERSION,
+    SLOT_DATA_PROTOCOL_VERSION,
+    SR2Context,
+    process_game_context,
     send_session_ready,
     process_plugin_message,
 )
@@ -38,7 +44,7 @@ def make_ready_context():
         team=0,
         slot=1,
         slot_data={
-            "protocol": PROTOCOL_VERSION,
+            "protocol": SLOT_DATA_PROTOCOL_VERSION,
             "managed_unlockables": ["Vehicle: Taxi", "Vehicle: Taxi"],
             "managed_cheats": ["$1,000", "$1,000"],
             "persistent_items": [
@@ -67,6 +73,26 @@ def make_revision_context(item_count: int = 5):
     return SimpleNamespace(
         items_received=[object() for _ in range(item_count)],
         stored_revision_cursor=Mock(return_value=None),
+        persist_revision=Mock(),
+        send_plugin=AsyncMock(return_value=True),
+    )
+
+
+def make_reconciliation_context(names: list[str], stored_cursor: int | None = None):
+    items = [SimpleNamespace(item=index) for index in range(len(names))]
+    item_names = SimpleNamespace(
+        lookup_in_game=Mock(side_effect=lambda item, _game: names[item])
+    )
+    return SimpleNamespace(
+        context_generation=0,
+        pending_ack=None,
+        live_cursor=None,
+        bridge_event=SimpleNamespace(set=Mock()),
+        items_received=items,
+        item_names=item_names,
+        game="Saints Row 2",
+        slot_data={"persistent_items": ["persistent"]},
+        stored_revision_cursor=Mock(return_value=stored_cursor),
         persist_revision=Mock(),
         send_plugin=AsyncMock(return_value=True),
     )
@@ -378,7 +404,7 @@ class TestSessionReady(unittest.IsolatedAsyncioTestCase):
 
     async def test_wrong_protocol_is_not_sent(self) -> None:
         ctx = make_ready_context()
-        ctx.slot_data["protocol"] = PROTOCOL_VERSION + 1
+        ctx.slot_data["protocol"] = SLOT_DATA_PROTOCOL_VERSION + 1
 
         await send_session_ready(ctx)
 
@@ -411,6 +437,154 @@ class TestSessionReady(unittest.IsolatedAsyncioTestCase):
 
         self.assertFalse(ctx.session_sent)
         ctx.send_plugin.assert_not_awaited()
+
+
+class TestSaveReconciliation(unittest.IsolatedAsyncioTestCase):
+    async def test_plugin_snapshot_repairs_missing_client_revision(self) -> None:
+        ctx = make_reconciliation_context(["persistent", "ordinary"])
+
+        await process_game_context(
+            ctx,
+            {
+                "type": "game_context",
+                "checksum": 0x12345678,
+                "next_index": 2,
+                "needs_cursor": True,
+                "snapshot_known": True,
+                "persistent_items": ["persistent"],
+            },
+        )
+
+        ctx.persist_revision.assert_called_once_with(0x12345678, 2)
+        ctx.send_plugin.assert_awaited_once_with(
+            {
+                "type": "save_context",
+                "checksum": 0x12345678,
+                "next_index": 2,
+                "snapshot_known": True,
+                "persistent_items": ["persistent"],
+            }
+        )
+        self.assertIsNone(ctx.live_cursor)
+
+    async def test_client_revision_repairs_missing_plugin_snapshot(self) -> None:
+        ctx = make_reconciliation_context(
+            ["persistent", "ordinary"], stored_cursor=2
+        )
+
+        await process_game_context(
+            ctx,
+            {
+                "type": "game_context",
+                "checksum": 42,
+                "next_index": 0,
+                "needs_cursor": True,
+                "snapshot_known": False,
+                "persistent_items": [],
+            },
+        )
+
+        ctx.send_plugin.assert_awaited_once_with(
+            {
+                "type": "save_context",
+                "checksum": 42,
+                "next_index": 2,
+                "snapshot_known": True,
+                "persistent_items": ["persistent"],
+            }
+        )
+
+    async def test_matching_snapshots_continue_without_rewriting_client_ledger(self) -> None:
+        ctx = make_reconciliation_context(
+            ["persistent", "ordinary"], stored_cursor=2
+        )
+
+        await process_game_context(
+            ctx,
+            {
+                "type": "game_context",
+                "checksum": 42,
+                "next_index": 2,
+                "needs_cursor": True,
+                "snapshot_known": True,
+                "persistent_items": ["persistent"],
+            },
+        )
+
+        ctx.persist_revision.assert_not_called()
+        ctx.send_plugin.assert_awaited_once()
+
+    async def test_missing_snapshots_initialize_an_empty_cursor(self) -> None:
+        ctx = make_reconciliation_context([])
+
+        await process_game_context(
+            ctx,
+            {
+                "type": "game_context",
+                "checksum": 42,
+                "next_index": 0,
+                "needs_cursor": True,
+                "snapshot_known": False,
+                "persistent_items": [],
+            },
+        )
+
+        response = ctx.send_plugin.await_args.args[0]
+        ctx.persist_revision.assert_called_once_with(42, 0)
+        self.assertEqual(response["next_index"], 0)
+        self.assertTrue(response["snapshot_known"])
+
+    async def test_conflicting_cursors_block_reconciliation(self) -> None:
+        ctx = make_reconciliation_context(["persistent", "ordinary"], stored_cursor=1)
+
+        await process_game_context(
+            ctx,
+            {
+                "type": "game_context",
+                "checksum": 42,
+                "next_index": 2,
+                "needs_cursor": True,
+                "snapshot_known": True,
+                "persistent_items": ["persistent"],
+            },
+        )
+
+        ctx.send_plugin.assert_not_awaited()
+        self.assertIsNone(ctx.live_cursor)
+
+    async def test_active_context_acknowledgement_starts_delivery(self) -> None:
+        ctx = make_reconciliation_context([])
+
+        await process_game_context(
+            ctx,
+            {
+                "type": "game_context",
+                "checksum": 42,
+                "next_index": 3,
+                "needs_cursor": False,
+                "snapshot_known": False,
+                "persistent_items": [],
+            },
+        )
+
+        self.assertEqual(ctx.live_cursor, 3)
+
+
+class TestRevisionPersistence(unittest.TestCase):
+    def test_failed_replace_does_not_mutate_in_memory_ledger(self) -> None:
+        with TemporaryDirectory() as directory:
+            ctx = object.__new__(SR2Context)
+            ctx.seed_name = "seed"
+            ctx.team = 0
+            ctx.slot = 1
+            ctx.ledger_path = Path(directory) / "ledger.json"
+            ctx.ledger = {"version": 1, "sessions": {}}
+
+            with patch.object(os, "replace", side_effect=OSError("failed")):
+                with self.assertRaises(OSError):
+                    ctx.persist_revision(42, 3)
+
+            self.assertEqual(ctx.ledger, {"version": 1, "sessions": {}})
 
 
 class TestSaveRevision(unittest.IsolatedAsyncioTestCase):

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import copy
 import json
 import os
 import pkgutil
@@ -36,7 +37,8 @@ from .collectibles import (
 )
 from .missions import MISSION_CHAINS, ULTOR_SECRET_MISSION
 
-PROTOCOL_VERSION = 4
+PROTOCOL_VERSION = 5
+SLOT_DATA_PROTOCOL_VERSION = 4
 DEFAULT_PLUGIN_PORT = 38282
 RETRY_SECONDS = 1.0
 
@@ -202,17 +204,26 @@ class SR2Context(CommonContext):
         return None if value is None else int(value)
 
     def persist_revision(self, checksum: int, next_index: int) -> None:
-        sessions = self.ledger.setdefault("sessions", {})
+        updated = copy.deepcopy(self.ledger)
+        sessions = updated.setdefault("sessions", {})
         session = sessions.setdefault(self.session_key(), {})
         revisions = session.setdefault("revisions", {})
         revisions[f"{checksum:08X}"] = next_index
         self.ledger_path.parent.mkdir(parents=True, exist_ok=True)
         temporary = self.ledger_path.with_suffix(".tmp")
-        with temporary.open("w", encoding="utf-8") as file:
-            json.dump(self.ledger, file, indent=2, sort_keys=True)
-            file.flush()
-            os.fsync(file.fileno())
-        os.replace(temporary, self.ledger_path)
+        try:
+            with temporary.open("w", encoding="utf-8") as file:
+                json.dump(updated, file, indent=2, sort_keys=True)
+                file.flush()
+                os.fsync(file.fileno())
+            os.replace(temporary, self.ledger_path)
+        except OSError:
+            try:
+                temporary.unlink(missing_ok=True)
+            except OSError:
+                pass
+            raise
+        self.ledger = updated
 
     def _load_ledger(self) -> dict[str, Any]:
         try:
@@ -251,7 +262,7 @@ async def send_session_ready(ctx: SR2Context) -> None:
             "This seed lacks compatible SR2 protocol slot data; generate a new seed"
         )
         return
-    if ctx.slot_data["protocol"] != PROTOCOL_VERSION:
+    if ctx.slot_data["protocol"] != SLOT_DATA_PROTOCOL_VERSION:
         logger.error(
             "This seed uses an incompatible SR2 protocol version; generate a new seed"
         )
@@ -259,7 +270,7 @@ async def send_session_ready(ctx: SR2Context) -> None:
 
     message = {
         "type": "session_ready",
-        "protocol": ctx.slot_data["protocol"],
+        "protocol": PROTOCOL_VERSION,
         "seed_name": ctx.seed_name,
         "team": ctx.team,
         "slot": ctx.slot,
@@ -309,16 +320,97 @@ async def submit_observed_locations(ctx: SR2Context) -> None:
     await send_goal_if_complete(ctx)
 
 
+def persistent_items_for_cursor(ctx: SR2Context, next_index: int) -> list[str]:
+    persistent_names = set(ctx.slot_data["persistent_items"])
+    return sorted(
+        {
+            name
+            for item in ctx.items_received[:next_index]
+            if (name := ctx.item_names.lookup_in_game(item.item, ctx.game))
+            in persistent_names
+        }
+    )
+
+
 async def process_game_context(ctx: SR2Context, message: dict[str, Any]) -> None:
     ctx.context_generation += 1
     ctx.pending_ack = None
     next_index = int(message["next_index"])
     if message.get("needs_cursor"):
         checksum = int(message["checksum"])
-        next_index = ctx.revision_cursor(checksum)
+        plugin_known = message.get("snapshot_known") is True
+        plugin_items = list(message["persistent_items"])
+        client_cursor = ctx.stored_revision_cursor(checksum)
+
+        if plugin_known:
+            if not 0 <= next_index <= len(ctx.items_received):
+                logger.error(
+                    f"Rejected plugin save snapshot cursor checksum={checksum:08X} "
+                    f"next_index={next_index}"
+                )
+                return
+            expected_items = persistent_items_for_cursor(ctx, next_index)
+            if sorted(plugin_items) != expected_items:
+                logger.error(
+                    f"Rejected plugin save snapshot with conflicting persistent items "
+                    f"checksum={checksum:08X}"
+                )
+                return
+            if client_cursor is not None and client_cursor != next_index:
+                logger.error(
+                    f"Conflicting SR2 save snapshot cursor checksum={checksum:08X}: "
+                    f"plugin={next_index} client={client_cursor}"
+                )
+                return
+            if client_cursor is None:
+                try:
+                    ctx.persist_revision(checksum, next_index)
+                except OSError as error:
+                    logger.error(
+                        f"Could not recover client save revision checksum={checksum:08X}: "
+                        f"{error}"
+                    )
+                    return
+        else:
+            if plugin_items:
+                logger.error(
+                    f"Rejected unknown plugin snapshot with persistent items "
+                    f"checksum={checksum:08X}"
+                )
+                return
+            if client_cursor is None:
+                next_index = 0
+                plugin_items = []
+                try:
+                    ctx.persist_revision(checksum, next_index)
+                except OSError as error:
+                    logger.error(
+                        f"Could not initialize client save revision "
+                        f"checksum={checksum:08X}: {error}"
+                    )
+                    return
+                plugin_known = True
+            else:
+                next_index = client_cursor
+                if not 0 <= next_index <= len(ctx.items_received):
+                    logger.error(
+                        f"Rejected client save snapshot cursor checksum={checksum:08X} "
+                        f"next_index={next_index}"
+                    )
+                    return
+                plugin_known = True
+                plugin_items = persistent_items_for_cursor(ctx, next_index)
+
         await ctx.send_plugin(
-            {"type": "save_context", "checksum": checksum, "next_index": next_index}
+            {
+                "type": "save_context",
+                "checksum": checksum,
+                "next_index": next_index,
+                "snapshot_known": plugin_known,
+                "persistent_items": plugin_items,
+            }
         )
+        return
 
     ctx.live_cursor = next_index
     ctx.bridge_event.set()

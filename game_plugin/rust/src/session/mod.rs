@@ -3,6 +3,7 @@ mod revision_sync;
 
 use crate::{
     protocol::{self, IncomingKind, IncomingMessage},
+    revision_journal::SaveSnapshot,
     tcp_client::{NetworkEvent, TcpClient},
 };
 use delivery::{Context, Delivery};
@@ -13,7 +14,7 @@ use std::{
     path::PathBuf,
 };
 
-const SESSION_PROTOCOL: u32 = 4;
+const SESSION_PROTOCOL: u32 = 5;
 
 pub(crate) enum GameplayRequest {
     InstallPolicies(IncomingMessage),
@@ -33,6 +34,7 @@ enum Pending {
 enum RestoreState {
     #[default]
     None,
+    AwaitingSnapshot,
     NeedsReset(VecDeque<String>),
     Replaying(VecDeque<String>),
     Failed,
@@ -117,11 +119,34 @@ impl SessionRuntime {
         if !self.active || self.revisions.pending || self.delivery.context == Context::Waiting {
             return;
         }
-        self.send(protocol::serialize_game_context(
+        let snapshot = if self.delivery.context == Context::AwaitingCursor {
+            self.session.as_ref().and_then(|session| {
+                self.delivery.checksum.and_then(|checksum| {
+                    self.revisions.journal.snapshot(
+                        &session.seed_name,
+                        session.team,
+                        session.slot,
+                        checksum,
+                    )
+                })
+            })
+        } else {
+            None
+        };
+        let next_index = snapshot
+            .as_ref()
+            .map_or(self.delivery.next_index, |snapshot| snapshot.next_index);
+        let snapshot_known = snapshot.is_some();
+        let persistent_items = snapshot
+            .map(|snapshot| snapshot.persistent_items)
+            .unwrap_or_default();
+        self.send(protocol::serialize_game_context_with_snapshot(
             self.delivery.checksum,
-            self.delivery.next_index,
+            next_index,
             self.delivery.context == Context::Provisional,
             self.delivery.context == Context::AwaitingCursor,
+            snapshot_known,
+            persistent_items,
         ));
     }
 
@@ -186,19 +211,7 @@ impl SessionRuntime {
         }
     }
 
-    fn prepare_restore(&mut self, checksum: u32) {
-        let snapshot = self.session.as_ref().and_then(|session| {
-            self.revisions.journal.snapshot(
-                &session.seed_name,
-                session.team,
-                session.slot,
-                checksum,
-            )
-        });
-        let items = snapshot
-            .map(|snapshot| snapshot.persistent_items)
-            .unwrap_or_default();
-
+    fn prepare_restore(&mut self, items: Vec<String>) {
         self.persistent_items = items.iter().cloned().collect();
         self.restore = RestoreState::NeedsReset(items.into());
         self.defer_restore_once = false;
@@ -208,10 +221,8 @@ impl SessionRuntime {
         self.cancel_gameplay_request();
         self.delivery.load(checksum);
         self.restore_checksum = Some(checksum);
+        self.restore = RestoreState::AwaitingSnapshot;
         self.save_load_pending = true;
-        if self.session.is_some() {
-            self.prepare_restore(checksum);
-        }
         log::info!(target: "SaveRevision", "Loaded checksum={checksum:08X}; awaiting AP cursor and persistent-item restore");
         self.game_context();
     }
@@ -288,7 +299,7 @@ impl SessionRuntime {
                 self.pending = Some(Pending::ReplayPersistentItem(item.clone()));
                 Some(GameplayRequest::ReplayPersistentItem(item))
             }
-            RestoreState::None | RestoreState::Failed => None,
+            RestoreState::None | RestoreState::AwaitingSnapshot | RestoreState::Failed => None,
         }
     }
 
@@ -373,22 +384,52 @@ impl SessionRuntime {
                     && self.delivery.context == Context::AwaitingCursor
                     && self.delivery.checksum == Some(message.checksum)
                 {
-                    if let Some(session) = &self.session {
-                        if let Some(snapshot) = self.revisions.journal.snapshot(
-                            &session.seed_name,
-                            session.team,
-                            session.slot,
-                            message.checksum,
-                        ) {
-                            if snapshot.next_index != message.next_index {
-                                log::error!(target: "SaveRevision", "Rejected conflicting snapshot cursor checksum={:08X} journal={} client={}", message.checksum, snapshot.next_index, message.next_index);
-                                return None;
-                            }
+                    let session = self.session.as_ref()?;
+                    if message
+                        .persistent_items
+                        .iter()
+                        .any(|item| !session.persistent_items.contains(item))
+                    {
+                        log::error!(target: "SaveRevision", "Rejected save snapshot with an item outside the persistent-item policy checksum={:08X}", message.checksum);
+                        return None;
+                    }
+                    let client_snapshot = SaveSnapshot {
+                        next_index: message.next_index,
+                        persistent_items: message.persistent_items,
+                    };
+                    let journal_snapshot = self.revisions.journal.snapshot(
+                        &session.seed_name,
+                        session.team,
+                        session.slot,
+                        message.checksum,
+                    );
+                    if let Some(snapshot) = journal_snapshot {
+                        if !message.snapshot_known || snapshot != client_snapshot {
+                            log::error!(target: "SaveRevision", "Rejected conflicting save snapshot checksum={:08X} journal_cursor={} client_cursor={}", message.checksum, snapshot.next_index, client_snapshot.next_index);
+                            return None;
                         }
+                    } else {
+                        if !message.snapshot_known
+                            && (client_snapshot.next_index != 0
+                                || !client_snapshot.persistent_items.is_empty())
+                        {
+                            log::error!(target: "SaveRevision", "Rejected invalid unknown save snapshot checksum={:08X}", message.checksum);
+                            return None;
+                        }
+                        if !self.revisions.recover_snapshot(
+                            session,
+                            message.checksum,
+                            client_snapshot.clone(),
+                        ) {
+                            return None;
+                        }
+                        log::info!(target: "SaveRevision", "Recovered missing plugin save snapshot checksum={:08X} next_index={}", message.checksum, client_snapshot.next_index);
                     }
                     self.delivery.next_index = message.next_index;
                     self.delivery.context = Context::ActiveRevision;
+                    self.prepare_restore(client_snapshot.persistent_items);
                     log::info!(target: "Items", "Save context ready checksum={:08X} next_index={}", message.checksum, message.next_index);
+                    self.game_context();
                 } else {
                     log::warn!(target: "Items", "Rejected save context for inactive checksum={:08X}", message.checksum);
                 }
@@ -457,9 +498,6 @@ impl SessionRuntime {
                 log::info!(target: "Session", "AP gameplay policy activated seed={} team={} slot={}", session.seed_name, session.team, session.slot);
                 self.session = Some(session);
                 self.active = true;
-                if let Some(checksum) = self.restore_checksum {
-                    self.prepare_restore(checksum);
-                }
                 self.begin_sync();
             }
             Some(Pending::Policies(_)) => {

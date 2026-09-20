@@ -141,6 +141,7 @@ fn save_load_invalidates_pending_result_and_requires_matching_cursor() {
                 kind: IncomingKind::SaveContext,
                 checksum,
                 next_index: 7,
+                snapshot_known: true,
                 ..IncomingMessage::default()
             },
             true,
@@ -265,6 +266,95 @@ fn maximum_cursor_is_rejected_without_execution_or_wraparound() {
 }
 
 #[test]
+fn missing_plugin_snapshot_should_be_recovered_before_context_activation() {
+    let mut fixture = Fixture::new();
+    let runtime = &mut fixture.runtime;
+    activate(runtime);
+    runtime.set_save_monitoring(true);
+    runtime.save_loaded(42);
+
+    runtime.handle_message(
+        IncomingMessage {
+            kind: IncomingKind::SaveContext,
+            checksum: 42,
+            next_index: 1,
+            snapshot_known: true,
+            persistent_items: vec!["persistent".into()],
+            ..IncomingMessage::default()
+        },
+        true,
+    );
+
+    assert_eq!(runtime.delivery.context, Context::ActiveRevision);
+    assert_eq!(last_message(runtime)["needs_cursor"], false);
+    assert_eq!(
+        runtime
+            .revisions
+            .journal
+            .snapshot("seed", 0, 1, 42)
+            .unwrap(),
+        crate::revision_journal::SaveSnapshot {
+            next_index: 1,
+            persistent_items: vec!["persistent".into()],
+        }
+    );
+    assert!(runtime.revisions.journal.pending("seed", 0, 1).is_empty());
+}
+
+#[test]
+fn failed_plugin_snapshot_recovery_should_not_activate_or_mutate_memory() {
+    let mut fixture = Fixture::new();
+    let runtime = &mut fixture.runtime;
+    activate(runtime);
+    runtime.set_save_monitoring(true);
+    runtime.save_loaded(42);
+    std::fs::create_dir(fixture.directory.join("journal.json.tmp")).unwrap();
+
+    runtime.handle_message(
+        IncomingMessage {
+            kind: IncomingKind::SaveContext,
+            checksum: 42,
+            next_index: 1,
+            snapshot_known: true,
+            persistent_items: vec!["persistent".into()],
+            ..IncomingMessage::default()
+        },
+        true,
+    );
+
+    assert_eq!(runtime.delivery.context, Context::AwaitingCursor);
+    assert_eq!(runtime.revisions.journal.snapshot("seed", 0, 1, 42), None);
+}
+
+#[test]
+fn conflicting_recovered_snapshot_should_leave_context_awaiting_resolution() {
+    let mut fixture = Fixture::new();
+    let runtime = &mut fixture.runtime;
+    activate(runtime);
+    runtime.delivery.next_index = 1;
+    runtime.persistent_items.insert("persistent".into());
+    runtime.save_written(42);
+    runtime.set_save_monitoring(true);
+    runtime.save_loaded(42);
+    let outgoing_count = runtime.outgoing.len();
+
+    runtime.handle_message(
+        IncomingMessage {
+            kind: IncomingKind::SaveContext,
+            checksum: 42,
+            next_index: 2,
+            snapshot_known: true,
+            persistent_items: vec!["persistent".into()],
+            ..IncomingMessage::default()
+        },
+        true,
+    );
+
+    assert_eq!(runtime.delivery.context, Context::AwaitingCursor);
+    assert_eq!(runtime.outgoing.len(), outgoing_count);
+}
+
+#[test]
 fn persistent_items_should_round_trip_through_a_save_snapshot() {
     let mut fixture = Fixture::new();
     let runtime = &mut fixture.runtime;
@@ -294,6 +384,8 @@ fn persistent_items_should_round_trip_through_a_save_snapshot() {
             kind: IncomingKind::SaveContext,
             checksum: 42,
             next_index: 1,
+            snapshot_known: true,
+            persistent_items: vec!["persistent".into()],
             ..IncomingMessage::default()
         },
         true,
@@ -322,7 +414,18 @@ fn rejected_restore_should_retry_reset_but_block_after_replay_failure() {
     activate(runtime);
     runtime.persistent_items.insert("persistent".into());
     runtime.save_written(42);
+    runtime.set_save_monitoring(true);
     runtime.save_loaded(42);
+    runtime.handle_message(
+        IncomingMessage {
+            kind: IncomingKind::SaveContext,
+            checksum: 42,
+            snapshot_known: true,
+            persistent_items: vec!["persistent".into()],
+            ..IncomingMessage::default()
+        },
+        true,
+    );
 
     assert!(matches!(
         runtime.next_request(true),
