@@ -122,15 +122,42 @@ class TestUTMissionAccess(SR2UTTestBase):
                 mission = get_mission_by_key(key)
                 self.assertFalse(self.world.get_location(mission.name).can_reach(state))
 
-    def test_unchecked_zero_cost_mission_does_not_unlock_its_event(self) -> None:
-        jailbreak = get_mission_by_key("tss01")
-        event = self.world.get_location(get_mission_complete_event_name(jailbreak))
+    def test_free_mission_chain_is_in_logic_before_locations_are_checked(self) -> None:
+        state = self.tracker_state(set(), received_respect=0)
 
-        unchecked_state = self.tracker_state(set(), received_respect=0)
-        self.assertFalse(event.can_reach(unchecked_state))
+        for key in ("tss01", "tss02"):
+            with self.subTest(mission=key):
+                mission = get_mission_by_key(key)
+                self.assertTrue(self.world.get_location(mission.name).can_reach(state))
+                self.assertTrue(
+                    self.world.get_location(
+                        get_mission_complete_event_name(mission)
+                    ).can_reach(state)
+                )
 
-        checked_state = self.tracker_state({jailbreak.id}, received_respect=0)
-        self.assertTrue(event.can_reach(checked_state))
+        self.assertFalse(
+            self.world.get_location(get_mission_by_key("tss03").name).can_reach(state)
+        )
+
+    def test_unchecked_predecessors_add_to_required_respect(self) -> None:
+        one_respect = self.tracker_state(set(), received_respect=1)
+        self.assertTrue(
+            self.world.get_location(get_mission_by_key("tss03").name).can_reach(
+                one_respect
+            )
+        )
+        self.assertFalse(
+            self.world.get_location(get_mission_by_key("tss04").name).can_reach(
+                one_respect
+            )
+        )
+
+        two_respect = self.tracker_state(set(), received_respect=2)
+        self.assertTrue(
+            self.world.get_location(get_mission_by_key("tss04").name).can_reach(
+                two_respect
+            )
+        )
 
     def test_stronghold_uses_available_respect_and_checked_event(self) -> None:
         ronin_one = get_mission_by_key("rn01")
@@ -156,7 +183,7 @@ class TestUTMissionAccess(SR2UTTestBase):
             ).can_reach(checked_state)
         )
 
-    def test_special_missions_use_tracker_respect_and_checked_events(self) -> None:
+    def test_special_missions_and_events_use_tracker_respect(self) -> None:
         checked_locations = self.intro_checked()
 
         for mission in (ULTOR_SECRET_MISSION, STILWATER_CAVERNS_STRONGHOLD):
@@ -168,7 +195,7 @@ class TestUTMissionAccess(SR2UTTestBase):
                 self.assertTrue(
                     self.world.get_location(mission.name).can_reach(available_state)
                 )
-                self.assertFalse(
+                self.assertTrue(
                     self.world.get_location(
                         get_mission_complete_event_name(mission)
                     ).can_reach(available_state)
