@@ -258,8 +258,7 @@ class TestSlotData(SR2TestBase):
             generated_names & (set(USEFUL_UNLOCKABLES) | set(FILLER_UNLOCKABLES))
         )
         expected_cheats = sorted(
-            generated_names
-            & (set(CHEAT_ITEMS) | set(WEAPON_ITEM_NAMES) | set(TRAP_CHEATS))
+            generated_names & (set(CHEAT_ITEMS) | set(TRAP_CHEATS))
         )
         expected_persistent_items = sorted(
             generated_names & set(PERSISTENT_ACTIVITY_UNLOCK_ITEMS)

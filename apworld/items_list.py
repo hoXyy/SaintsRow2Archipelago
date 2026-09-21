@@ -27,6 +27,8 @@ WEAPON_ITEM_NAMES = [
     "Weapon: Machete",
     "Weapon: Sledgehammer",
     "Weapon: Chainsaw",
+    "Weapon: Crowbar",
+    "Weapon: Butterfly Knife",
     # Pistols
     "Weapon: VICE 9",
     "Weapon: Kobra",
@@ -51,6 +53,8 @@ WEAPON_ITEM_NAMES = [
     "Weapon: McManus 2010",
     "Weapon: RPG Launcher",
     "Weapon: Annihilator RPG",
+    "Weapon: Minigun",
+    "Weapon: Flamethrower",
     # Thrown
     "Weapon: Flashbang",
     "Weapon: Molotov Cocktail",

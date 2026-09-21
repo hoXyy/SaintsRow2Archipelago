@@ -6,6 +6,7 @@
 
 #include "Addresses.hpp"
 #include "Memory.hpp"
+#include "game/ModuleInfo.hpp"
 
 namespace sr2ap {
 namespace {
@@ -58,6 +59,61 @@ inline constexpr std::ptrdiff_t kMissionUnlockRva = 0x002A7270;
     }
 
     return reinterpret_cast<MissionUnlockFunction>(address);
+}
+
+// weapon add stuff
+inline constexpr std::ptrdiff_t kResolveWeaponRva = 0x007716E0;
+inline constexpr std::ptrdiff_t kAddWeaponRva = 0x00159890;
+inline constexpr std::size_t kPlayerInventoryOffset = 0x10C4;
+inline constexpr std::ptrdiff_t kAddAmmoRva = 0x00634140;
+
+using ResolveWeaponFunction = void*(__cdecl*)(const char* inventoryName);
+
+using AddWeaponFunction = void*(__thiscall*)(void* weaponDefinition,
+                                             void* inventory,
+                                             std::int32_t count,
+                                             std::int32_t equipNow,
+                                             std::int32_t synchronize);
+
+struct InventoryFunctions {
+    ResolveWeaponFunction resolveWeapon;
+    AddWeaponFunction addWeapon;
+};
+
+[[nodiscard]] std::optional<InventoryFunctions> ResolveInventoryFunctions(
+    const ModuleInfo& game) noexcept {
+    const auto resolveAddress = game.base + kResolveWeaponRva;
+    const auto addAddress = game.base + kAddWeaponRva;
+
+    if (!IsInsideModule(game.handle,
+                        reinterpret_cast<const void*>(resolveAddress)) ||
+        !IsInsideModule(game.handle,
+                        reinterpret_cast<const void*>(addAddress)) ||
+        !IsExecutableAddress(resolveAddress) ||
+        !IsExecutableAddress(addAddress) ||
+        DetectDetour(reinterpret_cast<const void*>(resolveAddress)) !=
+            DetourKind::None ||
+        DetectDetour(reinterpret_cast<const void*>(addAddress)) !=
+            DetourKind::None) {
+        return std::nullopt;
+    }
+
+    return InventoryFunctions{
+        .resolveWeapon =
+            reinterpret_cast<ResolveWeaponFunction>(resolveAddress),
+        .addWeapon = reinterpret_cast<AddWeaponFunction>(addAddress),
+    };
+}
+
+void CallAddAmmo(const std::uintptr_t functionAddress, void* player,
+                 const std::int32_t weaponCategory, const std::int32_t amount) {
+    __asm {
+        mov edx, weaponCategory
+        push amount
+        push player
+        call functionAddress
+        add esp, 8
+    }
 }
 }  // namespace
 
@@ -131,6 +187,90 @@ bool GiveMoney(const std::int32_t amount) {
 
     cashAdd(reinterpret_cast<void*>(static_cast<std::uintptr_t>(*player)),
             &cents);
+
+    return true;
+}
+
+bool CanAddWeapon() {
+    const auto game = InspectSupportedGameModule();
+    return game && ResolveInventoryFunctions(*game).has_value();
+}
+
+bool AddWeapon(const char* weaponName, std::int32_t count) {
+    if (!weaponName || weaponName[0] == '\0' || count <= 0) {
+        return false;
+    }
+
+    const auto game = InspectSupportedGameModule();
+    if (!game) {
+        return false;
+    }
+
+    const auto inventoryFunctions = ResolveInventoryFunctions(*game);
+    if (!inventoryFunctions) {
+        return false;
+    }
+
+    const auto playerAddress =
+        ReadMemory<std::uint32_t>(game->base + addresses::kPlayerGlobalRva);
+
+    if (!playerAddress || *playerAddress == 0) {
+        return false;
+    }
+
+    auto* const weapon = inventoryFunctions->resolveWeapon(weaponName);
+    if (!weapon) {
+        return false;
+    }
+
+    const auto player = static_cast<std::uintptr_t>(*playerAddress);
+    auto* const inventory =
+        reinterpret_cast<void*>(player + kPlayerInventoryOffset);
+
+    inventoryFunctions->addWeapon(weapon, inventory, count, 0, 1);
+
+    return true;
+}
+
+bool AddWeaponAmmo(const char* weaponName, std::int32_t amount) {
+    if (!weaponName || weaponName[0] == '\0' || amount <= 0) {
+        return false;
+    }
+
+    const auto game = InspectSupportedGameModule();
+    if (!game) {
+        return false;
+    }
+
+    const auto functions = ResolveInventoryFunctions(*game);
+    if (!functions) {
+        return false;
+    }
+
+    const auto playerAddress =
+        ReadMemory<std::uint32_t>(game->base + addresses::kPlayerGlobalRva);
+
+    if (!playerAddress || *playerAddress == 0) {
+        return false;
+    }
+
+    auto* const weapon = functions->resolveWeapon(weaponName);
+    if (!weapon) {
+        return false;
+    }
+
+    constexpr std::size_t kWeaponCategoryOffset{0x3C};
+    const auto category = ReadMemory<std::int32_t>(
+        reinterpret_cast<std::uintptr_t>(weapon) + kWeaponCategoryOffset);
+
+    if (!category || *category == 9) {
+        return false;
+    }
+
+    CallAddAmmo(
+        game->base + kAddAmmoRva,
+        reinterpret_cast<void*>(static_cast<std::uintptr_t>(*playerAddress)),
+        *category, amount);
 
     return true;
 }

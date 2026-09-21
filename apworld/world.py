@@ -144,7 +144,7 @@ class SR2World(World):
             if item.player == self.player and item.code is not None
         }
         unlockable_names = set(USEFUL_UNLOCKABLES) | set(FILLER_UNLOCKABLES)
-        cheat_names = set(CHEAT_ITEMS) | set(WEAPON_ITEM_NAMES) | set(TRAP_CHEATS)
+        cheat_names = set(CHEAT_ITEMS) | set(TRAP_CHEATS)
         selected_arcs = self.options.required_gang_arcs.value
         goal_locations = []
 
