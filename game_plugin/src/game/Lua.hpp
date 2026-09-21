@@ -9,4 +9,7 @@ bool CanUnlockActivity();
 bool UnlockActivity(const char* progressionTag);
 bool CanGiveMoney();
 bool GiveMoney(const std::int32_t amount);
+bool CanAddWeapon();
+bool AddWeapon(const char* weaponName, std::int32_t count);
+bool AddWeaponAmmo(const char* weaponName, std::int32_t amount);
 }  // namespace sr2ap::Lua

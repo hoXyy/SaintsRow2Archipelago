@@ -10,6 +10,7 @@
 #include "item_handlers/NotorietyItemHandler.hpp"
 #include "item_handlers/RespectItemHandler.hpp"
 #include "item_handlers/UnlockableItemHandler.hpp"
+#include "item_handlers/WeaponItemHandler.hpp"
 
 namespace sr2ap {
 
@@ -17,7 +18,7 @@ ItemHandlers CreateItemHandlers(ItemHandlerConfiguration configuration,
                                 GameThreadDispatcher& dispatcher,
                                 RespectController& respectController) {
     ItemHandlers handlers;
-    handlers.reserve(7);
+    handlers.reserve(8);
 
     if (!configuration.managedCheats.empty()) {
         handlers.push_back(CreateCheatItemHandler(
@@ -42,6 +43,8 @@ ItemHandlers CreateItemHandlers(ItemHandlerConfiguration configuration,
         handlers.push_back(CreateHookActivityUnlockItemHandler(
             dispatcher, std::move(configuration.persistentItems)));
     }
+
+    handlers.push_back(CreateWeaponItemHandler(dispatcher));
 
     return handlers;
 }
