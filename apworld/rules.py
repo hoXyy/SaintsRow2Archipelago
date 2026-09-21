@@ -398,21 +398,22 @@ def add_mission_respect_rules(
     location = world.get_location(mission.name)
 
     if is_ut:
-        if mission.required_respect > 0:
-            add_rule(
-                location,
-                lambda state, mission=mission: (
-                    world.ut_available_respect >= mission.required_respect
-                ),
+        dependencies = get_mission_respect_dependencies(mission)
+
+        def has_enough_respect(state, dependencies=dependencies) -> bool:
+            required_respect = sum(
+                dependency.required_respect
+                for dependency in dependencies
+                if dependency.id not in world.ut_checked_locations
             )
+            return world.ut_available_respect >= required_respect
+
+        add_rule(location, has_enough_respect)
 
         if mission.creates_unlock_item:
-            event = world.get_location(get_mission_complete_event_name(mission))
             add_rule(
-                event,
-                lambda state, mission=mission: (
-                    mission.id in world.ut_checked_locations
-                ),
+                world.get_location(get_mission_complete_event_name(mission)),
+                has_enough_respect,
             )
     else:
         if minimum_respect > 0:
@@ -434,3 +435,25 @@ def add_mission_respect_rules(
                         minimum_respect,
                     ),
                 )
+
+
+def get_mission_respect_dependencies(mission: Mission) -> tuple[Mission, ...]:
+    dependencies: dict[str, Mission] = {}
+
+    def add_mission_and_predecessors(entry: Mission) -> None:
+        if entry.key in dependencies:
+            return
+
+        dependencies[entry.key] = entry
+        if entry.unlocked_by is not None:
+            add_mission_and_predecessors(get_mission_by_key(entry.unlocked_by))
+
+    add_mission_and_predecessors(mission)
+
+    for chain in MISSION_CHAINS:
+        if chain["missions"] and mission is chain["missions"][-1]:
+            for stronghold in chain["strongholds"]:
+                add_mission_and_predecessors(stronghold)
+            break
+
+    return tuple(dependencies.values())
