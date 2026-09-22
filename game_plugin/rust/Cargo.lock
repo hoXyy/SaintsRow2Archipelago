@@ -180,6 +180,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d45db016d36b838f563236e9193d0ee6ce38f3f68b6c94e914b4929c96bbb890"
 
 [[package]]
+name = "flexi_logger"
+version = "0.31.10"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a4945fa9cdfd7571192cf559c186d45ab36c8034482a2d217a19bdc566f190cc"
+dependencies = [
+ "chrono",
+ "log",
+ "thiserror",
+]
+
+[[package]]
 name = "foldhash"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -452,9 +463,9 @@ dependencies = [
 name = "sr2ap-rust"
 version = "0.1.0"
 dependencies = [
- "chrono",
  "cxx",
  "cxx-build",
+ "flexi_logger",
  "futures-util",
  "log",
  "serde",

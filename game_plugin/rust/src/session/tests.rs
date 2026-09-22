@@ -2,13 +2,11 @@ use super::*;
 use std::sync::atomic::{AtomicU64, Ordering};
 
 struct Fixture {
-    _logger_guard: std::sync::MutexGuard<'static, ()>,
     runtime: SessionRuntime,
     directory: PathBuf,
 }
 impl Fixture {
     fn new() -> Self {
-        let logger_guard = crate::logger::TEST_LOCK.lock().unwrap();
         static SEQUENCE: AtomicU64 = AtomicU64::new(0);
         let directory = std::env::temp_dir().join(format!(
             "sr2ap_session_{}_{}",
@@ -17,11 +15,7 @@ impl Fixture {
         ));
         std::fs::create_dir_all(&directory).unwrap();
         let runtime = SessionRuntime::new(true, directory.join("journal.json"));
-        Self {
-            runtime,
-            directory,
-            _logger_guard: logger_guard,
-        }
+        Self { runtime, directory }
     }
 }
 impl Drop for Fixture {

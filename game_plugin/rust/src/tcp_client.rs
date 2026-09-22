@@ -277,9 +277,6 @@ mod tests {
 
     #[test]
     fn client_should_exchange_newline_delimited_messages() {
-        let _logger_guard = crate::logger::TEST_LOCK
-            .lock()
-            .expect("lock logger during TCP test");
         let listener = TcpListener::bind(("127.0.0.1", 0)).expect("bind test server");
         let port = listener.local_addr().expect("read test address").port();
         let server = thread::spawn(move || {
@@ -333,9 +330,6 @@ mod tests {
 
     #[test]
     fn client_should_reconnect_after_server_closes_connection() {
-        let _logger_guard = crate::logger::TEST_LOCK
-            .lock()
-            .expect("lock logger during TCP test");
         let listener = TcpListener::bind(("127.0.0.1", 0)).expect("bind test server");
         let port = listener.local_addr().expect("read test address").port();
         let (release_server, wait_for_release) = mpsc::sync_channel(0);

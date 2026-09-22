@@ -1,5 +1,7 @@
 use std::{ffi::OsString, os::windows::ffi::OsStringExt, path::PathBuf};
 
+use log::Level;
+
 use crate::logger::{self, LoggerError};
 
 #[cxx::bridge(namespace = "sr2ap::rust")]
@@ -35,12 +37,11 @@ fn log_initialize(directory: &[u16], debug_enabled: bool) -> Result<(), LoggerEr
 
 fn log_write(level: bridge::LogLevel, subsystem: &[u8], message: &[u8]) -> Result<(), LoggerError> {
     let level = match level {
-        bridge::LogLevel::Trace => logger::LogLevel::Trace,
-        bridge::LogLevel::Debug => logger::LogLevel::Debug,
-        bridge::LogLevel::Info => logger::LogLevel::Info,
-        bridge::LogLevel::Warning => logger::LogLevel::Warning,
-        bridge::LogLevel::Error => logger::LogLevel::Error,
-        bridge::LogLevel::Critical => logger::LogLevel::Critical,
+        bridge::LogLevel::Trace => Level::Trace,
+        bridge::LogLevel::Debug => Level::Debug,
+        bridge::LogLevel::Info => Level::Info,
+        bridge::LogLevel::Warning => Level::Warn,
+        bridge::LogLevel::Error | bridge::LogLevel::Critical => Level::Error,
         _ => return Err(LoggerError::InvalidArgument),
     };
 
