@@ -106,9 +106,7 @@ def calculate_ut_respect(
         ITEM_NAME_TO_ID[RESPECT_ITEM_NAME],
         ITEM_NAME_TO_ID[BONUS_RESPECT_ITEM_NAME],
     }
-    received_respect = sum(
-        item.item in respect_item_ids for item in items_received
-    )
+    received_respect = sum(item.item in respect_item_ids for item in items_received)
     spent_respect = sum(
         mission.required_respect
         for mission in ALL_MISSIONS
@@ -513,7 +511,7 @@ async def process_progression(ctx: SR2Context, message: dict[str, Any]) -> None:
     elif category == "style_level":
         for location in STYLE_LEVEL_LOCATIONS[:current]:
             locations.append(STYLE_LEVEL_IDS[location])
-    elif category == "tag" and key in TAGS_MAPPING:
+    elif category == "tags" and key in TAGS_MAPPING:
         locations.append(TAGS_IDS[TAGS_MAPPING[key]])
 
     ctx.observed_locations.update(locations)

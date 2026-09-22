@@ -76,7 +76,6 @@ TAGS_MAPPING: dict[str, str] = {
     "tag_14": "Tag #14",
     "tag_15": "Tag #15",
     "tag_16": "Tag #16",
-    "tag_16": "Tag #16",
     "tag_17": "Tag #17",
     "tag_18": "Tag #18",
     "tag_19": "Tag #19",

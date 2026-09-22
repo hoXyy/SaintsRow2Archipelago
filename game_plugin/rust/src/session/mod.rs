@@ -266,6 +266,7 @@ impl SessionRuntime {
             "racing" => session.races,
             "cd" => session.cds,
             "style_level" => session.style_level,
+            "tags" => session.tags,
             _ => false,
         };
 

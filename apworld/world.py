@@ -6,7 +6,6 @@ from .items_list import (
     FILLER_UNLOCKABLES,
     TRAP_ITEMS,
     USEFUL_UNLOCKABLES,
-    WEAPON_ITEM_NAMES,
     TRAP_CHEATS,
 )
 from .missions import (

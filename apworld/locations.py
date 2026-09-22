@@ -290,6 +290,7 @@ def generate_location_name_to_id() -> dict[str, int]:
         **ACTIVITY_LEVEL_IDS,
         **CD_IDS,
         **STYLE_LEVEL_IDS,
+        **TAGS_IDS,
     }
 
 
