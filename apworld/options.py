@@ -93,6 +93,8 @@ class IncludeStilwaterCaverns(Toggle):
 class IncludeSecretMissionAsGoal(Toggle):
     """
     Whether to include the Ultor mission 'Revelation' as part of the completion goal.
+
+    NOTE: Requires having the option to add the mission as a location enabled.
     """
 
     display_name = (
@@ -104,6 +106,8 @@ class IncludeSecretMissionAsGoal(Toggle):
 class IncludeStilwaterCavernsAsGoal(Toggle):
     """
     Whether to include the Stilwater Caverns Saints stronghold as part of the completion goal.
+
+    NOTE: Requires having the option to add the stronghold as a location enabled.
     """
 
     display_name = "Include Stilwater Caverns stronghold in the completion goal"
@@ -271,7 +275,9 @@ class TrapChance(Range):
 
 class BonusRespectPercentage(Range):
     """
-    Percentage of bonus respect points to add to the item pool. Very useful to make it easier to find more respect to progress.
+    Percentage of bonus respect points to add to the item pool.
+
+    Very useful to make it easier to find more respect to progress.
     """
 
     display_name = "Bonus Respect Percentage"
@@ -366,6 +372,26 @@ class MiscFillerItemWeight(Range):
     default = 25
 
 
+class IncludeWeatherTrapItems(Toggle):
+    """
+    Whether to include permanent weather traps in the item pool.
+    """
+
+    display_name = "Include weather trap items"
+
+    default = 1
+
+
+class IncludeNotorietyTrapItems(Toggle):
+    """
+    Whether to include notoriety traps in the item pool.
+    """
+
+    display_name = "Include notoriety trap items"
+
+    default = 1
+
+
 @dataclass
 class SR2Options(PerGameCommonOptions):
     required_gang_arcs: RequiredGangArcs
@@ -399,6 +425,8 @@ class SR2Options(PerGameCommonOptions):
     weapon_filler_item_weight: WeaponFillerItemWeight
     vehicle_filler_item_weight: VehicleFillerItemWeight
     misc_filler_item_weight: MiscFillerItemWeight
+    include_notoriety_trap_items: IncludeNotorietyTrapItems
+    include_weather_trap_items: IncludeWeatherTrapItems
 
 
 option_groups = [
@@ -438,10 +466,13 @@ option_groups = [
             IncludeStilwaterCaverns,
         ],
     ),
-    OptionGroup("Item Options", [TrapChance, BonusRespectPercentage]),
     OptionGroup(
-        "Filler Item Weights Options",
+        "Item Include & Weights Options",
         [
+            TrapChance,
+            BonusRespectPercentage,
+            IncludeWeatherTrapItems,
+            IncludeNotorietyTrapItems,
             MoneyFillerItemWeight,
             WeaponFillerItemWeight,
             VehicleFillerItemWeight,
