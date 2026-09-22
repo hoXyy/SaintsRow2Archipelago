@@ -480,12 +480,6 @@ def create_minimum_respect_table() -> dict[str, int]:
         base_respect: int = 0,
         strongholds_required_for_finale: bool = True,
     ) -> int:
-        """
-        Add a chain's minimum Respect requirements to `table`.
-
-        Returns the total Respect needed to fully complete the chain.
-        """
-
         missions = chain["missions"]
         strongholds = chain["strongholds"]
 
@@ -522,7 +516,7 @@ def create_minimum_respect_table() -> dict[str, int]:
     add_chain(BROTHERHOOD_CHAIN)
     add_chain(ULTOR_EPILOGUE_CHAIN)
 
-    # special entry for Revelation
+    # special entry for Revelation and Stronghold Caverns
     table[ULTOR_SECRET_MISSION.key] = 3
     table[STILWATER_CAVERNS_STRONGHOLD.key] = 2
 

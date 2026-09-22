@@ -20,6 +20,8 @@ from .items_list import (
     VEHICLE_CHEAT_ITEMS,
     WEAPON_ITEM_NAMES,
     TRAP_ITEMS,
+    TRAP_CHEATS,
+    TRAP_NOTORIETY_ITEMS,
     MONEY_ITEM_NAMES,
 )
 
@@ -139,15 +141,31 @@ class SR2Item(Item):
 
 
 def get_random_filler_item_name(world: SR2World) -> str:
-    if world.random.randint(0, 99) < world.options.trap_chance.value:
-        return world.random.choice(TRAP_ITEMS)
+    trap_item_list: list[str] = []
 
+    if bool(world.options.include_weather_trap_items.value):
+        trap_item_list.extend(TRAP_CHEATS)
+
+    if bool(world.options.include_notoriety_trap_items.value):
+        trap_item_list.extend(TRAP_NOTORIETY_ITEMS)
+
+    if len(trap_item_list) == 0:
+        return get_random_nontrap_filler_item_name(world)
+
+    if world.random.randint(0, 99) < world.options.trap_chance.value:
+        return world.random.choice(trap_item_list)
+
+    return get_random_nontrap_filler_item_name(world)
+
+
+def get_random_nontrap_filler_item_name(world: SR2World) -> str:
     categories = [
         MONEY_ITEM_NAMES,
         WEAPON_ITEM_NAMES,
         VEHICLE_CHEAT_ITEMS,
         MISC_CHEAT_ITEMS,
     ]
+
     weights = [
         world.options.money_filler_item_weight.value,
         world.options.weapon_filler_item_weight.value,
