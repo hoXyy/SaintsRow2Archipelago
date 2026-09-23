@@ -219,6 +219,16 @@ def set_activity_rules(world: SR2World) -> None:
                     and state.has(race_activity_unlock_item, world.player),
                 )
 
+    # This target needs tags to be unlocked
+    if "Hitman (Barrio) - Brad" in location_cache:
+        if bool(world.options.include_tags.value):
+            add_rule(
+                world.get_location("Hitman (Barrio) - Brad"),
+                lambda state, tag_unlock_item=TAGS_UNLOCK_ITEM: state.has(
+                    tag_unlock_item, world.player
+                ),
+            )
+
 
 def set_completion_rules(world: SR2World) -> None:
     selected_gang_arcs = world.options.required_gang_arcs.value
