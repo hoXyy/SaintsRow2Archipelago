@@ -154,4 +154,4 @@ jobs:
                   allowUpdates: true
                   artifactErrorsFailBuild: true
                   bodyFile: docs/changelogs/${{ github.ref_name }}.md
-                  artifacts: "saints_row_2.apworld,SR2Archipelago.zip"
+                  artifacts: "saints_row_2.apworld,SR2Archipelago.zip,collectible_maps.zip"
