@@ -118,10 +118,27 @@ jobs:
                   path: Archipelago/build/apworlds/saints_row_2.apworld
                   archive: false
 
+    package-collectible-maps:
+      name: Package collectible maps
+      runs-on: ubuntu-latest
+
+      steps:
+        - name: Checkout repo
+          uses: actions/checkout@v7
+        - name: Create archive
+          run: |
+            cd docs && zip -r collectible_maps.zip collectible_maps
+        - name: Upload artifact
+          uses: actions/upload-artifact@v7
+          with:
+            name: collectible_maps.zip
+            path: docs/collectible_maps.zip
+            archive: false
+
     release:
         name: Create release
         runs-on: ubuntu-latest
-        needs: [build-plugin, build-apworld]
+        needs: [build-plugin, build-apworld, package-collectible-maps]
 
         steps:
             - name: Checkout repo
