@@ -76,7 +76,7 @@ jobs:
         uses: actions/checkout@v7
       - name: Create archive
         run: |
-          zip -r docs/collectible_maps collectible_maps.zip
+          zip -r collectible_maps.zip docs/collectible_maps
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
