@@ -81,5 +81,5 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: collectible_maps.zip
-          path: collectible_maps.zip
+          path: docs/collectible_maps.zip
           archive: false
