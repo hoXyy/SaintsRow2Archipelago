@@ -70,11 +70,16 @@ jobs:
               run: rustup target add i686-pc-windows-msvc
             - name: Build
               run: cd game_plugin && make BUILD_DIR=build-ci PROJECT_VERSION=${{ github.ref_name }}
+            - name: Download ASI loader
+              run: |
+                Invoke-WebRequest -Uri "https://github.com/ThirteenAG/Ultimate-ASI-Loader/releases/download/Win32-latest/dinput8-Win32.zip" -OutFile "dinput8.zip"
+                Expand-Archive -Path ".\dinput8.zip" -DestinationPath "asi-loader"
             - name: Prepare output archive
               run: |
                   mkdir output
                   mkdir output/scripts
                   mkdir output/Mods
+                  cp asi-loader/dinput8.dll output/dinput8.dll
                   cp game_plugin/build-ci/SR2Archipelago.asi output/scripts/SR2Archipelago.asi
                   cp game_plugin/config/SR2Archipelago.toml.example output/scripts/SR2Archipelago.toml
                   cp -r modded_game_files/sr2ap_core_files output/Mods/sr2ap_core_files
