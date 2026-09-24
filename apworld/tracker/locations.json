@@ -1,0 +1,3686 @@
+[
+    {
+        "name": "Saints Mission #02: Appointed Defender",
+        "sections": [
+            {
+                "name": "Saints Mission #02: Appointed Defender"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1573,
+                "y": 1324
+            }
+        ]
+    },
+    {
+        "name": "Aisha's House",
+        "sections": [
+            {
+                "name": "Saints Mission #03: Down Payment"
+            },
+            {
+                "name": "Ronin Mission #02: Laundry Day"
+            },
+            {
+                "name": "Ronin Mission #03: Road Rage"
+            },
+            {
+                "name": "Ronin Mission #04: Bleeding Out"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1467,
+                "y": 304
+            }
+        ]
+    },
+    {
+        "name": "Saints HQ",
+        "sections": [
+            {
+                "name": "Saints Mission #04: Three Kings"
+            },
+            {
+                "name": "Ronin Mission #01: Saint's Seven"
+            },
+            {
+                "name": "Sons of Samedi Mission #01: Got Dust, Will Travel"
+            },
+            {
+                "name": "Ronin Mission #05: Orange Threat Level"
+            },
+            {
+                "name": "Ronin Mission #08: Room Service"
+            },
+            {
+                "name": "Ronin Mission #10: Good D"
+            },
+            {
+                "name": "Sons of Samedi Mission #04: Veteran Child"
+            },
+            {
+                "name": "Brotherhood Mission #05: Bank Error in Your Favor"
+            },
+            {
+                "name": "Brotherhood Mission #06: Thank you and Goodnight!"
+            },
+            {
+                "name": "Sons of Samedi Mission #09: Eternal Sunshine"
+            },
+            {
+                "name": "Sons of Samedi Final Mission: The Shopping Maul"
+            },
+            {
+                "name": "Ultor Mission #03: Salting the Earth... Again"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1656,
+                "y": 1735
+            }
+        ]
+    },
+    {
+        "name": "Demolition Derby (Stilwater University)",
+        "sections": [
+            {
+                "name": "Demolition Derby (Stilwater University) - Level 1"
+            },
+            {
+                "name": "Demolition Derby (Stilwater University) - Level 2"
+            },
+            {
+                "name": "Demolition Derby (Stilwater University) - Level 3"
+            },
+            {
+                "name": "Demolition Derby (Stilwater University) - Level 4"
+            },
+            {
+                "name": "Demolition Derby (Stilwater University) - Level 5"
+            },
+            {
+                "name": "Demolition Derby (Stilwater University) - Level 6"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 682,
+                "y": 1660
+            }
+        ]
+    },
+    {
+        "name": "Race (Car, Misty Lane)",
+        "sections": [
+            {
+                "name": "Race (Car, Misty Lane) - Bronze Medal"
+            },
+            {
+                "name": "Race (Car, Misty Lane) - Silver Medal"
+            },
+            {
+                "name": "Race (Car, Misty Lane) - Gold Medal"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1414,
+                "y": 387
+            }
+        ]
+    },
+    {
+        "name": "Race (Car, Elysian Fields)",
+        "sections": [
+            {
+                "name": "Race (Car, Elysian Fields) - Bronze Medal"
+            },
+            {
+                "name": "Race (Car, Elysian Fields) - Silver Medal"
+            },
+            {
+                "name": "Race (Car, Elysian Fields) - Gold Medal"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1128,
+                "y": 521
+            }
+        ]
+    },
+    {
+        "name": "Race (Bike, Elysian Fields)",
+        "sections": [
+            {
+                "name": "Race (Bike, Elysian Fields) - Bronze Medal"
+            },
+            {
+                "name": "Race (Bike, Elysian Fields) - Silver Medal"
+            },
+            {
+                "name": "Race (Bike, Elysian Fields) - Gold Medal"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 887,
+                "y": 710
+            }
+        ]
+    },
+    {
+        "name": "Race (Bike, Stilwater Boardwalk)",
+        "sections": [
+            {
+                "name": "Race (Bike, Stilwater Boardwalk) - Bronze Medal"
+            },
+            {
+                "name": "Race (Bike, Stilwater Boardwalk) - Silver Medal"
+            },
+            {
+                "name": "Race (Bike, Stilwater Boardwalk) - Gold Medal"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2133,
+                "y": 146
+            }
+        ]
+    },
+    {
+        "name": "Race (Car, Stilwater Boardwalk)",
+        "sections": [
+            {
+                "name": "Race (Car, Stilwater Boardwalk) - Bronze Medal"
+            },
+            {
+                "name": "Race (Car, Stilwater Boardwalk) - Silver Medal"
+            },
+            {
+                "name": "Race (Car, Stilwater Boardwalk) - Gold Medal"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2121,
+                "y": 402
+            }
+        ]
+    },
+    {
+        "name": "Race (Boat, Centennial Beach (Ocean))",
+        "sections": [
+            {
+                "name": "Race (Boat, Centennial Beach (Ocean)) - Bronze Medal"
+            },
+            {
+                "name": "Race (Boat, Centennial Beach (Ocean)) - Silver Medal"
+            },
+            {
+                "name": "Race (Boat, Centennial Beach (Ocean)) - Gold Medal"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2533,
+                "y": 231
+            }
+        ]
+    },
+    {
+        "name": "Race (Helicopter, Humbolt Park)",
+        "sections": [
+            {
+                "name": "Race (Helicopter, Humbolt Park) - Bronze Medal"
+            },
+            {
+                "name": "Race (Helicopter, Humbolt Park) - Silver Medal"
+            },
+            {
+                "name": "Race (Helicopter, Humbolt Park) - Gold Medal"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2443,
+                "y": 512
+            }
+        ]
+    },
+    {
+        "name": "Race (Bike, Amberbrook)",
+        "sections": [
+            {
+                "name": "Race (Bike, Amberbrook) - Bronze Medal"
+            },
+            {
+                "name": "Race (Bike, Amberbrook) - Silver Medal"
+            },
+            {
+                "name": "Race (Bike, Amberbrook) - Gold Medal"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2705,
+                "y": 556
+            }
+        ]
+    },
+    {
+        "name": "Race (Car, Amberbrook)",
+        "sections": [
+            {
+                "name": "Race (Car, Amberbrook) - Bronze Medal"
+            },
+            {
+                "name": "Race (Car, Amberbrook) - Silver Medal"
+            },
+            {
+                "name": "Race (Car, Amberbrook) - Gold Medal"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2888,
+                "y": 323
+            }
+        ]
+    },
+    {
+        "name": "Race (Car, Union Square)",
+        "sections": [
+            {
+                "name": "Race (Car, Union Square) - Bronze Medal"
+            },
+            {
+                "name": "Race (Car, Union Square) - Silver Medal"
+            },
+            {
+                "name": "Race (Car, Union Square) - Gold Medal"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2190,
+                "y": 866
+            }
+        ]
+    },
+    {
+        "name": "Race (Helicopter, Brighton)",
+        "sections": [
+            {
+                "name": "Race (Helicopter, Brighton) - Bronze Medal"
+            },
+            {
+                "name": "Race (Helicopter, Brighton) - Silver Medal"
+            },
+            {
+                "name": "Race (Helicopter, Brighton) - Gold Medal"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1940,
+                "y": 1138
+            }
+        ]
+    },
+    {
+        "name": "Race (Jetski, Stilwater Penitentiary (Ocean))",
+        "sections": [
+            {
+                "name": "Race (Jetski, Stilwater Penitentiary (Ocean)) - Bronze Medal"
+            },
+            {
+                "name": "Race (Jetski, Stilwater Penitentiary (Ocean)) - Silver Medal"
+            },
+            {
+                "name": "Race (Jetski, Stilwater Penitentiary (Ocean)) - Gold Medal"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 595,
+                "y": 874
+            }
+        ]
+    },
+    {
+        "name": "Race (Boat, Hangman's Wharf (Ocean))",
+        "sections": [
+            {
+                "name": "Race (Boat, Hangman's Wharf (Ocean)) - Bronze Medal"
+            },
+            {
+                "name": "Race (Boat, Hangman's Wharf (Ocean)) - Silver Medal"
+            },
+            {
+                "name": "Race (Boat, Hangman's Wharf (Ocean)) - Gold Medal"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 769,
+                "y": 1018
+            }
+        ]
+    },
+    {
+        "name": "Race (Plane, Pleasant View)",
+        "sections": [
+            {
+                "name": "Race (Plane, Pleasant View) - Bronze Medal"
+            },
+            {
+                "name": "Race (Plane, Pleasant View) - Silver Medal"
+            },
+            {
+                "name": "Race (Plane, Pleasant View) - Gold Medal"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 800,
+                "y": 1412
+            }
+        ]
+    },
+    {
+        "name": "Race (Bike, Sunsinger)",
+        "sections": [
+            {
+                "name": "Race (Bike, Sunsinger) - Bronze Medal"
+            },
+            {
+                "name": "Race (Bike, Sunsinger) - Silver Medal"
+            },
+            {
+                "name": "Race (Bike, Sunsinger) - Gold Medal"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1079,
+                "y": 1775
+            }
+        ]
+    },
+    {
+        "name": "Race (Jetski, Stilwater Nuclear (Ocean))",
+        "sections": [
+            {
+                "name": "Race (Jetski, Stilwater Nuclear (Ocean)) - Bronze Medal"
+            },
+            {
+                "name": "Race (Jetski, Stilwater Nuclear (Ocean)) - Silver Medal"
+            },
+            {
+                "name": "Race (Jetski, Stilwater Nuclear (Ocean)) - Gold Medal"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 343,
+                "y": 2500
+            }
+        ]
+    },
+    {
+        "name": "Race (Car, Stilwater Nuclear)",
+        "sections": [
+            {
+                "name": "Race (Car, Stilwater Nuclear) - Bronze Medal"
+            },
+            {
+                "name": "Race (Car, Stilwater Nuclear) - Silver Medal"
+            },
+            {
+                "name": "Race (Car, Stilwater Nuclear) - Gold Medal"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 161,
+                "y": 2748
+            }
+        ]
+    },
+    {
+        "name": "Race (Car, Wardill Airport (South Runway))",
+        "sections": [
+            {
+                "name": "Race (Car, Wardill Airport (South Runway)) - Bronze Medal"
+            },
+            {
+                "name": "Race (Car, Wardill Airport (South Runway)) - Silver Medal"
+            },
+            {
+                "name": "Race (Car, Wardill Airport (South Runway)) - Gold Medal"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1160,
+                "y": 3311
+            }
+        ]
+    },
+    {
+        "name": "Race (Plane, Wardill Airport (East Runway))",
+        "sections": [
+            {
+                "name": "Race (Plane, Wardill Airport (East Runway)) - Bronze Medal"
+            },
+            {
+                "name": "Race (Plane, Wardill Airport (East Runway)) - Silver Medal"
+            },
+            {
+                "name": "Race (Plane, Wardill Airport (East Runway)) - Gold Medal"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1448,
+                "y": 3204
+            }
+        ]
+    },
+    {
+        "name": "Race (Car, Wardill Airport (Carpark))",
+        "sections": [
+            {
+                "name": "Race (Car, Wardill Airport (Carpark)) - Bronze Medal"
+            },
+            {
+                "name": "Race (Car, Wardill Airport (Carpark)) - Silver Medal"
+            },
+            {
+                "name": "Race (Car, Wardill Airport (Carpark)) - Gold Medal"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1516,
+                "y": 2812
+            }
+        ]
+    },
+    {
+        "name": "Race (Bike, Huntersfield)",
+        "sections": [
+            {
+                "name": "Race (Bike, Huntersfield) - Bronze Medal"
+            },
+            {
+                "name": "Race (Bike, Huntersfield) - Silver Medal"
+            },
+            {
+                "name": "Race (Bike, Huntersfield) - Gold Medal"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1731,
+                "y": 2777
+            }
+        ]
+    },
+    {
+        "name": "Race (Jetski, Stilwater Caverns)",
+        "sections": [
+            {
+                "name": "Race (Jetski, Stilwater Caverns) - Bronze Medal"
+            },
+            {
+                "name": "Race (Jetski, Stilwater Caverns) - Silver Medal"
+            },
+            {
+                "name": "Race (Jetski, Stilwater Caverns) - Gold Medal"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2499,
+                "y": 2326
+            }
+        ]
+    },
+    {
+        "name": "Race (Jetski, Black Bottom (Ocean))",
+        "sections": [
+            {
+                "name": "Race (Jetski, Black Bottom (Ocean)) - Bronze Medal"
+            },
+            {
+                "name": "Race (Jetski, Black Bottom (Ocean)) - Silver Medal"
+            },
+            {
+                "name": "Race (Jetski, Black Bottom (Ocean)) - Gold Medal"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2729,
+                "y": 2241
+            }
+        ]
+    },
+    {
+        "name": "Race (Helicopter, Athos Bay)",
+        "sections": [
+            {
+                "name": "Race (Helicopter, Athos Bay) - Bronze Medal"
+            },
+            {
+                "name": "Race (Helicopter, Athos Bay) - Silver Medal"
+            },
+            {
+                "name": "Race (Helicopter, Athos Bay) - Gold Medal"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2655,
+                "y": 1890
+            }
+        ]
+    },
+    {
+        "name": "Race (Car, Mission Beach)",
+        "sections": [
+            {
+                "name": "Race (Car, Mission Beach) - Bronze Medal"
+            },
+            {
+                "name": "Race (Car, Mission Beach) - Silver Medal"
+            },
+            {
+                "name": "Race (Car, Mission Beach) - Gold Medal"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2366,
+                "y": 1425
+            }
+        ]
+    },
+    {
+        "name": "Race (Jetski, Harrowgate (Ocean))",
+        "sections": [
+            {
+                "name": "Race (Jetski, Harrowgate (Ocean)) - Bronze Medal"
+            },
+            {
+                "name": "Race (Jetski, Harrowgate (Ocean)) - Silver Medal"
+            },
+            {
+                "name": "Race (Jetski, Harrowgate (Ocean)) - Gold Medal"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2128,
+                "y": 1524
+            }
+        ]
+    },
+    {
+        "name": "Race (Car, Prawn Court)",
+        "sections": [
+            {
+                "name": "Race (Car, Prawn Court) - Bronze Medal"
+            },
+            {
+                "name": "Race (Car, Prawn Court) - Silver Medal"
+            },
+            {
+                "name": "Race (Car, Prawn Court) - Gold Medal"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1733,
+                "y": 1841
+            }
+        ]
+    },
+    {
+        "name": "Stilwater Caverns Missions",
+        "sections": [
+            {
+                "name": "Brotherhood Mission #01: First Impressions"
+            },
+            {
+                "name": "Saints Stronghold: Stilwater Caverns"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2608,
+                "y": 2266
+            }
+        ]
+    },
+    {
+        "name": "Brotherhood Mission #10: The Siege",
+        "sections": [
+            {
+                "name": "Brotherhood Mission #10: The Siege"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1648,
+                "y": 1764
+            }
+        ]
+    },
+    {
+        "name": "Sons of Samedi Stronghold: Sunnyvale Gardens Fishing Dock",
+        "sections": [
+            {
+                "name": "Sons of Samedi Stronghold: Sunnyvale Gardens Fishing Dock"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1548,
+                "y": 1332
+            }
+        ]
+    },
+    {
+        "name": "Sons of Samedi Mission #02: File in the Cake",
+        "sections": [
+            {
+                "name": "Sons of Samedi Mission #02: File in the Cake"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1818,
+                "y": 1520
+            }
+        ]
+    },
+    {
+        "name": "Brotherhood Mission #03: Waste Not Want Not",
+        "sections": [
+            {
+                "name": "Brotherhood Mission #03: Waste Not Want Not"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1166,
+                "y": 1880
+            }
+        ]
+    },
+    {
+        "name": "Sons of Samedi Stronghold: Stilwater University Student Union",
+        "sections": [
+            {
+                "name": "Sons of Samedi Stronghold: Stilwater University Student Union"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 862,
+                "y": 1905
+            }
+        ]
+    },
+    {
+        "name": "Sons of Samedi Mission #03: Airborne Assault",
+        "sections": [
+            {
+                "name": "Sons of Samedi Mission #03: Airborne Assault"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1085,
+                "y": 370
+            }
+        ]
+    },
+    {
+        "name": "Ronin Stronghold: New Hennequet Rec Center",
+        "sections": [
+            {
+                "name": "Ronin Stronghold: New Hennequet Rec Center"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1367,
+                "y": 207
+            }
+        ]
+    },
+    {
+        "name": "Ultor Secret Mission: Revelation",
+        "sections": [
+            {
+                "name": "Ultor Secret Mission: Revelation"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2331,
+                "y": 1728
+            }
+        ]
+    },
+    {
+        "name": "Ultor Final Mission: ...and a Better Life",
+        "sections": [
+            {
+                "name": "Ultor Final Mission: ...and a Better Life"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2331,
+                "y": 1554
+            }
+        ]
+    },
+    {
+        "name": "Ultor Mission #01: Picking a Fight",
+        "sections": [
+            {
+                "name": "Ultor Mission #01: Picking a Fight"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1769,
+                "y": 1752
+            }
+        ]
+    },
+    {
+        "name": "Ultor Mission #02: Pyramid Scheme",
+        "sections": [
+            {
+                "name": "Ultor Mission #02: Pyramid Scheme"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1801,
+                "y": 2550
+            }
+        ]
+    },
+    {
+        "name": "Ultor Dome",
+        "sections": [
+            {
+                "name": "Brotherhood Final Mission: Showdown"
+            },
+            {
+                "name": "Fight Club (Ultor Dome) - Level 1"
+            },
+            {
+                "name": "Fight Club (Ultor Dome) - Level 2"
+            },
+            {
+                "name": "Fight Club (Ultor Dome) - Level 3"
+            },
+            {
+                "name": "Fight Club (Ultor Dome) - Level 4"
+            },
+            {
+                "name": "Fight Club (Ultor Dome) - Level 5"
+            },
+            {
+                "name": "Fight Club (Ultor Dome) - Level 6"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1179,
+                "y": 1500
+            }
+        ]
+    },
+    {
+        "name": "Sons of Samedi Mission #10: Assault on Precinct 31",
+        "sections": [
+            {
+                "name": "Sons of Samedi Mission #10: Assault on Precinct 31"
+            },
+            {
+                "name": "Sons of Samedi Mission #06: Bad Trip"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1351,
+                "y": 1578
+            }
+        ]
+    },
+    {
+        "name": "Sons of Samedi Mission #07: Bonding Experience",
+        "sections": [
+            {
+                "name": "Sons of Samedi Mission #07: Bonding Experience"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1067,
+                "y": 1675
+            }
+        ]
+    },
+    {
+        "name": "Sons of Samedi Mission #08: Riot Control",
+        "sections": [
+            {
+                "name": "Sons of Samedi Mission #08: Riot Control"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2630,
+                "y": 2165
+            }
+        ]
+    },
+    {
+        "name": "Ronin Mission #06: Kanto Connection",
+        "sections": [
+            {
+                "name": "Ronin Mission #06: Kanto Connection"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2118,
+                "y": 1266
+            }
+        ]
+    },
+    {
+        "name": "Ronin Stronghold: Humbolt Park Science Museum",
+        "sections": [
+            {
+                "name": "Ronin Stronghold: Humbolt Park Science Museum"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2299,
+                "y": 674
+            }
+        ]
+    },
+    {
+        "name": "Ronin Mission #07: Visiting Hours",
+        "sections": [
+            {
+                "name": "Ronin Mission #07: Visiting Hours"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2244,
+                "y": 844
+            }
+        ]
+    },
+    {
+        "name": "Ronin Stronghold: Amberbrook Museum Pier",
+        "sections": [
+            {
+                "name": "Ronin Stronghold: Amberbrook Museum Pier"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2739,
+                "y": 533
+            }
+        ]
+    },
+    {
+        "name": "Ronin Stronghold: Suburbs Strip Club",
+        "sections": [
+            {
+                "name": "Ronin Stronghold: Suburbs Strip Club"
+            },
+            {
+                "name": "Ronin Final Mission: One Man's Junk..."
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1481,
+                "y": 495
+            }
+        ]
+    },
+    {
+        "name": "Sons of Samedi Stronghold: Elysian Fields Trailer Park",
+        "sections": [
+            {
+                "name": "Sons of Samedi Stronghold: Elysian Fields Trailer Park"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1094,
+                "y": 592
+            }
+        ]
+    },
+    {
+        "name": "Sons of Samedi Stronghold: Bavogian Plaza Drug Labs",
+        "sections": [
+            {
+                "name": "Sons of Samedi Stronghold: Bavogian Plaza Drug Labs"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1770,
+                "y": 1641
+            }
+        ]
+    },
+    {
+        "name": "Brotherhood Mission #08: Jail Bait",
+        "sections": [
+            {
+                "name": "Brotherhood Mission #08: Jail Bait"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1232,
+                "y": 1925
+            }
+        ]
+    },
+    {
+        "name": "Brotherhood Stronghold: Imperial Square Pagodas",
+        "sections": [
+            {
+                "name": "Brotherhood Stronghold: Imperial Square Pagodas"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1394,
+                "y": 1960
+            }
+        ]
+    },
+    {
+        "name": "Brotherhood Stronghold: Sommerset Apartments",
+        "sections": [
+            {
+                "name": "Brotherhood Stronghold: Sommerset Apartments"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1227,
+                "y": 2022
+            }
+        ]
+    },
+    {
+        "name": "Brotherhood Stronghold: Poseidon Alley Docks",
+        "sections": [
+            {
+                "name": "Brotherhood Stronghold: Poseidon Alley Docks"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1920,
+                "y": 2691
+            }
+        ]
+    },
+    {
+        "name": "Brotherhood Stronghold: Wardill Airport Hangars",
+        "sections": [
+            {
+                "name": "Brotherhood Stronghold: Wardill Airport Hangars"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1004,
+                "y": 3204
+            }
+        ]
+    },
+    {
+        "name": "Ultor Stronghold: Rounds Square Shopping Center",
+        "sections": [
+            {
+                "name": "Ultor Stronghold: Rounds Square Shopping Center"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1912,
+                "y": 640
+            }
+        ]
+    },
+    {
+        "name": "Ronin Mission #09: Rest in Peace",
+        "sections": [
+            {
+                "name": "Ronin Mission #09: Rest in Peace"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 993,
+                "y": 490
+            }
+        ]
+    },
+    {
+        "name": "Brotherhood Mission #02: Reunion Tour",
+        "sections": [
+            {
+                "name": "Brotherhood Mission #02: Reunion Tour"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 967,
+                "y": 1144
+            }
+        ]
+    },
+    {
+        "name": "Brotherhood Mission #07: Retribution",
+        "sections": [
+            {
+                "name": "Brotherhood Mission #07: Retribution"
+            },
+            {
+                "name": "Escort (Red Light District) - Level 1"
+            },
+            {
+                "name": "Escort (Red Light District) - Level 2"
+            },
+            {
+                "name": "Escort (Red Light District) - Level 3"
+            },
+            {
+                "name": "Escort (Red Light District) - Level 4"
+            },
+            {
+                "name": "Escort (Red Light District) - Level 5"
+            },
+            {
+                "name": "Escort (Red Light District) - Level 6"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1813,
+                "y": 1572
+            }
+        ]
+    },
+    {
+        "name": "Brotherhood Mission #04: Red Asphalt",
+        "sections": [
+            {
+                "name": "Brotherhood Mission #04: Red Asphalt"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1781,
+                "y": 1770
+            }
+        ]
+    },
+    {
+        "name": "Sons of Samedi Mission #05: Burning Down The House",
+        "sections": [
+            {
+                "name": "Sons of Samedi Mission #05: Burning Down The House"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1230,
+                "y": 1971
+            }
+        ]
+    },
+    {
+        "name": "Brotherhood Mission #09: The Enemy of my Enemy",
+        "sections": [
+            {
+                "name": "Brotherhood Mission #09: The Enemy of my Enemy"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1581,
+                "y": 2029
+            }
+        ]
+    },
+    {
+        "name": "CD #35 (Rebadeaux)",
+        "sections": [
+            {
+                "name": "CD #35 (Rebadeaux)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1979,
+                "y": 1604
+            }
+        ]
+    },
+    {
+        "name": "CD #36 (Harrowgate)",
+        "sections": [
+            {
+                "name": "CD #36 (Harrowgate)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2123,
+                "y": 1581
+            }
+        ]
+    },
+    {
+        "name": "CD #40 (Rebadeaux)",
+        "sections": [
+            {
+                "name": "CD #40 (Rebadeaux)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1886,
+                "y": 1586
+            }
+        ]
+    },
+    {
+        "name": "CD #41 (Shivington)",
+        "sections": [
+            {
+                "name": "CD #41 (Shivington)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1596,
+                "y": 1733
+            }
+        ]
+    },
+    {
+        "name": "CD #39 (Prawn Court)",
+        "sections": [
+            {
+                "name": "CD #39 (Prawn Court)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1881,
+                "y": 1854
+            }
+        ]
+    },
+    {
+        "name": "CD #45 (Stoughton)",
+        "sections": [
+            {
+                "name": "CD #45 (Stoughton)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2488,
+                "y": 2473
+            }
+        ]
+    },
+    {
+        "name": "CD #47 (Stoughton)",
+        "sections": [
+            {
+                "name": "CD #47 (Stoughton)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2168,
+                "y": 2816
+            }
+        ]
+    },
+    {
+        "name": "CD #44 (Southern Cross)",
+        "sections": [
+            {
+                "name": "CD #44 (Southern Cross)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1860,
+                "y": 2583
+            }
+        ]
+    },
+    {
+        "name": "CD #48 (Huntersfield)",
+        "sections": [
+            {
+                "name": "CD #48 (Huntersfield)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1728,
+                "y": 2698
+            }
+        ]
+    },
+    {
+        "name": "CD #7 (Wardill Airport)",
+        "sections": [
+            {
+                "name": "CD #7 (Wardill Airport)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1240,
+                "y": 2997
+            }
+        ]
+    },
+    {
+        "name": "CD #8 (Wardill Airport)",
+        "sections": [
+            {
+                "name": "CD #8 (Wardill Airport)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 983,
+                "y": 2888
+            }
+        ]
+    },
+    {
+        "name": "CD #43 (Ezpata)",
+        "sections": [
+            {
+                "name": "CD #43 (Ezpata)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1812,
+                "y": 2332
+            }
+        ]
+    },
+    {
+        "name": "CD #38 (Athos Bay)",
+        "sections": [
+            {
+                "name": "CD #38 (Athos Bay)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2368,
+                "y": 2045
+            }
+        ]
+    },
+    {
+        "name": "CD #37 (Mission Beach)",
+        "sections": [
+            {
+                "name": "CD #37 (Mission Beach)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2331,
+                "y": 1457
+            }
+        ]
+    },
+    {
+        "name": "CD #42 (Little Shanghai)",
+        "sections": [
+            {
+                "name": "CD #42 (Little Shanghai)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1490,
+                "y": 1999
+            }
+        ]
+    },
+    {
+        "name": "CD #49 (Stilwater University)",
+        "sections": [
+            {
+                "name": "CD #49 (Stilwater University)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 917,
+                "y": 2104
+            }
+        ]
+    },
+    {
+        "name": "CD #50 (Stilwater University)",
+        "sections": [
+            {
+                "name": "CD #50 (Stilwater University)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 555,
+                "y": 2101
+            }
+        ]
+    },
+    {
+        "name": "CD #46 (Frat Row)",
+        "sections": [
+            {
+                "name": "CD #46 (Frat Row)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 673,
+                "y": 1597
+            }
+        ]
+    },
+    {
+        "name": "CD #11 (Stilwater Nuclear)",
+        "sections": [
+            {
+                "name": "CD #11 (Stilwater Nuclear)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 233,
+                "y": 2671
+            }
+        ]
+    },
+    {
+        "name": "CD #10 (Stilwater Nuclear)",
+        "sections": [
+            {
+                "name": "CD #10 (Stilwater Nuclear)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 197,
+                "y": 2553
+            }
+        ]
+    },
+    {
+        "name": "CD #9 (Stilwater Nuclear)",
+        "sections": [
+            {
+                "name": "CD #9 (Stilwater Nuclear)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 183,
+                "y": 2616
+            }
+        ]
+    },
+    {
+        "name": "CD #6 (Stilwater Nuclear)",
+        "sections": [
+            {
+                "name": "CD #6 (Stilwater Nuclear)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 230,
+                "y": 2303
+            }
+        ]
+    },
+    {
+        "name": "CD #1 (Hangman's Wharf)",
+        "sections": [
+            {
+                "name": "CD #1 (Hangman's Wharf)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 690,
+                "y": 1034
+            }
+        ]
+    },
+    {
+        "name": "CD #4 (Hangman's Wharf)",
+        "sections": [
+            {
+                "name": "CD #4 (Hangman's Wharf)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 658,
+                "y": 1038
+            }
+        ]
+    },
+    {
+        "name": "CD #2 (Stilwater Penitentiary)",
+        "sections": [
+            {
+                "name": "CD #2 (Stilwater Penitentiary)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 557,
+                "y": 934
+            }
+        ]
+    },
+    {
+        "name": "CD #5 (Stilwater Penitentiary)",
+        "sections": [
+            {
+                "name": "CD #5 (Stilwater Penitentiary)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 640,
+                "y": 831
+            }
+        ]
+    },
+    {
+        "name": "CD #3 (Stilwater Penitentiary)",
+        "sections": [
+            {
+                "name": "CD #3 (Stilwater Penitentiary)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 662,
+                "y": 826
+            }
+        ]
+    },
+    {
+        "name": "CD #12",
+        "sections": [
+            {
+                "name": "CD #12"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1827,
+                "y": 1334
+            }
+        ]
+    },
+    {
+        "name": "CD #33 (Brighton)",
+        "sections": [
+            {
+                "name": "CD #33 (Brighton)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2079,
+                "y": 1343
+            }
+        ]
+    },
+    {
+        "name": "CD #34 (Brighton)",
+        "sections": [
+            {
+                "name": "CD #34 (Brighton)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2016,
+                "y": 1220
+            }
+        ]
+    },
+    {
+        "name": "CD #13 (Brighton)",
+        "sections": [
+            {
+                "name": "CD #13 (Brighton)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2116,
+                "y": 1234
+            }
+        ]
+    },
+    {
+        "name": "CD #32 (Adept Way)",
+        "sections": [
+            {
+                "name": "CD #32 (Adept Way)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2263,
+                "y": 1193
+            }
+        ]
+    },
+    {
+        "name": "CD #31 (Amberbrook)",
+        "sections": [
+            {
+                "name": "CD #31 (Amberbrook)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2719,
+                "y": 695
+            }
+        ]
+    },
+    {
+        "name": "CD #30 (Amberbrook)",
+        "sections": [
+            {
+                "name": "CD #30 (Amberbrook)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2956,
+                "y": 496
+            }
+        ]
+    },
+    {
+        "name": "CD #29 (Amberbrook)",
+        "sections": [
+            {
+                "name": "CD #29 (Amberbrook)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2793,
+                "y": 335
+            }
+        ]
+    },
+    {
+        "name": "CD #28 (Centennial Beach)",
+        "sections": [
+            {
+                "name": "CD #28 (Centennial Beach)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2584,
+                "y": 335
+            }
+        ]
+    },
+    {
+        "name": "CD #27 (Centennial Beach)",
+        "sections": [
+            {
+                "name": "CD #27 (Centennial Beach)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2464,
+                "y": 407
+            }
+        ]
+    },
+    {
+        "name": "CD #25 (Stilwater Boardwalk)",
+        "sections": [
+            {
+                "name": "CD #25 (Stilwater Boardwalk)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2211,
+                "y": 315
+            }
+        ]
+    },
+    {
+        "name": "CD #26 (Stilwater Boardwalk)",
+        "sections": [
+            {
+                "name": "CD #26 (Stilwater Boardwalk)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2160,
+                "y": 110
+            }
+        ]
+    },
+    {
+        "name": "CD #18 (Misty Lane)",
+        "sections": [
+            {
+                "name": "CD #18 (Misty Lane)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1557,
+                "y": 232
+            }
+        ]
+    },
+    {
+        "name": "CD #17 (New Hennequet)",
+        "sections": [
+            {
+                "name": "CD #17 (New Hennequet)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1335,
+                "y": 201
+            }
+        ]
+    },
+    {
+        "name": "CD #16 (Quinbecca)",
+        "sections": [
+            {
+                "name": "CD #16 (Quinbecca)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1069,
+                "y": 334
+            }
+        ]
+    },
+    {
+        "name": "CD #14 (Elysian Fields)",
+        "sections": [
+            {
+                "name": "CD #14 (Elysian Fields)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1081,
+                "y": 587
+            }
+        ]
+    },
+    {
+        "name": "CD #15 (Misty Lane)",
+        "sections": [
+            {
+                "name": "CD #15 (Misty Lane)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1215,
+                "y": 698
+            }
+        ]
+    },
+    {
+        "name": "CD #19 (Misty Lane)",
+        "sections": [
+            {
+                "name": "CD #19 (Misty Lane)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1462,
+                "y": 699
+            }
+        ]
+    },
+    {
+        "name": "CD #21 (Misty Lane)",
+        "sections": [
+            {
+                "name": "CD #21 (Misty Lane)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1496,
+                "y": 520
+            }
+        ]
+    },
+    {
+        "name": "CD #20 (Tidal Spring)",
+        "sections": [
+            {
+                "name": "CD #20 (Tidal Spring)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1659,
+                "y": 493
+            }
+        ]
+    },
+    {
+        "name": "CD #22 (Tidal Spring)",
+        "sections": [
+            {
+                "name": "CD #22 (Tidal Spring)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1738,
+                "y": 570
+            }
+        ]
+    },
+    {
+        "name": "CD #23 (Nob Hill)",
+        "sections": [
+            {
+                "name": "CD #23 (Nob Hill)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2121,
+                "y": 664
+            }
+        ]
+    },
+    {
+        "name": "CD #24 (Stilwater Boardwalk)",
+        "sections": [
+            {
+                "name": "CD #24 (Stilwater Boardwalk)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2191,
+                "y": 481
+            }
+        ]
+    },
+    {
+        "name": "Tag #1 (New Hennequet)",
+        "sections": [
+            {
+                "name": "Tag #1 (New Hennequet)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1237,
+                "y": 273
+            }
+        ]
+    },
+    {
+        "name": "Tag #2 (Hangman's Wharf)",
+        "sections": [
+            {
+                "name": "Tag #2 (Hangman's Wharf)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 711,
+                "y": 996
+            }
+        ]
+    },
+    {
+        "name": "Tag #3 (Hangman's Wharf)",
+        "sections": [
+            {
+                "name": "Tag #3 (Hangman's Wharf)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 732,
+                "y": 991
+            }
+        ]
+    },
+    {
+        "name": "Tag #4 (Hangman's Wharf)",
+        "sections": [
+            {
+                "name": "Tag #4 (Hangman's Wharf)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 673,
+                "y": 1029
+            }
+        ]
+    },
+    {
+        "name": "Tag #5 (Stilwater Penitentiary)",
+        "sections": [
+            {
+                "name": "Tag #5 (Stilwater Penitentiary)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 556,
+                "y": 974
+            }
+        ]
+    },
+    {
+        "name": "Tag #6 (Stilwater Penitentiary)",
+        "sections": [
+            {
+                "name": "Tag #6 (Stilwater Penitentiary)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 577,
+                "y": 938
+            }
+        ]
+    },
+    {
+        "name": "Tag #7 (Stilwater Nuclear)",
+        "sections": [
+            {
+                "name": "Tag #7 (Stilwater Nuclear)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 160,
+                "y": 2439
+            }
+        ]
+    },
+    {
+        "name": "Tag #8 (Stilwater Nuclear)",
+        "sections": [
+            {
+                "name": "Tag #8 (Stilwater Nuclear)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 167,
+                "y": 2324
+            }
+        ]
+    },
+    {
+        "name": "Tag #9 (Stilwater Nuclear)",
+        "sections": [
+            {
+                "name": "Tag #9 (Stilwater Nuclear)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 180,
+                "y": 2678
+            }
+        ]
+    },
+    {
+        "name": "Tag #10 (Stilwater Nuclear)",
+        "sections": [
+            {
+                "name": "Tag #10 (Stilwater Nuclear)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 209,
+                "y": 2733
+            }
+        ]
+    },
+    {
+        "name": "Tag #11 (Stilwater Nuclear)",
+        "sections": [
+            {
+                "name": "Tag #11 (Stilwater Nuclear)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 210,
+                "y": 2559
+            }
+        ]
+    },
+    {
+        "name": "Tag #12 (Black Bottom)",
+        "sections": [
+            {
+                "name": "Tag #12 (Black Bottom)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2504,
+                "y": 2289
+            }
+        ]
+    },
+    {
+        "name": "Tag #13 (Black Bottom)",
+        "sections": [
+            {
+                "name": "Tag #13 (Black Bottom)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2572,
+                "y": 2269
+            }
+        ]
+    },
+    {
+        "name": "Tag #14 (New Hennequet)",
+        "sections": [
+            {
+                "name": "Tag #14 (New Hennequet)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1119,
+                "y": 214
+            }
+        ]
+    },
+    {
+        "name": "Tag #15 (Mourning Woods Cemetery)",
+        "sections": [
+            {
+                "name": "Tag #15 (Mourning Woods Cemetery)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 916,
+                "y": 452
+            }
+        ]
+    },
+    {
+        "name": "Tag #16 (Elysian Fields)",
+        "sections": [
+            {
+                "name": "Tag #16 (Elysian Fields)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1104,
+                "y": 682
+            }
+        ]
+    },
+    {
+        "name": "Tag #17 (Misty Lane)",
+        "sections": [
+            {
+                "name": "Tag #17 (Misty Lane)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1367,
+                "y": 699
+            }
+        ]
+    },
+    {
+        "name": "Tag #18 (Misty Lane)",
+        "sections": [
+            {
+                "name": "Tag #18 (Misty Lane)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1544,
+                "y": 231
+            }
+        ]
+    },
+    {
+        "name": "Tag #19 (Nob Hill)",
+        "sections": [
+            {
+                "name": "Tag #19 (Nob Hill)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1794,
+                "y": 639
+            }
+        ]
+    },
+    {
+        "name": "Tag #20 (Stilwater Boardwalk)",
+        "sections": [
+            {
+                "name": "Tag #20 (Stilwater Boardwalk)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2077,
+                "y": 297
+            }
+        ]
+    },
+    {
+        "name": "Tag #21 (Stilwater Boardwalk)",
+        "sections": [
+            {
+                "name": "Tag #21 (Stilwater Boardwalk)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2204,
+                "y": 409
+            }
+        ]
+    },
+    {
+        "name": "Tag #22 (Centennial Beach)",
+        "sections": [
+            {
+                "name": "Tag #22 (Centennial Beach)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2491,
+                "y": 405
+            }
+        ]
+    },
+    {
+        "name": "Tag #23 (Humbolt Park)",
+        "sections": [
+            {
+                "name": "Tag #23 (Humbolt Park)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2335,
+                "y": 590
+            }
+        ]
+    },
+    {
+        "name": "Tag #24 (Amberbrook)",
+        "sections": [
+            {
+                "name": "Tag #24 (Amberbrook)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2826,
+                "y": 461
+            }
+        ]
+    },
+    {
+        "name": "Tag #25 (Filmore)",
+        "sections": [
+            {
+                "name": "Tag #25 (Filmore)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1967,
+                "y": 1008
+            }
+        ]
+    },
+    {
+        "name": "Tag #26 (Brighton)",
+        "sections": [
+            {
+                "name": "Tag #26 (Brighton)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2100,
+                "y": 1115
+            }
+        ]
+    },
+    {
+        "name": "Tag #27 (Adept Way)",
+        "sections": [
+            {
+                "name": "Tag #27 (Adept Way)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2416,
+                "y": 1039
+            }
+        ]
+    },
+    {
+        "name": "Tag #28 (Pleasant View)",
+        "sections": [
+            {
+                "name": "Tag #28 (Pleasant View)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 908,
+                "y": 1259
+            }
+        ]
+    },
+    {
+        "name": "Tag #29 (Frat Row)",
+        "sections": [
+            {
+                "name": "Tag #29 (Frat Row)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 735,
+                "y": 1446
+            }
+        ]
+    },
+    {
+        "name": "Tag #30 (Stilwater University)",
+        "sections": [
+            {
+                "name": "Tag #30 (Stilwater University)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 616,
+                "y": 1836
+            }
+        ]
+    },
+    {
+        "name": "Tag #31 (Stilwater University)",
+        "sections": [
+            {
+                "name": "Tag #31 (Stilwater University)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 615,
+                "y": 2108
+            }
+        ]
+    },
+    {
+        "name": "Tag #32 (Sunsinger)",
+        "sections": [
+            {
+                "name": "Tag #32 (Sunsinger)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1189,
+                "y": 1736
+            }
+        ]
+    },
+    {
+        "name": "Tag #33 (Sunsinger)",
+        "sections": [
+            {
+                "name": "Tag #33 (Sunsinger)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1355,
+                "y": 1527
+            }
+        ]
+    },
+    {
+        "name": "Tag #34 (Bavogian Plaza)",
+        "sections": [
+            {
+                "name": "Tag #34 (Bavogian Plaza)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1644,
+                "y": 1709
+            }
+        ]
+    },
+    {
+        "name": "Tag #35 (Little Shanghai)",
+        "sections": [
+            {
+                "name": "Tag #35 (Little Shanghai)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1367,
+                "y": 1955
+            }
+        ]
+    },
+    {
+        "name": "Tag #36 (Mission Beach)",
+        "sections": [
+            {
+                "name": "Tag #36 (Mission Beach)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2377,
+                "y": 1490
+            }
+        ]
+    },
+    {
+        "name": "Tag #37 (Athos Bay)",
+        "sections": [
+            {
+                "name": "Tag #37 (Athos Bay)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2504,
+                "y": 1531
+            }
+        ]
+    },
+    {
+        "name": "Tag #38 (Encanto)",
+        "sections": [
+            {
+                "name": "Tag #38 (Encanto)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1679,
+                "y": 2279
+            }
+        ]
+    },
+    {
+        "name": "Tag #39 (Wardill Airport)",
+        "sections": [
+            {
+                "name": "Tag #39 (Wardill Airport)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1318,
+                "y": 2867
+            }
+        ]
+    },
+    {
+        "name": "Tag #40 (Wardill Airport)",
+        "sections": [
+            {
+                "name": "Tag #40 (Wardill Airport)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1033,
+                "y": 3282
+            }
+        ]
+    },
+    {
+        "name": "Tag #41 (Stoughton)",
+        "sections": [
+            {
+                "name": "Tag #41 (Stoughton)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2136,
+                "y": 2707
+            }
+        ]
+    },
+    {
+        "name": "Tag #42 (Stoughton)",
+        "sections": [
+            {
+                "name": "Tag #42 (Stoughton)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2275,
+                "y": 2912
+            }
+        ]
+    },
+    {
+        "name": "Tag #43 (Bavogian Plaza)",
+        "sections": [
+            {
+                "name": "Tag #43 (Bavogian Plaza)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1682,
+                "y": 1755
+            }
+        ]
+    },
+    {
+        "name": "Tag #44 (Old Stilwater)",
+        "sections": [
+            {
+                "name": "Tag #44 (Old Stilwater)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1639,
+                "y": 1685
+            }
+        ]
+    },
+    {
+        "name": "Tag #45 (Old Stilwater)",
+        "sections": [
+            {
+                "name": "Tag #45 (Old Stilwater)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1662,
+                "y": 1712
+            }
+        ]
+    },
+    {
+        "name": "Tag #46 (Nob Hill)",
+        "sections": [
+            {
+                "name": "Tag #46 (Nob Hill)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1882,
+                "y": 593
+            }
+        ]
+    },
+    {
+        "name": "Tag #47 (Nob Hill)",
+        "sections": [
+            {
+                "name": "Tag #47 (Nob Hill)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1705,
+                "y": 703
+            }
+        ]
+    },
+    {
+        "name": "Tag #48 (Nob Hill)",
+        "sections": [
+            {
+                "name": "Tag #48 (Nob Hill)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1883,
+                "y": 641
+            }
+        ]
+    },
+    {
+        "name": "Tag #49 (Tidal Spring)",
+        "sections": [
+            {
+                "name": "Tag #49 (Tidal Spring)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1749,
+                "y": 628
+            }
+        ]
+    },
+    {
+        "name": "Tag #50 (Tidal Spring)",
+        "sections": [
+            {
+                "name": "Tag #50 (Tidal Spring)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1753,
+                "y": 590
+            }
+        ]
+    },
+    {
+        "name": "Hitman (Hotels & Marina)",
+        "sections": [
+            {
+                "name": "Hitman (Hotels & Marina) - Jeremiah"
+            },
+            {
+                "name": "Hitman (Hotels & Marina) - Nate"
+            },
+            {
+                "name": "Hitman (Hotels & Marina) - Brian"
+            },
+            {
+                "name": "Hitman (Hotels & Marina) - Chris"
+            },
+            {
+                "name": "Hitman (Hotels & Marina) - Randy"
+            },
+            {
+                "name": "Hitman (Hotels & Marina) - Nick"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2267,
+                "y": 219
+            }
+        ]
+    },
+    {
+        "name": "Crowd Control (Hotels & Marina)",
+        "sections": [
+            {
+                "name": "Crowd Control (Hotels & Marina) - Level 1"
+            },
+            {
+                "name": "Crowd Control (Hotels & Marina) - Level 2"
+            },
+            {
+                "name": "Crowd Control (Hotels & Marina) - Level 3"
+            },
+            {
+                "name": "Crowd Control (Hotels & Marina) - Level 4"
+            },
+            {
+                "name": "Crowd Control (Hotels & Marina) - Level 5"
+            },
+            {
+                "name": "Crowd Control (Hotels & Marina) - Level 6"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2140,
+                "y": 243
+            }
+        ]
+    },
+    {
+        "name": "Drug Trafficking (Hotels & Marina)",
+        "sections": [
+            {
+                "name": "Drug Trafficking (Hotels & Marina) - Level 1"
+            },
+            {
+                "name": "Drug Trafficking (Hotels & Marina) - Level 2"
+            },
+            {
+                "name": "Drug Trafficking (Hotels & Marina) - Level 3"
+            },
+            {
+                "name": "Drug Trafficking (Hotels & Marina) - Level 4"
+            },
+            {
+                "name": "Drug Trafficking (Hotels & Marina) - Level 5"
+            },
+            {
+                "name": "Drug Trafficking (Hotels & Marina) - Level 6"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2124,
+                "y": 268
+            }
+        ]
+    },
+    {
+        "name": "Crowd Control (Suburbs)",
+        "sections": [
+            {
+                "name": "Crowd Control (Suburbs) - Level 1"
+            },
+            {
+                "name": "Crowd Control (Suburbs) - Level 2"
+            },
+            {
+                "name": "Crowd Control (Suburbs) - Level 3"
+            },
+            {
+                "name": "Crowd Control (Suburbs) - Level 4"
+            },
+            {
+                "name": "Crowd Control (Suburbs) - Level 5"
+            },
+            {
+                "name": "Crowd Control (Suburbs) - Level 6"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1696,
+                "y": 538
+            }
+        ]
+    },
+    {
+        "name": "Chop Shop (Suburbs)",
+        "sections": [
+            {
+                "name": "Chop Shop (Suburbs) - Mockingbird"
+            },
+            {
+                "name": "Chop Shop (Suburbs) - Churchill"
+            },
+            {
+                "name": "Chop Shop (Suburbs) - Hammerhead"
+            },
+            {
+                "name": "Chop Shop (Suburbs) - Compton"
+            },
+            {
+                "name": "Chop Shop (Suburbs) - Topher"
+            },
+            {
+                "name": "Chop Shop (Suburbs) - Quota"
+            },
+            {
+                "name": "Chop Shop (Suburbs) - Five-O"
+            },
+            {
+                "name": "Chop Shop (Suburbs) - Ambulance"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1753,
+                "y": 605
+            }
+        ]
+    },
+    {
+        "name": "Chop Shop (Downtown)",
+        "sections": [
+            {
+                "name": "Chop Shop (Downtown) - Go!"
+            },
+            {
+                "name": "Chop Shop (Downtown) - Taxi"
+            },
+            {
+                "name": "Chop Shop (Downtown) - Wellington"
+            },
+            {
+                "name": "Chop Shop (Downtown) - Alaskan"
+            },
+            {
+                "name": "Chop Shop (Downtown) - Varsity"
+            },
+            {
+                "name": "Chop Shop (Downtown) - Zenith"
+            },
+            {
+                "name": "Chop Shop (Downtown) - Justice"
+            },
+            {
+                "name": "Chop Shop (Downtown) - Titan"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1834,
+                "y": 828
+            }
+        ]
+    },
+    {
+        "name": "Heli Assault (Trailer Park)",
+        "sections": [
+            {
+                "name": "Heli Assault (Trailer Park) - Level 1"
+            },
+            {
+                "name": "Heli Assault (Trailer Park) - Level 2"
+            },
+            {
+                "name": "Heli Assault (Trailer Park) - Level 3"
+            },
+            {
+                "name": "Heli Assault (Trailer Park) - Level 4"
+            },
+            {
+                "name": "Heli Assault (Trailer Park) - Level 5"
+            },
+            {
+                "name": "Heli Assault (Trailer Park) - Level 6"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1154,
+                "y": 597
+            }
+        ]
+    },
+    {
+        "name": "Hitman (Trailer Park)",
+        "sections": [
+            {
+                "name": "Hitman (Trailer Park) - Shannon"
+            },
+            {
+                "name": "Hitman (Trailer Park) - Jim"
+            },
+            {
+                "name": "Hitman (Trailer Park) - Roje"
+            },
+            {
+                "name": "Hitman (Trailer Park) - Mike"
+            },
+            {
+                "name": "Hitman (Trailer Park) - Clint"
+            },
+            {
+                "name": "Hitman (Trailer Park) - Greg"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 983,
+                "y": 613
+            }
+        ]
+    },
+    {
+        "name": "FUZZ (Suburbs Expansion)",
+        "sections": [
+            {
+                "name": "FUZZ (Suburbs Expansion) - Level 1"
+            },
+            {
+                "name": "FUZZ (Suburbs Expansion) - Level 2"
+            },
+            {
+                "name": "FUZZ (Suburbs Expansion) - Level 3"
+            },
+            {
+                "name": "FUZZ (Suburbs Expansion) - Level 4"
+            },
+            {
+                "name": "FUZZ (Suburbs Expansion) - Level 5"
+            },
+            {
+                "name": "FUZZ (Suburbs Expansion) - Level 6"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1249,
+                "y": 499
+            }
+        ]
+    },
+    {
+        "name": "Septic Avenger (Suburbs Expansion)",
+        "sections": [
+            {
+                "name": "Septic Avenger (Suburbs Expansion) - Level 1"
+            },
+            {
+                "name": "Septic Avenger (Suburbs Expansion) - Level 2"
+            },
+            {
+                "name": "Septic Avenger (Suburbs Expansion) - Level 3"
+            },
+            {
+                "name": "Septic Avenger (Suburbs Expansion) - Level 4"
+            },
+            {
+                "name": "Septic Avenger (Suburbs Expansion) - Level 5"
+            },
+            {
+                "name": "Septic Avenger (Suburbs Expansion) - Level 6"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1152,
+                "y": 289
+            }
+        ]
+    },
+    {
+        "name": "Hitman (Prison)",
+        "sections": [
+            {
+                "name": "Hitman (Prison) - Everett"
+            },
+            {
+                "name": "Hitman (Prison) - Justin"
+            },
+            {
+                "name": "Hitman (Prison) - Chris"
+            },
+            {
+                "name": "Hitman (Prison) - Tim"
+            },
+            {
+                "name": "Hitman (Prison) - Mitri"
+            },
+            {
+                "name": "Hitman (Prison) - Frank"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 651,
+                "y": 1056
+            }
+        ]
+    },
+    {
+        "name": "Hitman (Saint's Row)",
+        "sections": [
+            {
+                "name": "Hitman (Saint's Row) - Apoop"
+            },
+            {
+                "name": "Hitman (Saint's Row) - Larry"
+            },
+            {
+                "name": "Hitman (Saint's Row) - Seabaugh"
+            },
+            {
+                "name": "Hitman (Saint's Row) - Mr. Flegel"
+            },
+            {
+                "name": "Hitman (Saint's Row) - Lt. Freeball"
+            },
+            {
+                "name": "Hitman (Saint's Row) - Russell"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2107,
+                "y": 1592
+            }
+        ]
+    },
+    {
+        "name": "Hitman (Barrio)",
+        "sections": [
+            {
+                "name": "Hitman (Barrio) - Alvan"
+            },
+            {
+                "name": "Hitman (Barrio) - Brad"
+            },
+            {
+                "name": "Hitman (Barrio) - Anoop"
+            },
+            {
+                "name": "Hitman (Barrio) - Frank"
+            },
+            {
+                "name": "Hitman (Barrio) - Scott"
+            },
+            {
+                "name": "Hitman (Barrio) - James"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1835,
+                "y": 2507
+            }
+        ]
+    },
+    {
+        "name": "Chop Shop (Truckyard)",
+        "sections": [
+            {
+                "name": "Chop Shop (Truckyard) - Voxel"
+            },
+            {
+                "name": "Chop Shop (Truckyard) - Magma"
+            },
+            {
+                "name": "Chop Shop (Truckyard) - Attrazione"
+            },
+            {
+                "name": "Chop Shop (Truckyard) - Superiore"
+            },
+            {
+                "name": "Chop Shop (Truckyard) - Venom Classic"
+            },
+            {
+                "name": "Chop Shop (Truckyard) - Eiswolf"
+            },
+            {
+                "name": "Chop Shop (Truckyard) - Socialite"
+            },
+            {
+                "name": "Chop Shop (Truckyard) - Peacekeeper"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1892,
+                "y": 2026
+            }
+        ]
+    },
+    {
+        "name": "Snatch (Chinatown)",
+        "sections": [
+            {
+                "name": "Snatch (Chinatown) - Level 1"
+            },
+            {
+                "name": "Snatch (Chinatown) - Level 2"
+            },
+            {
+                "name": "Snatch (Chinatown) - Level 3"
+            },
+            {
+                "name": "Snatch (Chinatown) - Level 4"
+            },
+            {
+                "name": "Snatch (Chinatown) - Level 5"
+            },
+            {
+                "name": "Snatch (Chinatown) - Level 6"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1468,
+                "y": 2087
+            }
+        ]
+    },
+    {
+        "name": "Chop Shop (Apartments)",
+        "sections": [
+            {
+                "name": "Chop Shop (Apartments) - Swindle"
+            },
+            {
+                "name": "Chop Shop (Apartments) - Betsy"
+            },
+            {
+                "name": "Chop Shop (Apartments) - NRG V8"
+            },
+            {
+                "name": "Chop Shop (Apartments) - Raycaster"
+            },
+            {
+                "name": "Chop Shop (Apartments) - Melbourne"
+            },
+            {
+                "name": "Chop Shop (Apartments) - Bezier"
+            },
+            {
+                "name": "Chop Shop (Apartments) - Cosmos"
+            },
+            {
+                "name": "Chop Shop (Apartments) - Status Quo"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1332,
+                "y": 1927
+            }
+        ]
+    },
+    {
+        "name": "Chop Shop (Factories)",
+        "sections": [
+            {
+                "name": "Chop Shop (Factories) - Voyage"
+            },
+            {
+                "name": "Chop Shop (Factories) - Danville"
+            },
+            {
+                "name": "Chop Shop (Factories) - Mag"
+            },
+            {
+                "name": "Chop Shop (Factories) - Bag Boy"
+            },
+            {
+                "name": "Chop Shop (Factories) - Backhoe"
+            },
+            {
+                "name": "Chop Shop (Factories) - Bulldozer"
+            },
+            {
+                "name": "Chop Shop (Factories) - Delivery Truck"
+            },
+            {
+                "name": "Chop Shop (Factories) - Longhauler"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2321,
+                "y": 2368
+            }
+        ]
+    },
+    {
+        "name": "Escort (Stilwater University)",
+        "sections": [
+            {
+                "name": "Escort (Stilwater University) - Level 1"
+            },
+            {
+                "name": "Escort (Stilwater University) - Level 2"
+            },
+            {
+                "name": "Escort (Stilwater University) - Level 3"
+            },
+            {
+                "name": "Escort (Stilwater University) - Level 4"
+            },
+            {
+                "name": "Escort (Stilwater University) - Level 5"
+            },
+            {
+                "name": "Escort (Stilwater University) - Level 6"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 746,
+                "y": 1560
+            }
+        ]
+    },
+    {
+        "name": "Trail Blazing (Apartments District)",
+        "sections": [
+            {
+                "name": "Trail Blazing (Apartments District) - Level 1"
+            },
+            {
+                "name": "Trail Blazing (Apartments District) - Level 2"
+            },
+            {
+                "name": "Trail Blazing (Apartments District) - Level 3"
+            },
+            {
+                "name": "Trail Blazing (Apartments District) - Level 4"
+            },
+            {
+                "name": "Trail Blazing (Apartments District) - Level 5"
+            },
+            {
+                "name": "Trail Blazing (Apartments District) - Level 6"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1313,
+                "y": 2008
+            }
+        ]
+    },
+    {
+        "name": "FUZZ (Project District)",
+        "sections": [
+            {
+                "name": "FUZZ (Project District) - Level 1"
+            },
+            {
+                "name": "FUZZ (Project District) - Level 2"
+            },
+            {
+                "name": "FUZZ (Project District) - Level 3"
+            },
+            {
+                "name": "FUZZ (Project District) - Level 4"
+            },
+            {
+                "name": "FUZZ (Project District) - Level 5"
+            },
+            {
+                "name": "FUZZ (Project District) - Level 6"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1541,
+                "y": 1654
+            }
+        ]
+    },
+    {
+        "name": "Mayhem (Red Light District)",
+        "sections": [
+            {
+                "name": "Mayhem (Red Light District) - Level 1"
+            },
+            {
+                "name": "Mayhem (Red Light District) - Level 2"
+            },
+            {
+                "name": "Mayhem (Red Light District) - Level 3"
+            },
+            {
+                "name": "Mayhem (Red Light District) - Level 4"
+            },
+            {
+                "name": "Mayhem (Red Light District) - Level 5"
+            },
+            {
+                "name": "Mayhem (Red Light District) - Level 6"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1750,
+                "y": 1792
+            }
+        ]
+    },
+    {
+        "name": "Mayhem (Nuclear Power Plant)",
+        "sections": [
+            {
+                "name": "Mayhem (Nuclear Power Plant) - Level 1"
+            },
+            {
+                "name": "Mayhem (Nuclear Power Plant) - Level 2"
+            },
+            {
+                "name": "Mayhem (Nuclear Power Plant) - Level 3"
+            },
+            {
+                "name": "Mayhem (Nuclear Power Plant) - Level 4"
+            },
+            {
+                "name": "Mayhem (Nuclear Power Plant) - Level 5"
+            },
+            {
+                "name": "Mayhem (Nuclear Power Plant) - Level 6"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 240,
+                "y": 2563
+            }
+        ]
+    },
+    {
+        "name": "Septic Avenger (Red Light District)",
+        "sections": [
+            {
+                "name": "Septic Avenger (Red Light District) - Level 1"
+            },
+            {
+                "name": "Septic Avenger (Red Light District) - Level 2"
+            },
+            {
+                "name": "Septic Avenger (Red Light District) - Level 3"
+            },
+            {
+                "name": "Septic Avenger (Red Light District) - Level 4"
+            },
+            {
+                "name": "Septic Avenger (Red Light District) - Level 5"
+            },
+            {
+                "name": "Septic Avenger (Red Light District) - Level 6"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1834,
+                "y": 1708
+            }
+        ]
+    },
+    {
+        "name": "Drug Trafficking (Wardill Airport)",
+        "sections": [
+            {
+                "name": "Drug Trafficking (Wardill Airport) - Level 1"
+            },
+            {
+                "name": "Drug Trafficking (Wardill Airport) - Level 2"
+            },
+            {
+                "name": "Drug Trafficking (Wardill Airport) - Level 3"
+            },
+            {
+                "name": "Drug Trafficking (Wardill Airport) - Level 4"
+            },
+            {
+                "name": "Drug Trafficking (Wardill Airport) - Level 5"
+            },
+            {
+                "name": "Drug Trafficking (Wardill Airport) - Level 6"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1002,
+                "y": 3157
+            }
+        ]
+    },
+    {
+        "name": "Insurance Fraud (Factories District)",
+        "sections": [
+            {
+                "name": "Insurance Fraud (Factories District) - Level 1"
+            },
+            {
+                "name": "Insurance Fraud (Factories District) - Level 2"
+            },
+            {
+                "name": "Insurance Fraud (Factories District) - Level 3"
+            },
+            {
+                "name": "Insurance Fraud (Factories District) - Level 4"
+            },
+            {
+                "name": "Insurance Fraud (Factories District) - Level 5"
+            },
+            {
+                "name": "Insurance Fraud (Factories District) - Level 6"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2091,
+                "y": 2136
+            }
+        ]
+    },
+    {
+        "name": "Trail Blazing (Downtown)",
+        "sections": [
+            {
+                "name": "Trail Blazing (Downtown) - Level 1"
+            },
+            {
+                "name": "Trail Blazing (Downtown) - Level 2"
+            },
+            {
+                "name": "Trail Blazing (Downtown) - Level 3"
+            },
+            {
+                "name": "Trail Blazing (Downtown) - Level 4"
+            },
+            {
+                "name": "Trail Blazing (Downtown) - Level 5"
+            },
+            {
+                "name": "Trail Blazing (Downtown) - Level 6"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2211,
+                "y": 1100
+            }
+        ]
+    },
+    {
+        "name": "Insurance Fraud (Museum District)",
+        "sections": [
+            {
+                "name": "Insurance Fraud (Museum District) - Level 1"
+            },
+            {
+                "name": "Insurance Fraud (Museum District) - Level 2"
+            },
+            {
+                "name": "Insurance Fraud (Museum District) - Level 3"
+            },
+            {
+                "name": "Insurance Fraud (Museum District) - Level 4"
+            },
+            {
+                "name": "Insurance Fraud (Museum District) - Level 5"
+            },
+            {
+                "name": "Insurance Fraud (Museum District) - Level 6"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2552,
+                "y": 836
+            }
+        ]
+    },
+    {
+        "name": "Heli Assault (Barrio District)",
+        "sections": [
+            {
+                "name": "Heli Assault (Barrio District) - Level 1"
+            },
+            {
+                "name": "Heli Assault (Barrio District) - Level 2"
+            },
+            {
+                "name": "Heli Assault (Barrio District) - Level 3"
+            },
+            {
+                "name": "Heli Assault (Barrio District) - Level 4"
+            },
+            {
+                "name": "Heli Assault (Barrio District) - Level 5"
+            },
+            {
+                "name": "Heli Assault (Barrio District) - Level 6"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1678,
+                "y": 2244
+            }
+        ]
+    },
+    {
+        "name": "Snatch (Downtown)",
+        "sections": [
+            {
+                "name": "Snatch (Downtown) - Level 1"
+            },
+            {
+                "name": "Snatch (Downtown) - Level 2"
+            },
+            {
+                "name": "Snatch (Downtown) - Level 3"
+            },
+            {
+                "name": "Snatch (Downtown) - Level 4"
+            },
+            {
+                "name": "Snatch (Downtown) - Level 5"
+            },
+            {
+                "name": "Snatch (Downtown) - Level 6"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2045,
+                "y": 1164
+            }
+        ]
+    },
+    {
+        "name": "Fight Club (Stilwater Prison)",
+        "sections": [
+            {
+                "name": "Fight Club (Stilwater Prison) - Level 1"
+            },
+            {
+                "name": "Fight Club (Stilwater Prison) - Level 2"
+            },
+            {
+                "name": "Fight Club (Stilwater Prison) - Level 3"
+            },
+            {
+                "name": "Fight Club (Stilwater Prison) - Level 4"
+            },
+            {
+                "name": "Fight Club (Stilwater Prison) - Level 5"
+            },
+            {
+                "name": "Fight Club (Stilwater Prison) - Level 6"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 561,
+                "y": 957
+            }
+        ]
+    }
+]
