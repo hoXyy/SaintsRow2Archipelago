@@ -12,13 +12,13 @@ Steam and GOG versions of the game are supported.
 
 ## APWorld details
 
-The progression is very similar to the vanilla game, with being based around the story missions and strongholds. The key progression item is respect which you need to start missions. Additionally there is a `+1 Bonus Respect` item that can be configured when it comes to how much of it should be generated. It's useful to make it easier to find the respect you need to progress.
+The progression is very similar to the vanilla game, with being based around the story missions and strongholds. The key progression items are activity unlock items, which then allow you to search for respect which you need to start missions. Additionally there is a `+1 Bonus Respect` item that can be configured when it comes to how much of it should be generated. It's useful to make it easier to find the respect you need to progress.
 
 The goal is to beat one or more gang arcs, with it being configurable which you need to beat:
 - Ronin Arc
 - Brotherhood Arc
 - Sons of Samedi Arc
-- Ultor Epilogue (this requires *ALL* of the other gang arcs due to how the vanilla game is structured!)
+- Ultor Arc
 
 The current location checks are:
 - Missions and strongholds
@@ -27,6 +27,7 @@ The current location checks are:
     - each vehicle/target for Chop Shop/Hitman
     - each medal for Races
 - CDs
+- Tags
 - Style Level
     - one location for each level
 
@@ -38,9 +39,12 @@ The items in the pool are:
 - Traps
     - Max Ronin/Brotherhood/Samedi/Police Notoriety
     - Permanent Heavy Rain/Thunderstorm (until a Restore Weather Cycle item is received)
-- Money (1k, 5k, 10k)
+    - Each type is toggleable in the settings
+- Money (1k, 5k, 10k, 25k, 50k, 100k)
 
 The full list of items can be found in [items_list.py](https://github.com/hoXyy/SaintsRow2Archipelago/blob/main/apworld/items_list.py).
+
+This APWorld also has support for the [Universal Tracker](https://archipelago.miraheze.org/wiki/Universal_Tracker), including it's map tracker.
 
 ## Required mods
 
@@ -54,10 +58,10 @@ The full list of items can be found in [items_list.py](https://github.com/hoXyy/
 
 Make sure Juiced Patch is installed and working before installing the Archipelago:
 
-1. Download `SR2Archipelago.zip` and `saints_row_2.apworld` from the `Releases` tab, and get an ASI loader (recommended is the [Ultimate ASI Loader](https://github.com/ThirteenAG/Ultimate-ASI-Loader) with `dinput8.dll` as the DLL name, using the **Win32** DLL).
+1. Download `SR2Archipelago.zip` and `saints_row_2.apworld` from the `Releases` tab.
 2. Open the Archipelago client, and use the `Install APWorld` option to install the .apworld file you downloaded.
 3. Follow your chosen's ASI loader install instructions (when using the Ultimate ASI Loader use `dinput8.dll` as the DLL name of choice).
-4. Extract the `scripts` and `Mods` folders from `SR2Archipelago.zip` into the game folder (same folder that includes `SR2_pc.exe`).
+4. Extract the `scripts` and `Mods` folders along with `dinput8.dll` from `SR2Archipelago.zip` into the game folder (same folder that includes `SR2_pc.exe`).
 5. Add the following line to the end of `loose.txt`:
 ```
 mods/sr2ap_core_files
@@ -130,9 +134,8 @@ Open an **x86 Native Tools Command Prompt for VS**. Navigate to the `game_plugin
 *Very much not an exhaustive list*
 
 - More checks:
-    - other collectibles like tags and stunt jumps
+    - other collectibles like and stunt jumps
     - buyable items in liquor stores and fast food places?
 - In-game AP indicators ([ImGui](https://github.com/ocornut/imgui)-based?)
-- Better progression balancing
 - Deathlink
 - Support for the PC DLC mod
