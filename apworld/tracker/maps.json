@@ -1,0 +1,9 @@
+[
+    {
+        "name": "stilwater",
+        "location_size": 24,
+        "location_border_thickness": 2,
+        "location_shape": "rect",
+        "img": "images/map/stilwater.png"
+    }
+]

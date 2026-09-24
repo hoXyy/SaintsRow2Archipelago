@@ -14,6 +14,7 @@ from .missions import (
     STILWATER_CAVERNS_STRONGHOLD,
 )
 from .patch import generate_patched_game_files
+from typing import Any, ClassVar
 
 
 class SR2Web(WebWorld):
@@ -47,6 +48,13 @@ class SR2World(World):
     origin_region_name = "Stilwater"
 
     ut_can_gen_without_yaml = True
+
+    tracker_world: ClassVar[dict[str, Any]] = {
+        "map_page_folder": "tracker",
+        "map_page_maps": "maps.json",
+        "map_page_locations": "locations.json",
+        "map_page_layouts": "layouts.json",
+    }
 
     @staticmethod
     def interpret_slot_data(slot_data: dict[str, object]) -> dict[str, object]:
