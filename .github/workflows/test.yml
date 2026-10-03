@@ -9,43 +9,66 @@ on:
 jobs:
     test-apworld:
         name: Test APWorld
-        runs-on: ubuntu-24.04
+        runs-on: ubuntu-latest
 
         steps:
             - name: Checkout repo
               uses: actions/checkout@v7
+
             - name: Checkout Archipelago repo
               uses: actions/checkout@v7
               with:
                   repository: ArchipelagoMW/Archipelago
                   ref: 0.6.7
                   path: Archipelago
+
+            - name: Set up Python
+              uses: actions/setup-python@v6
+              with:
+                  python-version: "3.12"
+                  cache: "pip"
+
             - name: Install Archipelago dependencies
               run: |
+                  python -m pip install --upgrade pip
                   python Archipelago/ModuleUpdate.py --yes
-            - name: Install pytest
-              run: pip install pytest pytest-subtests
+
+            - name: Install test dependencies
+              run: |
+                  python -m pip install pytest pytest-subtests "platformdirs<4.12"
+
             - name: Prepare APWorld folder in launcher files
               run: |
-                  mkdir Archipelago/worlds/saints_row_2
+                  mkdir -p Archipelago/worlds/saints_row_2
                   cp -r apworld/* Archipelago/worlds/saints_row_2/
+
             - name: Run tests
-              run: cd Archipelago && pytest worlds/saints_row_2/test/ -v --no-header --no-summary
+              working-directory: Archipelago
+              run: |
+                  python -m pytest worlds/saints_row_2/test/ \
+                      -v \
+                      --no-header \
+                      --no-summary
 
     test-plugin:
-        runs-on: windows-latest
         name: Test game integration plugin
+        runs-on: windows-latest
 
         steps:
             - name: Checkout repo
               uses: actions/checkout@v7
+
             - name: Setup MSVC
               uses: TheMrMilchmann/setup-msvc-dev@v4
               with:
                   arch: x86
+
             - name: Install make
-              run: choco install make
+              run: choco install make --no-progress -y
+
             - name: Install Rust x86 target
               run: rustup target add i686-pc-windows-msvc
+
             - name: Run tests
-              run: cd game_plugin && make test
+              working-directory: game_plugin
+              run: make test

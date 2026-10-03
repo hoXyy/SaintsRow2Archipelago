@@ -42,6 +42,8 @@ ARC_INTRO_CHAIN_MISSIONS = {
     ULTOR_EPILOGUE_ARC_NAME: "ep00",
 }
 
+NO_PREREQUISITES_LOCKED_FLAG = "No Prerequisites Locked"
+
 TEXT_LANGUAGES = [
     "CH",
     "CZ",
@@ -153,8 +155,20 @@ def generate_patched_mission_chains_file(
         start_nav = mission.find("StartNav")
 
         if arc not in enabled_arcs:
-            if start_nav is not None:
+            if start_nav is not None and arc != ULTOR_EPILOGUE_ARC_NAME:
                 mission.remove(start_nav)
+
+            if arc == ULTOR_EPILOGUE_ARC_NAME:
+                flags = mission.find("Flags")
+                if flags is not None:
+                    for flag in flags.findall("Flag"):
+                        if flag.text == NO_PREREQUISITES_LOCKED_FLAG:
+                            flags.remove(flag)
+
+                prerequisites = mission.find("./Silent/Prerequisites")
+                if prerequisites is not None:
+                    prerequisites.clear()
+                    XmlTree.SubElement(prerequisites, "Prereq").text = mission_name
 
     if not revelation_enabled:
         mission = missions["em01"]
