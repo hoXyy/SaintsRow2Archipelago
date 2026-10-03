@@ -41,16 +41,20 @@ class TestMissionPatch(unittest.TestCase):
             [flag.text for flag in ep00.findall("./Flags/Flag")],
         )
 
-    def test_disabled_ultor_arc_removes_start_nav_and_prerequisite_flag(
+    def test_disabled_ultor_arc_keeps_valid_self_locked_mission(
         self,
     ) -> None:
         xml = generate_patched_mission_chains_file(set(), False, False)
         ep00 = get_missions(xml)["ep00"]
         flags = [flag.text for flag in ep00.findall("./Flags/Flag")]
+        prerequisites = [
+            prereq.text for prereq in ep00.findall("./Silent/Prerequisites/Prereq")
+        ]
 
-        self.assertIsNone(ep00.find("StartNav"))
+        self.assertIsNotNone(ep00.find("StartNav"))
         self.assertNotIn("No Prerequisites Locked", flags)
         self.assertIn("No Percentage Count", flags)
+        self.assertEqual(["ep00"], prerequisites)
 
     def test_enabled_revelation_has_start_nav(self) -> None:
         xml = generate_patched_mission_chains_file(set(), True, True)
