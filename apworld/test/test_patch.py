@@ -2,7 +2,7 @@ import unittest
 import xml.etree.ElementTree as XmlTree
 from types import SimpleNamespace
 
-from ..options import RONIN_ARC_NAME
+from ..options import RONIN_ARC_NAME, ULTOR_EPILOGUE_ARC_NAME
 from ..patch import (
     generate_patched_mission_chains_file,
     generate_main_menu_info_strings,
@@ -28,6 +28,29 @@ class TestMissionPatch(unittest.TestCase):
         missions = get_missions(xml)
 
         self.assertIsNone(missions["rn01"].find("StartNav"))
+
+    def test_enabled_ultor_arc_keeps_start_nav_and_prerequisite_flag(self) -> None:
+        xml = generate_patched_mission_chains_file(
+            {ULTOR_EPILOGUE_ARC_NAME}, False, False
+        )
+        ep00 = get_missions(xml)["ep00"]
+
+        self.assertIsNotNone(ep00.find("StartNav"))
+        self.assertIn(
+            "No Prerequisites Locked",
+            [flag.text for flag in ep00.findall("./Flags/Flag")],
+        )
+
+    def test_disabled_ultor_arc_removes_start_nav_and_prerequisite_flag(
+        self,
+    ) -> None:
+        xml = generate_patched_mission_chains_file(set(), False, False)
+        ep00 = get_missions(xml)["ep00"]
+        flags = [flag.text for flag in ep00.findall("./Flags/Flag")]
+
+        self.assertIsNone(ep00.find("StartNav"))
+        self.assertNotIn("No Prerequisites Locked", flags)
+        self.assertIn("No Percentage Count", flags)
 
     def test_enabled_revelation_has_start_nav(self) -> None:
         xml = generate_patched_mission_chains_file(set(), True, True)

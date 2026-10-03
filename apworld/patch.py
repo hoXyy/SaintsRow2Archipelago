@@ -42,6 +42,8 @@ ARC_INTRO_CHAIN_MISSIONS = {
     ULTOR_EPILOGUE_ARC_NAME: "ep00",
 }
 
+NO_PREREQUISITES_LOCKED_FLAG = "No Prerequisites Locked"
+
 TEXT_LANGUAGES = [
     "CH",
     "CZ",
@@ -155,6 +157,14 @@ def generate_patched_mission_chains_file(
         if arc not in enabled_arcs:
             if start_nav is not None:
                 mission.remove(start_nav)
+
+            # Because ep00 has this flag, the game crashes if there's no StartNav for it. So just remove the flag lol
+            if arc == ULTOR_EPILOGUE_ARC_NAME:
+                flags = mission.find("Flags")
+                if flags is not None:
+                    for flag in flags.findall("Flag"):
+                        if flag.text == NO_PREREQUISITES_LOCKED_FLAG:
+                            flags.remove(flag)
 
     if not revelation_enabled:
         mission = missions["em01"]
