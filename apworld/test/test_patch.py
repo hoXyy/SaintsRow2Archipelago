@@ -33,28 +33,53 @@ class TestMissionPatch(unittest.TestCase):
         xml = generate_patched_mission_chains_file(
             {ULTOR_EPILOGUE_ARC_NAME}, False, False
         )
-        ep00 = get_missions(xml)["ep00"]
+        missions = get_missions(xml)
+        ep00 = missions["ep00"]
+        ep01 = missions["ep01"]
 
         self.assertIsNotNone(ep00.find("StartNav"))
         self.assertIn(
             "No Prerequisites Locked",
             [flag.text for flag in ep00.findall("./Flags/Flag")],
         )
+        self.assertIsNotNone(ep01.find("StartNav"))
+        self.assertEqual(
+            ["ep00"],
+            [
+                prereq.text
+                for prereq in ep01.findall(
+                    "./MissionStronghold/Prerequisites/Prereq"
+                )
+            ],
+        )
 
-    def test_disabled_ultor_arc_keeps_valid_self_locked_mission(
-        self,
-    ) -> None:
+    def test_disabled_ultor_arc_converts_ep00_to_inert_mission(self) -> None:
         xml = generate_patched_mission_chains_file(set(), False, False)
-        ep00 = get_missions(xml)["ep00"]
+        missions = get_missions(xml)
+        ep00 = missions["ep00"]
+        ep01 = missions["ep01"]
         flags = [flag.text for flag in ep00.findall("./Flags/Flag")]
-        prerequisites = [
-            prereq.text for prereq in ep00.findall("./Silent/Prerequisites/Prereq")
+        ep00_prerequisites = [
+            prereq.text
+            for prereq in ep00.findall(
+                "./MissionStronghold/Prerequisites/Prereq"
+            )
+        ]
+        ep01_prerequisites = [
+            prereq.text
+            for prereq in ep01.findall("./MissionStronghold/Prerequisites/Prereq")
         ]
 
-        self.assertIsNotNone(ep00.find("StartNav"))
+        self.assertIsNone(ep00.find("StartNav"))
+        self.assertEqual("Mission", ep00.findtext("Type"))
+        self.assertIsNone(ep00.find("Silent"))
+        self.assertEqual("0", ep00.findtext("./MissionStronghold/Cost"))
+        self.assertEqual("none", ep00.findtext("./MissionStronghold/display_group"))
         self.assertNotIn("No Prerequisites Locked", flags)
         self.assertIn("No Percentage Count", flags)
-        self.assertEqual(["ep00"], prerequisites)
+        self.assertEqual(["tss04"], ep00_prerequisites)
+        self.assertIsNotNone(ep01.find("StartNav"))
+        self.assertEqual(["ep00"], ep01_prerequisites)
 
     def test_enabled_revelation_has_start_nav(self) -> None:
         xml = generate_patched_mission_chains_file(set(), True, True)

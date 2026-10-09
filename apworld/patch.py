@@ -155,7 +155,7 @@ def generate_patched_mission_chains_file(
         start_nav = mission.find("StartNav")
 
         if arc not in enabled_arcs:
-            if start_nav is not None and arc != ULTOR_EPILOGUE_ARC_NAME:
+            if start_nav is not None:
                 mission.remove(start_nav)
 
             if arc == ULTOR_EPILOGUE_ARC_NAME:
@@ -165,10 +165,28 @@ def generate_patched_mission_chains_file(
                         if flag.text == NO_PREREQUISITES_LOCKED_FLAG:
                             flags.remove(flag)
 
-                prerequisites = mission.find("./Silent/Prerequisites")
-                if prerequisites is not None:
-                    prerequisites.clear()
-                    XmlTree.SubElement(prerequisites, "Prereq").text = mission_name
+                mission_type = mission.find("Type")
+                if mission_type is not None:
+                    mission_type.text = "Mission"
+
+                mission_data = mission.find("Silent")
+                if mission_data is not None:
+                    mission_data.tag = "MissionStronghold"
+
+                    cutscene = mission_data.find("Cutscene")
+                    if cutscene is not None:
+                        mission_data.remove(cutscene)
+
+                    cost = XmlTree.Element("Cost")
+                    cost.text = "0"
+                    mission_data.insert(0, cost)
+
+                    rewards = XmlTree.Element("Rewards")
+                    XmlTree.SubElement(rewards, "Unlockables")
+                    mission_data.insert(1, rewards)
+
+                    XmlTree.SubElement(mission_data, "Unlockables")
+                    XmlTree.SubElement(mission_data, "display_group").text = "none"
 
     if not revelation_enabled:
         mission = missions["em01"]
