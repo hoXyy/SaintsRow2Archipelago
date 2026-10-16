@@ -102,8 +102,6 @@ pub(crate) enum JournalError {
     InvalidChecksum(String),
     #[error("duplicate normalized revision checksum `{0:08X}`")]
     DuplicateChecksum(u32),
-    #[error("session seed is not valid UTF-8")]
-    InvalidSeed,
     #[error("could not serialize revision journal: {0}")]
     Serialize(#[source] serde_json::Error),
 }
@@ -350,10 +348,6 @@ impl RevisionJournal {
             .get(&checksum)
             .cloned()
     }
-}
-
-pub(crate) fn decode_seed(seed_name: &[u8]) -> Result<&str, JournalError> {
-    std::str::from_utf8(seed_name).map_err(|_| JournalError::InvalidSeed)
 }
 
 #[cfg(test)]

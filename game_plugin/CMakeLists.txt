@@ -39,11 +39,8 @@ if (WIN32 AND SR2AP_BUILD_RUST)
     set(SR2AP_RUST_CXX_INCLUDE_DIR "${SR2AP_RUST_TARGET_DIR}/cxxbridge")
     set(SR2AP_RUST_LOGGER_HEADER "${SR2AP_RUST_CXX_INCLUDE_DIR}/sr2ap/src/ffi/logger_ffi.rs.h")
     set(SR2AP_RUST_CONFIG_HEADER "${SR2AP_RUST_CXX_INCLUDE_DIR}/sr2ap/src/ffi/config_ffi.rs.h")
-    set(SR2AP_RUST_PROTOCOL_HEADER "${SR2AP_RUST_CXX_INCLUDE_DIR}/sr2ap/src/ffi/protocol_ffi.rs.h")
-    set(SR2AP_RUST_REVISION_JOURNAL_HEADER
-            "${SR2AP_RUST_CXX_INCLUDE_DIR}/sr2ap/src/ffi/revision_journal_ffi.rs.h")
+    set(SR2AP_RUST_FS_HEADER "${SR2AP_RUST_CXX_INCLUDE_DIR}/sr2ap/src/ffi/fs_ffi.rs.h")
     set(SR2AP_RUST_SESSION_HEADER "${SR2AP_RUST_CXX_INCLUDE_DIR}/sr2ap/src/ffi/session_ffi.rs.h")
-    set(SR2AP_RUST_TCP_CLIENT_HEADER "${SR2AP_RUST_CXX_INCLUDE_DIR}/sr2ap/src/ffi/tcp_client_ffi.rs.h")
     set(SR2AP_RUST_CXX_RUNTIME_HEADER "${SR2AP_RUST_CXX_INCLUDE_DIR}/rust/cxx.h")
 
     file(MAKE_DIRECTORY "${SR2AP_RUST_CXX_INCLUDE_DIR}")
@@ -63,9 +60,7 @@ if (WIN32 AND SR2AP_BUILD_RUST)
             "${SR2AP_RUST_LIBRARY}"
             "${SR2AP_RUST_LOGGER_HEADER}"
             "${SR2AP_RUST_CONFIG_HEADER}"
-            "${SR2AP_RUST_PROTOCOL_HEADER}"
-            "${SR2AP_RUST_REVISION_JOURNAL_HEADER}"
-            "${SR2AP_RUST_TCP_CLIENT_HEADER}"
+            "${SR2AP_RUST_FS_HEADER}"
             "${SR2AP_RUST_SESSION_HEADER}"
             "${SR2AP_RUST_CXX_RUNTIME_HEADER}"
             COMMAND ${CMAKE_COMMAND} -E env
@@ -95,9 +90,7 @@ if (WIN32 AND SR2AP_BUILD_RUST)
             "${SR2AP_RUST_LIBRARY}"
             "${SR2AP_RUST_LOGGER_HEADER}"
             "${SR2AP_RUST_CONFIG_HEADER}"
-            "${SR2AP_RUST_PROTOCOL_HEADER}"
-            "${SR2AP_RUST_REVISION_JOURNAL_HEADER}"
-            "${SR2AP_RUST_TCP_CLIENT_HEADER}"
+            "${SR2AP_RUST_FS_HEADER}"
             "${SR2AP_RUST_SESSION_HEADER}"
             "${SR2AP_RUST_CXX_RUNTIME_HEADER}"
     )
@@ -226,9 +219,7 @@ if (WIN32)
     set_source_files_properties(
             "${SR2AP_RUST_LOGGER_HEADER}"
             "${SR2AP_RUST_CONFIG_HEADER}"
-            "${SR2AP_RUST_PROTOCOL_HEADER}"
-            "${SR2AP_RUST_REVISION_JOURNAL_HEADER}"
-            "${SR2AP_RUST_TCP_CLIENT_HEADER}"
+            "${SR2AP_RUST_FS_HEADER}"
             "${SR2AP_RUST_SESSION_HEADER}"
             "${SR2AP_RUST_CXX_RUNTIME_HEADER}"
             PROPERTIES
@@ -239,9 +230,7 @@ if (WIN32)
     target_sources(SR2Archipelago PRIVATE
             "${SR2AP_RUST_LOGGER_HEADER}"
             "${SR2AP_RUST_CONFIG_HEADER}"
-            "${SR2AP_RUST_PROTOCOL_HEADER}"
-            "${SR2AP_RUST_REVISION_JOURNAL_HEADER}"
-            "${SR2AP_RUST_TCP_CLIENT_HEADER}"
+            "${SR2AP_RUST_FS_HEADER}"
             "${SR2AP_RUST_SESSION_HEADER}"
             "${SR2AP_RUST_CXX_RUNTIME_HEADER}"
     )
@@ -251,9 +240,7 @@ if (WIN32)
             FILES
             "${SR2AP_RUST_LOGGER_HEADER}"
             "${SR2AP_RUST_CONFIG_HEADER}"
-            "${SR2AP_RUST_PROTOCOL_HEADER}"
-            "${SR2AP_RUST_REVISION_JOURNAL_HEADER}"
-            "${SR2AP_RUST_TCP_CLIENT_HEADER}"
+            "${SR2AP_RUST_FS_HEADER}"
             "${SR2AP_RUST_SESSION_HEADER}"
             "${SR2AP_RUST_CXX_RUNTIME_HEADER}"
     )
