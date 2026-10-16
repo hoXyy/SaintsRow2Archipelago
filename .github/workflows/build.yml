@@ -21,6 +21,10 @@ jobs:
         run: choco install make
       - name: Install Rust x86 target
         run: rustup target add i686-pc-windows-msvc
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: game_plugin/rust -> ../build-ci/cargo-target
       - name: Build
         run: cd game_plugin && make BUILD_DIR=build-ci PROJECT_VERSION=dev-${{ github.sha }}
       - name: Download ASI loader

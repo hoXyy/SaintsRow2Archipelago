@@ -69,6 +69,11 @@ jobs:
             - name: Install Rust x86 target
               run: rustup target add i686-pc-windows-msvc
 
+            - name: Cache Rust dependencies
+              uses: Swatinem/rust-cache@v2
+              with:
+                  workspaces: game_plugin/rust -> ../build/cargo-target
+
             - name: Run tests
               working-directory: game_plugin
               run: make test
