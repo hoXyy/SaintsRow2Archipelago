@@ -73,6 +73,11 @@ class LuaActivityUnlockItemHandler : public ItemHandler {
             dispatcher_.Dispatch([activitiesToUnlock = item->activitiesToUnlock,
                                   itemName = std::string{itemName}] {
                 for (const auto& activity : activitiesToUnlock) {
+                    // Items with a single activity leave the second slot null.
+                    if (!activity) {
+                        continue;
+                    }
+
                     if (!Lua::UnlockActivity(activity)) {
                         LogWarning(
                             "ActivityUnlock",
