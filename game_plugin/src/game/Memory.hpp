@@ -11,6 +11,8 @@
 #include <vector>
 
 namespace sr2ap {
+struct ModuleInfo;
+
 struct MemoryWriteResult {
     bool bytesWritten{};
     bool cacheFlushed{};
@@ -23,7 +25,7 @@ struct MemoryWriteResult {
 
 bool IsReadableAddress(std::uintptr_t address, std::size_t size);
 bool IsExecutableAddress(std::uintptr_t address);
-bool IsInsideModule(HMODULE module, const void* address);
+bool IsInsideModule(const ModuleInfo& module, const void* address);
 bool SafeCopy(const void* address, void* destination, std::size_t size);
 MemoryWriteResult WriteExecutableMemory(void* destination,
                                         std::span<const std::uint8_t> bytes);

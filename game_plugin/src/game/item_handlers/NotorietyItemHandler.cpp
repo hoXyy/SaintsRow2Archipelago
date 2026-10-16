@@ -56,8 +56,7 @@ class NotorietyItemHandler final : public ItemHandler {
             ReadMemoryIntoArray<std::uint8_t, expectedSet.size()>(setAddress_);
 
         installed_ =
-            IsInsideModule(game->handle,
-                           reinterpret_cast<const void*>(setAddress_)) &&
+            IsInsideModule(*game, reinterpret_cast<const void*>(setAddress_)) &&
             IsExecutableAddress(setAddress_) &&
             DetectDetour(reinterpret_cast<const void*>(setAddress_)) ==
                 DetourKind::None &&

@@ -42,8 +42,8 @@ struct GameThreadDispatcher::Implementation {
             ReadMemoryIntoArray<std::uint8_t, expectedFrameDispatch.size()>(
                 frameDispatchAddress);
 
-        if (!IsInsideModule(game->handle, reinterpret_cast<const void*>(
-                                              frameDispatchAddress)) ||
+        if (!IsInsideModule(
+                *game, reinterpret_cast<const void*>(frameDispatchAddress)) ||
             !IsExecutableAddress(frameDispatchAddress) ||
             DetectDetour(reinterpret_cast<const void*>(frameDispatchAddress)) !=
                 DetourKind::None ||

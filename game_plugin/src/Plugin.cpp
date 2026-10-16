@@ -68,7 +68,7 @@ DWORD WINAPI PluginThread(void* parameter) {
         const auto game = InspectSupportedGameModule();
         SessionRuntime session{
             gameSupported, pluginDirectory / L"SR2ArchipelagoRevisions.json",
-            game ? &*game : nullptr};
+            game};
         SaveRevisionMonitor saveRevisions;
         const bool saveRevisionInstalled =
             session.InstallSaveMonitoring(saveRevisions, config.enabled);
@@ -108,7 +108,7 @@ DWORD WINAPI PluginThread(void* parameter) {
             config.writeStatusFile);
 
         while (!shutdownRequested.load(std::memory_order_acquire)) {
-            const auto gameContext = ReadGameContext(game ? &*game : nullptr);
+            const auto gameContext = ReadGameContext(game);
 
             if (saveRevisionInstalled) {
                 saveRevisions.Poll();

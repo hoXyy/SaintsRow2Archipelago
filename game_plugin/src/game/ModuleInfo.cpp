@@ -95,12 +95,15 @@ std::optional<ModuleInfo> FindLoadedModule(const wchar_t* name) {
     return InspectModule(GetModuleHandleW(name));
 }
 
-std::optional<ModuleInfo> InspectSupportedGameModule() {
-    auto game = InspectModule(GetModuleHandleW(nullptr));
-    if (!game || !IsSupportedExecutable(*game)) {
-        return std::nullopt;
-    }
-    return game;
+const ModuleInfo* InspectSupportedGameModule() {
+    static const auto game = [] {
+        auto module = InspectModule(GetModuleHandleW(nullptr));
+        if (!module || !IsSupportedExecutable(*module)) {
+            module.reset();
+        }
+        return module;
+    }();
+    return game ? &*game : nullptr;
 }
 
 bool IsSupportedExecutable(const ModuleInfo& module) {
