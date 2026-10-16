@@ -139,6 +139,10 @@ bool CanUnlockActivity() {
 }
 
 bool UnlockActivity(const char* progressionTag) {
+    if (!progressionTag || progressionTag[0] == '\0') {
+        return false;
+    }
+
     const auto game = InspectSupportedGameModule();
 
     if (!game) {
