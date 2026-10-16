@@ -28,11 +28,12 @@ ItemHandlers CreateItemHandlers(ItemHandlerConfiguration configuration,
         handlers.push_back(CreateNotorietyItemHandler(dispatcher));
     }
     if (configuration.exclusiveRespect) {
-        handlers.push_back(CreateRespectItemHandler(respectController));
+        handlers.push_back(
+            CreateRespectItemHandler(dispatcher, respectController));
     }
     if (!configuration.managedUnlockables.empty()) {
         handlers.push_back(CreateUnlockableItemHandler(
-            configuration.blockVanillaUnlockables,
+            dispatcher, configuration.blockVanillaUnlockables,
             std::move(configuration.managedUnlockables)));
     }
 

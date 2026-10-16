@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <utility>
 
+#include "game/GameThreadDispatcher.hpp"
 #include "game/controllers/UnlockableController.hpp"
 
 namespace sr2ap {
@@ -10,9 +11,11 @@ namespace {
 
 class UnlockableItemHandler final : public ItemHandler {
    public:
-    UnlockableItemHandler(const bool blockVanillaRewards,
+    UnlockableItemHandler(GameThreadDispatcher& dispatcher,
+                          const bool blockVanillaRewards,
                           std::vector<std::string> managedItems)
-        : blockVanillaRewards_{blockVanillaRewards},
+        : dispatcher_{dispatcher},
+          blockVanillaRewards_{blockVanillaRewards},
           managedItems_{std::move(managedItems)} {
     }
 
@@ -30,8 +33,14 @@ class UnlockableItemHandler final : public ItemHandler {
         return UnlockableController::SupportsItem(itemName);
     }
 
-    [[nodiscard]] bool Handle(const std::string_view itemName) override {
-        return controller_.QueueReceivedItem(itemName);
+    [[nodiscard]] bool Handle(const std::string_view itemName,
+                              ItemCompletion completion) override {
+        return controller_.QueueReceivedItem(itemName, dispatcher_,
+                                             std::move(completion));
+    }
+
+    void Update() override {
+        controller_.Update(dispatcher_);
     }
 
     void Remove() override {
@@ -39,6 +48,7 @@ class UnlockableItemHandler final : public ItemHandler {
     }
 
    private:
+    GameThreadDispatcher& dispatcher_;
     bool blockVanillaRewards_{};
     std::vector<std::string> managedItems_;
     UnlockableController controller_;
@@ -47,9 +57,10 @@ class UnlockableItemHandler final : public ItemHandler {
 }  // namespace
 
 ItemHandlerPtr CreateUnlockableItemHandler(
-    const bool blockVanillaRewards, std::vector<std::string> managedItems) {
-    return std::make_unique<UnlockableItemHandler>(blockVanillaRewards,
-                                                   std::move(managedItems));
+    GameThreadDispatcher& dispatcher, const bool blockVanillaRewards,
+    std::vector<std::string> managedItems) {
+    return std::make_unique<UnlockableItemHandler>(
+        dispatcher, blockVanillaRewards, std::move(managedItems));
 }
 
 }  // namespace sr2ap

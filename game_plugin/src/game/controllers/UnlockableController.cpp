@@ -6,6 +6,7 @@
 #include <array>
 #include <atomic>
 #include <cstdint>
+#include <deque>
 #include <mutex>
 #include <optional>
 #include <safetyhook.hpp>
@@ -15,6 +16,8 @@
 #include <utility>
 
 #include "game/Addresses.hpp"
+#include "game/GameState.hpp"
+#include "game/GameThreadDispatcher.hpp"
 #include "game/Memory.hpp"
 #include "game/ModuleInfo.hpp"
 #include "util/Logger.hpp"
@@ -132,6 +135,13 @@ const ManagedUnlockable* FindManagedUnlockable(const std::string_view name) {
 struct UnlockableController::Implementation {
     using EnqueueFunction = void(__fastcall*)(void*, int);
 
+    struct ReceivedUnlockable {
+        std::uintptr_t record{};
+        std::uint32_t hash{};
+        std::string itemName;
+        ItemCompletion completion;
+    };
+
     static constexpr std::size_t overwrittenSize{6};
     static constexpr std::uint32_t maximumUnlockables{512};
 
@@ -152,6 +162,7 @@ struct UnlockableController::Implementation {
         if (!game) {
             return false;
         }
+        gameModule = *game;
         processorAddress = game->base + addresses::kUnlockableProcessorRva;
         enqueueAddress = game->base + addresses::kUnlockableEnqueueRva;
         arrayPointerOperand =
@@ -220,59 +231,158 @@ struct UnlockableController::Implementation {
         processorHook.reset();
     }
 
-    bool QueueReceivedItem(const std::string_view itemName) {
+    bool QueueReceivedItem(const std::string_view itemName,
+                           GameThreadDispatcher& dispatcher,
+                           ItemCompletion completion) {
         if (!installed) {
             return false;
         }
 
+        auto received = ResolveReceivedItem(itemName);
+        if (!received) {
+            return false;
+        }
+        received->completion = std::move(completion);
+
+        const bool queued =
+            dispatcher.Dispatch([this, received = std::move(*received)] {
+                if (!received.completion.CanApply()) {
+                    return;
+                }
+                backlog.push_back(received);
+                PublishTrackedCount();
+                FlushBacklog();
+            });
+
+        if (!queued) {
+            LogWarning("Unlockables",
+                       "Failed to queue received item for game "
+                       "thread: " +
+                           std::string{itemName});
+        }
+        return queued;
+    }
+
+    void Update(GameThreadDispatcher& dispatcher) {
+        if (!installed || trackedCount.load(std::memory_order_acquire) == 0 ||
+            flushQueued.exchange(true, std::memory_order_acq_rel)) {
+            return;
+        }
+
+        if (!dispatcher.Dispatch([this] {
+                FlushBacklog();
+                flushQueued.store(false, std::memory_order_release);
+            })) {
+            flushQueued.store(false, std::memory_order_release);
+        }
+    }
+
+    std::optional<ReceivedUnlockable> ResolveReceivedItem(
+        const std::string_view itemName) const {
         const auto* definition = FindManagedUnlockable(itemName);
         if (!definition || !managedItemNames.contains(std::string{itemName})) {
-            return false;
+            return std::nullopt;
         }
         const auto array = ReadMemory<std::uint32_t>(arrayPointerOperand);
         const auto count = ReadMemory<std::uint32_t>(countAddress);
 
         if (!array || !count || *count == 0 || *count > maximumUnlockables) {
-            return false;
+            return std::nullopt;
         }
 
-        std::uintptr_t record{};
-        for (std::uint32_t index = 0; index < count; ++index) {
+        for (std::uint32_t index = 0; index < *count; ++index) {
             const auto candidate = static_cast<std::uintptr_t>(*array) +
                                    static_cast<std::uintptr_t>(index) *
                                        addresses::kUnlockableRecordSize;
 
             if (auto hash = ReadMemory<std::uint32_t>(candidate);
                 hash && *hash == definition->hash) {
-                record = candidate;
-                break;
+                return ReceivedUnlockable{.record = candidate,
+                                          .hash = definition->hash,
+                                          .itemName = std::string{itemName}};
             }
         }
 
-        if (!record) {
-            return false;
+        return std::nullopt;
+    }
+
+    // Game thread only. The native queue holds at most 7 entries, so items
+    // that do not fit stay in the backlog until the game drains it.
+    void FlushBacklog() {
+        if (!installed) {
+            return;
         }
 
+        DropStaleEntries();
+
+        if (ReadGameContext(&gameModule).IsInteractive()) {
+            while (!backlog.empty() && TryEnqueue(backlog.front())) {
+                outstanding.push_back(std::move(backlog.front()));
+                backlog.pop_front();
+            }
+        }
+        PublishTrackedCount();
+    }
+
+    // Game thread only. Entries from a world that has since been reloaded or
+    // left are reported as not applied; a world load also wiped any of them
+    // that had reached the native queue.
+    void DropStaleEntries() {
+        std::erase_if(backlog, [](const ReceivedUnlockable& entry) {
+            return !entry.completion.IsCurrent();
+        });
+        std::erase_if(outstanding, [this](const ReceivedUnlockable& entry) {
+            if (entry.completion.IsCurrent()) {
+                return false;
+            }
+            ConsumeAllowance(entry.hash);
+            LogWarning("Unlockables",
+                       "Received item was discarded by a world "
+                       "reload before it applied: " +
+                           entry.itemName);
+            return true;
+        });
+    }
+
+    // Game thread only: the payload processor applied a managed record.
+    void CompleteOutstanding(const std::uint32_t hash) {
+        const auto found = std::ranges::find_if(
+            outstanding, [hash](const ReceivedUnlockable& entry) {
+                return entry.hash == hash;
+            });
+        if (found == outstanding.end()) {
+            return;
+        }
+        found->completion.Complete(true);
+        outstanding.erase(found);
+        PublishTrackedCount();
+    }
+
+    void PublishTrackedCount() noexcept {
+        trackedCount.store(backlog.size() + outstanding.size(),
+                           std::memory_order_release);
+    }
+
+    bool TryEnqueue(const ReceivedUnlockable& received) {
         {
             std::lock_guard<std::mutex> lock(allowanceMutex);
-            ++allowances[definition->hash];
+            ++allowances[received.hash];
         }
 
         std::uint32_t queueBefore{}, queueAfter{};
         SafeCopy(reinterpret_cast<const void*>(queueCountAddress), &queueBefore,
                  sizeof(queueBefore));
         reinterpret_cast<EnqueueFunction>(enqueueAddress)(
-            reinterpret_cast<void*>(record), 1);
+            reinterpret_cast<void*>(received.record), 1);
         SafeCopy(reinterpret_cast<const void*>(queueCountAddress), &queueAfter,
                  sizeof(queueAfter));
 
         if (queueAfter <= queueBefore) {
-            ConsumeAllowance(definition->hash);
+            ConsumeAllowance(received.hash);
             return false;
         }
 
-        LogInfo("Unlockables",
-                "Queued received item: " + std::string{itemName});
+        LogInfo("Unlockables", "Queued received item: " + received.itemName);
         return true;
     }
 
@@ -307,6 +417,7 @@ struct UnlockableController::Implementation {
         if (self->IsManagedHash(hash)) {
             if (self->ConsumeAllowance(hash)) {
                 self->CallOriginal(item);
+                self->CompleteOutstanding(hash);
             } else if (!self->blockVanillaRewards) {
                 self->CallOriginal(item);
             } else {
@@ -324,6 +435,7 @@ struct UnlockableController::Implementation {
     }
 
     inline static std::atomic<Implementation*> active{};
+    ModuleInfo gameModule;
     std::uintptr_t processorAddress{};
     std::uintptr_t enqueueAddress{};
     std::uintptr_t arrayPointerOperand{};
@@ -335,6 +447,12 @@ struct UnlockableController::Implementation {
     std::unordered_map<std::uint32_t, std::uint32_t> allowances;
     std::unordered_set<std::string> managedItemNames;
     std::unordered_set<std::uint32_t> managedHashes;
+    // Game thread only: received items waiting for room in the native queue,
+    // and items in the native queue waiting for the processor to apply them.
+    std::deque<ReceivedUnlockable> backlog;
+    std::deque<ReceivedUnlockable> outstanding;
+    std::atomic<std::size_t> trackedCount{};
+    std::atomic_bool flushQueued{};
     bool blockVanillaRewards{};
     bool installed{};
 };
@@ -363,8 +481,17 @@ void UnlockableController::Remove() {
     implementation_.reset();
 }
 
-bool UnlockableController::QueueReceivedItem(const std::string_view itemName) {
-    return implementation_ && implementation_->QueueReceivedItem(itemName);
+bool UnlockableController::QueueReceivedItem(const std::string_view itemName,
+                                             GameThreadDispatcher& dispatcher,
+                                             ItemCompletion completion) {
+    return implementation_ && implementation_->QueueReceivedItem(
+                                  itemName, dispatcher, std::move(completion));
+}
+
+void UnlockableController::Update(GameThreadDispatcher& dispatcher) {
+    if (implementation_) {
+        implementation_->Update(dispatcher);
+    }
 }
 
 bool UnlockableController::SupportsItem(const std::string_view itemName) {

@@ -33,10 +33,11 @@ bool ItemHandlerManager::Install(ItemHandlerConfiguration configuration,
     return true;
 }
 
-bool ItemHandlerManager::Handle(const std::string_view itemName) const {
+bool ItemHandlerManager::Handle(const std::string_view itemName,
+                                ItemCompletion completion) const {
     for (auto& handler : handlers_) {
         if (handler->CanHandleItem(itemName)) {
-            return handler->Handle(itemName);
+            return handler->Handle(itemName, std::move(completion));
         }
     }
     return false;

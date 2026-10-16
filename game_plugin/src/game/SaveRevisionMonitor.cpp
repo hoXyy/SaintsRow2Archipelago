@@ -107,27 +107,11 @@ struct SaveRevisionMonitor::Implementation {
     }
 
     void Poll() {
-        const auto load = loadSequence.load(std::memory_order_acquire);
-        if (load != reportedLoad) {
-            reportedLoad = load;
-            const auto value = loadChecksum.load(std::memory_order_relaxed);
-            currentChecksum.store(value, std::memory_order_release);
-            if (loaded) {
-                loaded(value);
-            }
-        }
-        const auto save = saveSequence.load(std::memory_order_acquire);
-        if (save != reportedSave) {
-            reportedSave = save;
-            if (saved) {
-                saved(saveChecksum.load(std::memory_order_relaxed));
-            }
-        }
         const auto failures =
             callbackFailures.exchange(0, std::memory_order_acq_rel);
         if (failures != 0) {
             LogError("SaveRevision",
-                     "Exceptions suppressed inside load-call hook=" +
+                     "Exceptions suppressed inside save/load hooks=" +
                          std::to_string(failures));
         }
         const auto saveReadFailureCount =
@@ -186,8 +170,16 @@ struct SaveRevisionMonitor::Implementation {
         }
 
         if (const auto checksum = ReadChecksum(context.eax)) {
-            self->loadChecksum.store(*checksum, std::memory_order_relaxed);
-            self->loadSequence.fetch_add(1, std::memory_order_release);
+            self->currentChecksum.store(*checksum, std::memory_order_release);
+            // Reported synchronously so it is ordered with item deliveries
+            // and saves happening on the game thread.
+            try {
+                if (self->loaded) {
+                    self->loaded(*checksum);
+                }
+            } catch (...) {
+                self->callbackFailures.fetch_add(1, std::memory_order_release);
+            }
         }
     }
 
@@ -200,9 +192,16 @@ struct SaveRevisionMonitor::Implementation {
 
         // At kSaveWriteOpenCallRva, EBP still holds the current serialized
         // city-save buffer and its checksum has already been written at +0.
+        // The buffer was serialized synchronously on this thread, so reporting
+        // now records exactly the items applied before the save.
         if (const auto checksum = ReadChecksum(context.ebp)) {
-            self->saveChecksum.store(*checksum, std::memory_order_relaxed);
-            self->saveSequence.fetch_add(1, std::memory_order_release);
+            try {
+                if (self->saved) {
+                    self->saved(*checksum);
+                }
+            } catch (...) {
+                self->callbackFailures.fetch_add(1, std::memory_order_release);
+            }
         } else {
             self->saveReadFailures.fetch_add(1, std::memory_order_release);
         }
@@ -215,15 +214,9 @@ struct SaveRevisionMonitor::Implementation {
     LoadStartingCallback loadStarting;
     safetyhook::MidHook loadHook;
     safetyhook::MidHook saveHook;
-    std::atomic<std::uint32_t> loadChecksum;
-    std::atomic<std::uint32_t> saveChecksum;
     std::atomic<std::uint32_t> currentChecksum;
-    std::atomic<std::uint64_t> loadSequence;
-    std::atomic<std::uint64_t> saveSequence;
     std::atomic<std::uint32_t> callbackFailures;
     std::atomic<std::uint32_t> saveReadFailures;
-    std::uint64_t reportedLoad{};
-    std::uint64_t reportedSave{};
 };
 
 SaveRevisionMonitor::SaveRevisionMonitor() = default;

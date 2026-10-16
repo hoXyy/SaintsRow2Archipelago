@@ -90,7 +90,8 @@ class WeaponItemHandler final : public ItemHandler {
         return Lua::CanAddWeapon();
     }
 
-    [[nodiscard]] bool Handle(const std::string_view itemName) override {
+    [[nodiscard]] bool Handle(const std::string_view itemName,
+                              ItemCompletion completion) override {
         const auto* const item = FindItem(itemName);
         if (!item) {
             return false;
@@ -98,13 +99,22 @@ class WeaponItemHandler final : public ItemHandler {
 
         const auto queued = dispatcher_.Dispatch(
             [weapon = std::string{item->weapon}, ammoCount = item->ammo,
-             itemName = std::string{itemName}] {
+             itemName = std::string{itemName}, completion] {
+                if (!completion.CanApply()) {
+                    return;
+                }
+
                 if (!Lua::AddWeapon(weapon.c_str(), 1)) {
                     LogWarning(
                         "Weapon",
                         fmt::format("Failed to trigger item={}", itemName));
+                    completion.Complete(false);
                     return;
                 }
+
+                // The weapon itself was granted; a retry would duplicate it,
+                // so missing ammo is only logged.
+                completion.Complete(true);
 
                 if (ammoCount > 0) {
                     if (!Lua::AddWeaponAmmo(weapon.c_str(), ammoCount)) {

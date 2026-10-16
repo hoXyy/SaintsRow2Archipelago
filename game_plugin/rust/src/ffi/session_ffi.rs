@@ -12,6 +12,7 @@ pub(crate) mod bridge {
     }
     struct SessionRequest {
         kind: GameplayRequestKind,
+        id: u64,
         name: String,
         managed_cheats: Vec<String>,
         managed_unlockables: Vec<String>,
@@ -27,6 +28,11 @@ pub(crate) mod bridge {
         fn session_connect(session: &mut SessionRuntime, port: u16) -> Result<()>;
         fn session_next_request(session: &mut SessionRuntime, interactive: bool) -> SessionRequest;
         fn session_report_result(session: &mut SessionRuntime, accepted: bool) -> Result<()>;
+        fn session_complete_request(
+            session: &mut SessionRuntime,
+            id: u64,
+            accepted: bool,
+        ) -> Result<()>;
         fn session_update_readiness(session: &mut SessionRuntime, main_menu: bool, loaded: bool);
         fn session_save_loaded(session: &mut SessionRuntime, checksum: u32);
         fn session_save_written(session: &mut SessionRuntime, checksum: u32);
@@ -56,6 +62,7 @@ fn session_connect(session: &mut SessionRuntime, port: u16) -> std::io::Result<(
 fn session_next_request(session: &mut SessionRuntime, interactive: bool) -> bridge::SessionRequest {
     let mut result = bridge::SessionRequest {
         kind: bridge::GameplayRequestKind::None,
+        id: 0,
         name: String::new(),
         managed_cheats: Vec::new(),
         managed_unlockables: Vec::new(),
@@ -85,12 +92,20 @@ fn session_next_request(session: &mut SessionRuntime, interactive: bool) -> brid
             result.kind = bridge::GameplayRequestKind::ReplayPersistentItem;
             result.name = name;
         }
-        None => {}
+        None => return result,
     }
+    result.id = session.current_request_id();
     result
 }
 fn session_report_result(session: &mut SessionRuntime, accepted: bool) -> Result<(), &'static str> {
     session.report_result(accepted)
+}
+fn session_complete_request(
+    session: &mut SessionRuntime,
+    id: u64,
+    accepted: bool,
+) -> Result<(), &'static str> {
+    session.complete_request(id, accepted)
 }
 fn session_update_readiness(session: &mut SessionRuntime, main_menu: bool, loaded: bool) {
     session.update_readiness(main_menu, loaded);

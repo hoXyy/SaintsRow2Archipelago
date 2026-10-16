@@ -55,6 +55,7 @@ pub(crate) struct SessionRuntime {
     save_monitoring: bool,
     active: bool,
     pending: Option<Pending>,
+    request_id: u64,
     #[cfg(test)]
     outgoing: Vec<String>,
 }
@@ -76,6 +77,7 @@ impl SessionRuntime {
             save_monitoring: false,
             active: false,
             pending: None,
+            request_id: 0,
             #[cfg(test)]
             outgoing: Vec::new(),
         }
@@ -308,7 +310,22 @@ impl SessionRuntime {
         !matches!(self.restore, RestoreState::None)
     }
 
+    /// Identifies the request most recently returned by `next_request`.
+    /// Asynchronous completions must quote it so that a completion arriving
+    /// after the request was cancelled (save load, main menu) is ignored.
+    pub fn current_request_id(&self) -> u64 {
+        self.request_id
+    }
+
     pub fn next_request(&mut self, interactive: bool) -> Option<GameplayRequest> {
+        let request = self.next_request_inner(interactive);
+        if request.is_some() {
+            self.request_id += 1;
+        }
+        request
+    }
+
+    fn next_request_inner(&mut self, interactive: bool) -> Option<GameplayRequest> {
         if self.pending.is_some() {
             return None;
         }
@@ -491,6 +508,20 @@ impl SessionRuntime {
             IncomingKind::Unknown => {}
         }
         None
+    }
+
+    /// Completes an item activation or persistent-item replay once the game
+    /// thread has actually applied it (or given up). Stale ids are ignored.
+    pub fn complete_request(&mut self, id: u64, accepted: bool) -> Result<(), &'static str> {
+        let awaiting_completion = matches!(
+            self.pending,
+            Some(Pending::Item { .. } | Pending::ReplayPersistentItem(_))
+        );
+        if !awaiting_completion || id != self.request_id {
+            log::debug!(target: "Items", "Ignored stale gameplay completion request={id} accepted={accepted}");
+            return Ok(());
+        }
+        self.report_result(accepted)
     }
 
     pub fn report_result(&mut self, accepted: bool) -> Result<(), &'static str> {

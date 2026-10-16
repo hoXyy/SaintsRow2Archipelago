@@ -63,15 +63,21 @@ class LuaActivityUnlockItemHandler : public ItemHandler {
         return Lua::CanUnlockActivity();
     }
 
-    [[nodiscard]] bool Handle(const std::string_view itemName) override {
+    [[nodiscard]] bool Handle(const std::string_view itemName,
+                              ItemCompletion completion) override {
         const auto* const item = FindItem(itemName);
         if (!item) {
             return false;
         }
 
-        const auto queued =
-            dispatcher_.Dispatch([activitiesToUnlock = item->activitiesToUnlock,
-                                  itemName = std::string{itemName}] {
+        const auto queued = dispatcher_.Dispatch(
+            [activitiesToUnlock = item->activitiesToUnlock,
+             itemName = std::string{itemName}, completion] {
+                if (!completion.CanApply()) {
+                    return;
+                }
+
+                bool unlocked = true;
                 for (const auto& activity : activitiesToUnlock) {
                     // Items with a single activity leave the second slot null.
                     if (!activity) {
@@ -79,6 +85,7 @@ class LuaActivityUnlockItemHandler : public ItemHandler {
                     }
 
                     if (!Lua::UnlockActivity(activity)) {
+                        unlocked = false;
                         LogWarning(
                             "ActivityUnlock",
                             fmt::format(
@@ -86,6 +93,8 @@ class LuaActivityUnlockItemHandler : public ItemHandler {
                                 itemName, activity));
                     }
                 }
+
+                completion.Complete(unlocked);
             });
 
         if (!queued) {
