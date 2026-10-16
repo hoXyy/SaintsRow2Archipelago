@@ -2,6 +2,7 @@
 
 mod config;
 mod ffi;
+mod fs;
 mod logger;
 mod protocol;
 mod revision_journal;

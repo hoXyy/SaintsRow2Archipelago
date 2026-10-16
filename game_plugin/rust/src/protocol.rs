@@ -323,22 +323,6 @@ struct GameContext {
     message_type: &'static str,
 }
 
-pub fn serialize_game_context(
-    checksum: Option<u32>,
-    next_index: u64,
-    provisional: bool,
-    needs_cursor: bool,
-) -> String {
-    serialize_game_context_with_snapshot(
-        checksum,
-        next_index,
-        provisional,
-        needs_cursor,
-        false,
-        Vec::new(),
-    )
-}
-
 pub fn serialize_game_context_with_snapshot(
     checksum: Option<u32>,
     next_index: u64,
@@ -457,8 +441,15 @@ mod tests {
 
     #[test]
     fn serializers_should_emit_valid_expected_json() {
-        let value: serde_json::Value =
-            serde_json::from_str(&serialize_game_context(None, 4, true, false)).unwrap();
+        let value: serde_json::Value = serde_json::from_str(&serialize_game_context_with_snapshot(
+            None,
+            4,
+            true,
+            false,
+            false,
+            Vec::new(),
+        ))
+        .unwrap();
         assert_eq!(value["type"], "game_context");
         assert!(value["checksum"].is_null());
         assert_eq!(value["next_index"], 4);

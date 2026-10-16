@@ -89,6 +89,7 @@ impl TcpClient {
             })
     }
 
+    #[cfg(test)]
     pub(crate) fn poll(&mut self, mut handle_line: impl FnMut(&str)) {
         while let Ok(event) = self.events.try_recv() {
             match event {
@@ -111,6 +112,7 @@ impl TcpClient {
         events
     }
 
+    #[cfg(test)]
     pub(crate) fn is_connected(&self) -> bool {
         self.connected
     }
