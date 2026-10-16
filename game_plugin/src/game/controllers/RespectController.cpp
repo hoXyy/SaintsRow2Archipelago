@@ -5,7 +5,9 @@
 #include <array>
 #include <atomic>
 #include <cstdint>
+#include <safetyhook.hpp>
 #include <string>
+#include <utility>
 
 #include "game/Addresses.hpp"
 #include "game/Memory.hpp"
@@ -19,6 +21,7 @@ constexpr std::uint32_t kMaximumRespectBars{99};
 constexpr std::size_t kInstructionSize{6};
 using Instruction = std::array<std::uint8_t, kInstructionSize>;
 constexpr Instruction kSaveLoadWriter{{0x89, 0x95, 0x00, 0x12, 0x00, 0x00}};
+constexpr Instruction kNops{{0x90, 0x90, 0x90, 0x90, 0x90, 0x90}};
 
 inline constexpr std::ptrdiff_t kRespectNeededCapCheckRva = 0x001624BA;
 
@@ -117,37 +120,35 @@ struct RespectController::Implementation {
             return false;
         }
 
-        exceptionHandler = AddVectoredExceptionHandler(1, &HandleException);
-        if (!exceptionHandler) {
-            LogError("Respect", "Failed to install save-load writer handler");
-            return false;
-        }
         handlerActivity.Start();
         active.store(this, std::memory_order_release);
 
-        Instruction breakpoint{};
-        breakpoint.fill(0x90);
-        breakpoint.front() = 0xCC;
-
         const auto saveLoadAddressWriteResult = WriteExecutableMemory(
-            reinterpret_cast<void*>(saveLoadAddress), breakpoint);
+            reinterpret_cast<void*>(saveLoadAddress), kNops);
 
         if (saveLoadAddressWriteResult.bytesWritten) {
             saveLoadPatched = true;
         }
 
         if (!saveLoadAddressWriteResult) {
-            LogError("Respect", "Failed to intercept writer=save_load");
+            LogError("Respect", "Failed to block writer=save_load");
             Remove();
             return false;
         }
 
-        Instruction nops{};
-        nops.fill(0x90);
+        auto hook = safetyhook::MidHook::create(
+            reinterpret_cast<void*>(saveLoadAddress), &SaveLoadHook);
+        if (!hook) {
+            LogError("Respect", "Failed to hook writer=save_load");
+            Remove();
+            return false;
+        }
+        saveLoadHook = std::move(*hook);
+
         for (std::size_t index = 0; index < kBlockedWriters.size(); ++index) {
             const auto writeResult = WriteExecutableMemory(
                 reinterpret_cast<void*>(gameBase + kBlockedWriters[index].rva),
-                nops);
+                kNops);
 
             if (writeResult.bytesWritten) {
                 patchedCount = index + 1;
@@ -187,16 +188,18 @@ struct RespectController::Implementation {
             Restore(patchedCount);
         }
 
-        RestoreSaveLoadWriter();
+        active.store(nullptr, std::memory_order_release);
+        if (saveLoadHook && saveLoadHook.enabled()) {
+            if (const auto disabled = saveLoadHook.disable(); !disabled) {
+                LogError("Respect", "Failed to disable save-load writer hook");
+            }
+        }
         handlerActivity.Stop();
         while (!handlerActivity.IsIdle()) {
-            Sleep(0);
+            SwitchToThread();
         }
-        active.store(nullptr, std::memory_order_release);
-        if (exceptionHandler) {
-            RemoveVectoredExceptionHandler(exceptionHandler);
-            exceptionHandler = nullptr;
-        }
+        saveLoadHook.reset();
+        RestoreSaveLoadWriter();
         permittedLoadThread.store(0, std::memory_order_release);
         installed = false;
     }
@@ -234,18 +237,13 @@ struct RespectController::Implementation {
     }
 
    private:
-    static LONG CALLBACK HandleException(EXCEPTION_POINTERS* exception) {
+    // Runs in place of the NOPed `mov [ebp+0x1200], edx` save-load writer.
+    static void SaveLoadHook(safetyhook::Context& context) {
+        const auto handlerLease = handlerActivity.Acquire();
         auto* const self = active.load(std::memory_order_acquire);
-        if (const auto handlerLease = handlerActivity.Acquire();
-            !self || !handlerLease || !exception ||
-            !exception->ExceptionRecord || !exception->ContextRecord ||
-            exception->ExceptionRecord->ExceptionCode != EXCEPTION_BREAKPOINT ||
-            reinterpret_cast<std::uintptr_t>(
-                exception->ExceptionRecord->ExceptionAddress) !=
-                self->gameBase + addresses::kRespectLoadWriteRva) {
-            return EXCEPTION_CONTINUE_SEARCH;
+        if (!handlerLease || !self) {
+            return;
         }
-        auto* const context = exception->ContextRecord;
         const auto threadId = static_cast<std::uint32_t>(GetCurrentThreadId());
         auto permittedThread = threadId;
 
@@ -258,16 +256,12 @@ struct RespectController::Implementation {
 
         if (permitted) {
             *reinterpret_cast<volatile std::uint32_t*>(
-                static_cast<std::uintptr_t>(context->Ebp) +
-                addresses::kPlayerRespectOffset) = context->Edx;
+                context.ebp + addresses::kPlayerRespectOffset) =
+                static_cast<std::uint32_t>(context.edx);
         } else {
             self->blockedCheckpointRestores.fetch_add(
                 1, std::memory_order_release);
         }
-        context->Eip = static_cast<DWORD>(self->gameBase +
-                                          addresses::kRespectLoadWriteRva +
-                                          kInstructionSize);
-        return EXCEPTION_CONTINUE_EXECUTION;
     }
 
     std::optional<RuntimeState> ReadRuntimeState() const {
@@ -332,15 +326,13 @@ struct RespectController::Implementation {
     }
 
     void Restore(const std::size_t count) {
-        Instruction nops{};
-        nops.fill(0x90);
         for (std::size_t index = count; index > 0; --index) {
             const auto site = index - 1;
             auto const address = gameBase + kBlockedWriters[site].rva;
             std::optional<Instruction> actual =
                 ReadMemoryIntoArray<std::uint8_t, kInstructionSize>(address);
 
-            if (!actual || *actual != nops) {
+            if (!actual || *actual != kNops) {
                 LogWarning(
                     "Respect",
                     std::string("Writer changed; not restoring writer=") +
@@ -360,16 +352,13 @@ struct RespectController::Implementation {
         if (!saveLoadPatched) {
             return;
         }
-        Instruction breakpoint{};
-        breakpoint.fill(0x90);
-        breakpoint.front() = 0xCC;
         auto* const address =
             reinterpret_cast<void*>(gameBase + addresses::kRespectLoadWriteRva);
         const std::optional<Instruction> actual =
             ReadMemoryIntoArray<std::uint8_t, kInstructionSize>(
                 gameBase + addresses::kRespectLoadWriteRva);
 
-        if (!actual || *actual != breakpoint) {
+        if (!actual || *actual != kNops) {
             LogWarning("Respect",
                        "Writer changed; not restoring writer=save_load");
         } else if (!WriteExecutableMemory(address, kSaveLoadWriter)) {
@@ -407,7 +396,7 @@ struct RespectController::Implementation {
     std::atomic<std::uint64_t> blockedCheckpointRestores;
     std::uint64_t reportedBlockedCheckpointRestores{};
     std::size_t patchedCount{};
-    void* exceptionHandler{};
+    safetyhook::MidHook saveLoadHook;
     bool saveLoadPatched{};
     bool installed{};
     bool respectNeededCapCheckPatched{};
