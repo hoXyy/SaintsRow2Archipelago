@@ -15,7 +15,6 @@ class SaveRevisionMonitor {
     ~SaveRevisionMonitor();
     SaveRevisionMonitor(const SaveRevisionMonitor&) = delete;
     SaveRevisionMonitor& operator=(const SaveRevisionMonitor&) = delete;
-
     bool Install(Callback loaded, Callback saved,
                  LoadStartingCallback loadStarting);
     void Poll();

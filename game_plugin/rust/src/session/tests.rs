@@ -221,6 +221,79 @@ fn network_messages_wait_for_gameplay_result_and_disconnect_order_is_preserved()
     assert_eq!(last_message(runtime)["accepted"], false);
 }
 
+fn queue_item(runtime: &mut SessionRuntime, index: u64, name: &str) -> u64 {
+    runtime.events.push_back(NetworkEvent::Line(format!(
+        r#"{{"type":"item","index":{index},"name":"{name}"}}"#
+    )));
+    let Some(GameplayRequest::ActivateItem(_)) = runtime.next_request(true) else {
+        panic!("expected item activation")
+    };
+    runtime.current_request_id()
+}
+
+#[test]
+fn item_is_acknowledged_only_when_the_game_thread_completes_it() {
+    let mut fixture = Fixture::new();
+    let runtime = &mut fixture.runtime;
+    activate(runtime);
+
+    let id = queue_item(runtime, 0, "first");
+    assert!(runtime.outgoing.is_empty());
+    assert_eq!(runtime.delivery.next_index, 0);
+    assert!(runtime.next_request(true).is_none());
+
+    runtime.complete_request(id, true).unwrap();
+    assert_eq!(runtime.delivery.next_index, 1);
+    assert_eq!(last_message(runtime)["accepted"], true);
+}
+
+#[test]
+fn save_written_before_completion_keeps_the_earlier_cursor() {
+    let mut fixture = Fixture::new();
+    let runtime = &mut fixture.runtime;
+    activate(runtime);
+
+    // Game-thread order: save serialized, then the queued item applied.
+    let id = queue_item(runtime, 0, "persistent");
+    runtime.save_written(7);
+    runtime.complete_request(id, true).unwrap();
+
+    let snapshot = runtime.revisions.journal.snapshot("seed", 0, 1, 7).unwrap();
+    assert_eq!(snapshot.next_index, 0);
+    assert!(snapshot.persistent_items.is_empty());
+    assert_eq!(runtime.delivery.next_index, 1);
+}
+
+#[test]
+fn stale_completion_after_save_load_is_ignored() {
+    let mut fixture = Fixture::new();
+    let runtime = &mut fixture.runtime;
+    activate(runtime);
+
+    let id = queue_item(runtime, 0, "first");
+    runtime.save_loaded(99);
+    runtime.outgoing.clear();
+    runtime.complete_request(id, true).unwrap();
+
+    assert_eq!(runtime.delivery.next_index, 0);
+    assert!(runtime.outgoing.is_empty());
+    assert!(runtime.pending.is_none());
+}
+
+#[test]
+fn dropped_completion_rejects_the_item_for_retry() {
+    let mut fixture = Fixture::new();
+    let runtime = &mut fixture.runtime;
+    activate(runtime);
+
+    let id = queue_item(runtime, 0, "first");
+    runtime.complete_request(id, false).unwrap();
+    assert_eq!(runtime.delivery.next_index, 0);
+    assert_eq!(last_message(runtime)["accepted"], false);
+    assert!(runtime.complete_request(id, true).is_ok());
+    assert_eq!(runtime.delivery.next_index, 0);
+}
+
 #[test]
 fn progression_is_filtered_by_latched_session_and_communications() {
     let mut fixture = Fixture::new();

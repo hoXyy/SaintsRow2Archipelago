@@ -6,6 +6,7 @@
 #include <optional>
 #include <string>
 #include <unordered_set>
+#include <utility>
 #include <vector>
 
 #include "game/Addresses.hpp"
@@ -198,7 +199,8 @@ struct CheatController::Implementation {
     }
 
     bool ActivateReceivedItem(const std::string_view itemName,
-                              GameThreadDispatcher& dispatcher) const {
+                              GameThreadDispatcher& dispatcher,
+                              ItemCompletion completion) const {
         if (!installed) {
             return false;
         }
@@ -240,10 +242,14 @@ struct CheatController::Implementation {
         const auto activationCount = definition->activations;
 
         const bool queued = dispatcher.Dispatch([function, record,
-                                                 activationCount] {
+                                                 activationCount, completion] {
+            if (!completion.CanApply()) {
+                return;
+            }
             for (std::uint32_t index = 0; index < activationCount; ++index) {
                 InvokeActivate(function, record);
             }
+            completion.Complete(true);
         });
 
         if (!queued) {
@@ -305,9 +311,10 @@ void CheatController::Remove() {
 }
 
 bool CheatController::ActivateReceivedItem(const std::string_view itemName,
-                                           GameThreadDispatcher& dispatcher) {
-    return implementation_ &&
-           implementation_->ActivateReceivedItem(itemName, dispatcher);
+                                           GameThreadDispatcher& dispatcher,
+                                           ItemCompletion completion) {
+    return implementation_ && implementation_->ActivateReceivedItem(
+                                  itemName, dispatcher, std::move(completion));
 }
 
 bool CheatController::SupportsItem(const std::string_view itemName) {

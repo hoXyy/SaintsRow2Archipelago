@@ -30,8 +30,10 @@ class CheatItemHandler final : public ItemHandler {
         return CheatController::SupportsItem(itemName);
     }
 
-    [[nodiscard]] bool Handle(const std::string_view itemName) override {
-        return controller_.ActivateReceivedItem(itemName, dispatcher_);
+    [[nodiscard]] bool Handle(const std::string_view itemName,
+                              ItemCompletion completion) override {
+        return controller_.ActivateReceivedItem(itemName, dispatcher_,
+                                                std::move(completion));
     }
 
     void Remove() override {

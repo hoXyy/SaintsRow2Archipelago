@@ -155,6 +155,7 @@ FetchContent_MakeAvailable(fmt)
 add_library(sr2ap_core STATIC
         src/util/ReaderResult.cpp
         src/util/Helpers.cpp
+        src/util/GameEvents.cpp
 )
 target_include_directories(sr2ap_core PUBLIC src)
 target_compile_features(sr2ap_core PUBLIC cxx_std_17)
@@ -270,6 +271,7 @@ if (SR2AP_BUILD_TESTS)
 
     add_executable(sr2ap_tests
             tests/BaselineTrackerTests.cpp
+            tests/GameEventsTests.cpp
             tests/HandlerActivityTests.cpp
             tests/ReaderResultTests.cpp
     )

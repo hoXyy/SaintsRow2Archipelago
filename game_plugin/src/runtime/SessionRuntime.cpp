@@ -23,8 +23,11 @@ std::vector<std::string> Strings(const ::rust::Vec<::rust::String>& values) {
 }  // namespace
 
 SessionRuntime::SessionRuntime(bool gameSupported,
-                               const std::filesystem::path& path)
-    : session_{rust::session_new(
+                               const std::filesystem::path& path,
+                               const ModuleInfo* game)
+    : events_{std::make_shared<GameEventQueue>(
+          [game] { return ReadGameContext(game).IsInteractive(); })},
+      session_{rust::session_new(
           gameSupported,
           {reinterpret_cast<const std::uint16_t*>(path.native().data()),
            path.native().size()})},
@@ -48,8 +51,9 @@ bool SessionRuntime::InstallPolicies(const rust::SessionRequest& request) {
     return true;
 }
 
-bool SessionRuntime::ActivateItem(std::string_view name) {
-    return itemHandlers_.Handle(name);
+bool SessionRuntime::ActivateItem(std::string_view name,
+                                  ItemCompletion completion) {
+    return itemHandlers_.Handle(name, std::move(completion));
 }
 
 void SessionRuntime::ShutdownItemHandlers() {
@@ -60,11 +64,11 @@ bool SessionRuntime::InstallSaveMonitoring(SaveRevisionMonitor& monitor,
                                            bool enabled) {
     saveMonitoring_ = enabled && gameSupported_ &&
                       monitor.Install(
-                          [this](std::uint32_t checksum) {
-                              rust::session_save_loaded(*session_, checksum);
+                          [events = events_](std::uint32_t checksum) {
+                              events->PushSaveLoaded(checksum);
                           },
-                          [this](std::uint32_t checksum) {
-                              rust::session_save_written(*session_, checksum);
+                          [events = events_](std::uint32_t checksum) {
+                              events->PushSaveWritten(checksum);
                           },
                           [this](std::uint32_t threadId) {
                               itemHandlers_.PermitNextSaveRestore(threadId);
@@ -75,6 +79,28 @@ bool SessionRuntime::InstallSaveMonitoring(SaveRevisionMonitor& monitor,
 
 void SessionRuntime::Connect(std::uint16_t port) {
     rust::session_connect(*session_, port);
+}
+
+void SessionRuntime::ProcessGameEvents() {
+    for (const auto& event : events_->Drain()) {
+        try {
+            switch (event.kind) {
+                case GameEventKind::SaveLoaded:
+                    rust::session_save_loaded(*session_, event.checksum);
+                    break;
+                case GameEventKind::SaveWritten:
+                    rust::session_save_written(*session_, event.checksum);
+                    break;
+                case GameEventKind::RequestCompleted:
+                    rust::session_complete_request(*session_, event.requestId,
+                                                   event.applied);
+                    break;
+            }
+        } catch (const ::rust::Error& error) {
+            LogError("Session", std::string{"Could not process game event: "} +
+                                    error.what());
+        }
+    }
 }
 
 void SessionRuntime::PollNetwork(const GameContext& context) {
@@ -95,10 +121,16 @@ void SessionRuntime::PollNetwork(const GameContext& context) {
                     accepted = itemHandlers_.ResetState();
                     break;
                 case rust::GameplayRequestKind::ReplayPersistentItem:
-                case rust::GameplayRequestKind::ActivateItem:
-                    accepted = ActivateItem(
-                        {request.name.data(), request.name.size()});
-                    break;
+                case rust::GameplayRequestKind::ActivateItem: {
+                    const std::string_view name{request.name.data(),
+                                                request.name.size()};
+                    if (!ActivateItem(name,
+                                      ItemCompletion{events_, request.id})) {
+                        LogDebug("Session", "No handler could start item " +
+                                                std::string{name});
+                    }
+                    continue;
+                }
                 case rust::GameplayRequestKind::None:
                     return;
             }
@@ -115,6 +147,14 @@ void SessionRuntime::PollNetwork(const GameContext& context) {
 }
 
 void SessionRuntime::UpdateReadiness(GameReadiness current) {
+    // Leaving gameplay (quit to menu, world reload) ends the world that any
+    // still-queued item was for.
+    const bool loaded = IsGameplayLoaded(current);
+    if (gameplayLoaded_ && !loaded) {
+        events_->InvalidateWorld();
+    }
+    gameplayLoaded_ = loaded;
+
     rust::session_update_readiness(*session_,
                                    current == GameReadiness::MainMenu,
                                    IsGameplayLoaded(current));

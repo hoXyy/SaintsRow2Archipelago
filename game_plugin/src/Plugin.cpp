@@ -65,8 +65,10 @@ DWORD WINAPI PluginThread(void* parameter) {
             LogInfo("Plugin", "Supported executable found.");
         }
 
+        const auto game = InspectSupportedGameModule();
         SessionRuntime session{
-            gameSupported, pluginDirectory / L"SR2ArchipelagoRevisions.json"};
+            gameSupported, pluginDirectory / L"SR2ArchipelagoRevisions.json",
+            game ? &*game : nullptr};
         SaveRevisionMonitor saveRevisions;
         const bool saveRevisionInstalled =
             session.InstallSaveMonitoring(saveRevisions, config.enabled);
@@ -105,14 +107,13 @@ DWORD WINAPI PluginThread(void* parameter) {
             },
             config.writeStatusFile);
 
-        const auto game = InspectSupportedGameModule();
-
         while (!shutdownRequested.load(std::memory_order_acquire)) {
             const auto gameContext = ReadGameContext(game ? &*game : nullptr);
 
             if (saveRevisionInstalled) {
                 saveRevisions.Poll();
             }
+            session.ProcessGameEvents();
 
             session.UpdateReadiness(gameContext.readiness);
 

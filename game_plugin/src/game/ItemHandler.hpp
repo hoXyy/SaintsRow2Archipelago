@@ -4,6 +4,8 @@
 #include <string_view>
 #include <vector>
 
+#include "util/GameEvents.hpp"
+
 namespace sr2ap {
 
 class ItemHandler {
@@ -19,7 +21,11 @@ class ItemHandler {
     [[nodiscard]] virtual bool Install() = 0;
     [[nodiscard]] virtual bool CanHandleItem(
         std::string_view itemName) const noexcept = 0;
-    [[nodiscard]] virtual bool Handle(std::string_view itemName) = 0;
+
+    // After each item is handled, the handler should call completion.Complete()
+    // to make sure it's known if it was handled correctly or not
+    [[nodiscard]] virtual bool Handle(std::string_view itemName,
+                                      ItemCompletion completion) = 0;
 
     [[nodiscard]] virtual bool ResetState() {
         return true;

@@ -28,17 +28,24 @@ class HookActivityUnlockItemHandler final : public ItemHandler {
         return controller_.SupportsItem(itemName);
     }
 
-    [[nodiscard]] bool Handle(std::string_view itemName) override {
+    [[nodiscard]] bool Handle(std::string_view itemName,
+                              ItemCompletion completion) override {
         if (!initialized_.load(std::memory_order_acquire) ||
             !CanHandleItem(itemName)) {
             return false;
         }
 
-        return dispatcher_.Dispatch([this, itemName = std::string{itemName}] {
-            if (!controller_.Grant(itemName)) {
+        return dispatcher_.Dispatch([this, itemName = std::string{itemName},
+                                     completion] {
+            if (!completion.IsCurrent()) {
+                return;
+            }
+            const bool granted = controller_.Grant(itemName);
+            if (!granted) {
                 LogWarning("HookActivityUnlock",
                            fmt::format("Could not grant item {}", itemName));
             }
+            completion.Complete(granted);
         });
     }
 

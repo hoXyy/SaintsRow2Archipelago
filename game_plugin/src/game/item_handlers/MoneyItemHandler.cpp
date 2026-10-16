@@ -46,18 +46,25 @@ class MoneyItemHandler : public ItemHandler {
         return Lua::CanGiveMoney();
     }
 
-    [[nodiscard]] bool Handle(const std::string_view itemName) override {
+    [[nodiscard]] bool Handle(const std::string_view itemName,
+                              ItemCompletion completion) override {
         const auto* const item = FindItem(itemName);
         if (!item) {
             return false;
         }
 
         const auto queued = dispatcher_.Dispatch(
-            [amount = item->amount, itemName = std::string{itemName}] {
-                if (!Lua::GiveMoney(amount)) {
+            [amount = item->amount, itemName = std::string{itemName},
+             completion] {
+                if (!completion.CanApply()) {
+                    return;
+                }
+                const bool given = Lua::GiveMoney(amount);
+                if (!given) {
                     LogWarning("Money", fmt::format("Failed to trigger item={}",
                                                     itemName));
                 }
+                completion.Complete(given);
             });
 
         if (!queued) {
