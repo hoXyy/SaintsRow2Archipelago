@@ -26,7 +26,9 @@ struct ModuleInfo {
 };
 
 std::optional<ModuleInfo> InspectModule(HMODULE module);
-std::optional<ModuleInfo> InspectSupportedGameModule();
+// Inspected once and cached for the life of the process; null when the
+// running executable is not the supported SR2 build.
+const ModuleInfo* InspectSupportedGameModule();
 std::optional<ModuleInfo> FindLoadedModule(const wchar_t* name);
 bool IsSupportedExecutable(const ModuleInfo& module);
 }  // namespace sr2ap

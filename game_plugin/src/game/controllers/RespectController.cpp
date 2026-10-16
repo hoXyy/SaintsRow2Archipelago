@@ -81,7 +81,7 @@ struct RespectController::Implementation {
         const std::optional<Instruction> saveLoadActual =
             ReadMemoryIntoArray<std::uint8_t, kInstructionSize>(
                 saveLoadAddress);
-        if (!IsInsideModule(game->handle,
+        if (!IsInsideModule(*game,
                             reinterpret_cast<const void*>(saveLoadAddress)) ||
             !IsExecutableAddress(saveLoadAddress) || !saveLoadActual ||
             *saveLoadActual != kSaveLoadWriter) {
@@ -94,7 +94,7 @@ struct RespectController::Implementation {
             std::optional<Instruction> actual =
                 ReadMemoryIntoArray<std::uint8_t, kInstructionSize>(address);
 
-            if (!IsInsideModule(game->handle,
+            if (!IsInsideModule(*game,
                                 reinterpret_cast<const void*>(address)) ||
                 !IsExecutableAddress(address) || !actual ||
                 *actual != writer.expected) {
@@ -111,8 +111,8 @@ struct RespectController::Implementation {
             ReadMemoryIntoArray<std::uint8_t, kRespectNeededCapCheckSize>(
                 respectNeededCapCheckAddress);
 
-        if (!IsInsideModule(game->handle, reinterpret_cast<const void*>(
-                                              respectNeededCapCheckAddress)) ||
+        if (!IsInsideModule(*game, reinterpret_cast<const void*>(
+                                       respectNeededCapCheckAddress)) ||
             !IsExecutableAddress(respectNeededCapCheckAddress) ||
             !respectNeededCapCheckActual ||
             *respectNeededCapCheckActual != kRespectNeededCapCheckExpected) {

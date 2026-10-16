@@ -12,7 +12,6 @@
 #include "fmt/format.h"
 #include "game/GameState.hpp"
 #include "game/Lua.hpp"
-#include "game/Memory.hpp"
 #include "progression/BaselineTracker.hpp"
 #include "progression/ProgressionReader.hpp"
 #include "util/ReaderResult.hpp"
@@ -103,11 +102,7 @@ MissionSnapshot ReadSnapshot(const GameContext& context) {
 
     const ModuleInfo& game = *context.module;
 
-    if (const auto address = game.base + Lua::kMissionCompletedQueryRva;
-        !IsInsideModule(game.handle, reinterpret_cast<const void*>(address)) ||
-        !IsExecutableAddress(address) ||
-        DetectDetour(reinterpret_cast<const void*>(address)) !=
-            DetourKind::None) {
+    if (!Lua::CanQueryMissions(game)) {
         snapshot.result = ReaderResult::InvalidFunction;
         return snapshot;
     }

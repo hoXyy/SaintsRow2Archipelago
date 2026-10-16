@@ -27,7 +27,7 @@ constexpr std::int32_t kCentsPerDollar{100};
     const ModuleInfo& game) noexcept {
     const auto address = game.base + kCashAddRva;
 
-    if (!IsInsideModule(game.handle, reinterpret_cast<const void*>(address)) ||
+    if (!IsInsideModule(game, reinterpret_cast<const void*>(address)) ||
         !IsExecutableAddress(address) ||
         DetectDetour(reinterpret_cast<const void*>(address)) !=
             DetourKind::None) {
@@ -51,7 +51,7 @@ inline constexpr std::ptrdiff_t kMissionUnlockRva = 0x002A7270;
     const ModuleInfo& game) noexcept {
     const auto address = game.base + kMissionUnlockRva;
 
-    if (!IsInsideModule(game.handle, reinterpret_cast<const void*>(address)) ||
+    if (!IsInsideModule(game, reinterpret_cast<const void*>(address)) ||
         !IsExecutableAddress(address) ||
         DetectDetour(reinterpret_cast<const void*>(address)) !=
             DetourKind::None) {
@@ -85,10 +85,8 @@ struct InventoryFunctions {
     const auto resolveAddress = game.base + kResolveWeaponRva;
     const auto addAddress = game.base + kAddWeaponRva;
 
-    if (!IsInsideModule(game.handle,
-                        reinterpret_cast<const void*>(resolveAddress)) ||
-        !IsInsideModule(game.handle,
-                        reinterpret_cast<const void*>(addAddress)) ||
+    if (!IsInsideModule(game, reinterpret_cast<const void*>(resolveAddress)) ||
+        !IsInsideModule(game, reinterpret_cast<const void*>(addAddress)) ||
         !IsExecutableAddress(resolveAddress) ||
         !IsExecutableAddress(addAddress) ||
         DetectDetour(reinterpret_cast<const void*>(resolveAddress)) !=
@@ -118,17 +116,18 @@ void CallAddAmmo(const std::uintptr_t functionAddress, void* player,
 }  // namespace
 
 namespace Lua {
-bool IsMissionComplete(const ModuleInfo& game, const char* mission) {
+bool CanQueryMissions(const ModuleInfo& game) {
     const auto address = game.base + kMissionCompletedQueryRva;
-    if (!IsInsideModule(game.handle, reinterpret_cast<const void*>(address)) ||
-        !IsExecutableAddress(address) ||
-        DetectDetour(reinterpret_cast<const void*>(address)) !=
-            DetourKind::None) {
-        return false;
-    }
+    return IsInsideModule(game, reinterpret_cast<const void*>(address)) &&
+           IsExecutableAddress(address) &&
+           DetectDetour(reinterpret_cast<const void*>(address)) ==
+               DetourKind::None;
+}
 
+bool IsMissionComplete(const ModuleInfo& game, const char* mission) {
     const auto isMissionComplete =
-        reinterpret_cast<IsMissionCompletedLuaFunction>(address);
+        reinterpret_cast<IsMissionCompletedLuaFunction>(
+            game.base + kMissionCompletedQueryRva);
 
     return isMissionComplete(mission);
 }

@@ -4,6 +4,8 @@
 
 namespace sr2ap::Lua {
 inline constexpr std::ptrdiff_t kMissionCompletedQueryRva = 0x002A6E50;
+bool CanQueryMissions(const ModuleInfo& game);
+// Callers must check CanQueryMissions first; this does not re-validate.
 bool IsMissionComplete(const ModuleInfo& game, const char* mission);
 bool CanUnlockActivity();
 bool UnlockActivity(const char* progressionTag);

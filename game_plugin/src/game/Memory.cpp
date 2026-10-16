@@ -41,15 +41,9 @@ bool IsExecutableAddress(std::uintptr_t address) {
                                reinterpret_cast<std::uint8_t*>(address));
 }
 
-bool IsInsideModule(HMODULE module, const void* address) {
-    const auto info = InspectModule(module);
-
-    if (!info || !address) {
-        return false;
-    }
-
+bool IsInsideModule(const ModuleInfo& module, const void* address) {
     const auto value = reinterpret_cast<std::uintptr_t>(address);
-    return value >= info->base && value < info->base + info->imageSize;
+    return value >= module.base && value - module.base < module.imageSize;
 }
 
 bool SafeCopy(const void* address, void* destination, std::size_t size) {

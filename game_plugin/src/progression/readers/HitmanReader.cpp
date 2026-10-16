@@ -73,8 +73,7 @@ HitmanSnapshot ReadSnapshot(const GameContext& context) {
             return snapshot;
         }
 
-        if (!IsInsideModule(game.handle,
-                            reinterpret_cast<const void*>(*rowBase))) {
+        if (!IsInsideModule(game, reinterpret_cast<const void*>(*rowBase))) {
             snapshot.result = ReaderResult::InvalidPointer;
             snapshot.targets.clear();
             return snapshot;

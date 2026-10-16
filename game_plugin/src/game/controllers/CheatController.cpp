@@ -122,7 +122,7 @@ struct CheatController::Implementation {
             ReadMemoryIntoArray<std::uint8_t, expectedActivate.size()>(
                 activateAddress);
 
-        if (!IsInsideModule(game->handle,
+        if (!IsInsideModule(*game,
                             reinterpret_cast<const void*>(activateAddress)) ||
             !IsExecutableAddress(activateAddress) ||
             DetectDetour(reinterpret_cast<const void*>(activateAddress)) !=
