@@ -2,9 +2,11 @@
 
 #include <Zydis/Zydis.h>
 
+#include <algorithm>
 #include <array>
 #include <limits>
 #include <safetyhook/os.hpp>
+#include <vector>
 
 #include "ModuleInfo.hpp"
 
@@ -52,6 +54,26 @@ bool ValidateFunctionTarget(const ModuleInfo& module,
            IsExecutableAddress(address) &&
            DetectDetour(reinterpret_cast<const void*>(address)) ==
                DetourKind::None;
+}
+
+bool ValidateHookTarget(const ModuleInfo& module, const std::uintptr_t address,
+                        const std::span<const std::uint8_t> expected) {
+    return ValidateFunctionTarget(module, address) &&
+           MatchesBytes(address, expected);
+}
+
+bool ValidatePatchSite(const ModuleInfo& module, const std::uintptr_t address,
+                       const std::span<const std::uint8_t> expected) {
+    return IsInsideModule(module, reinterpret_cast<const void*>(address)) &&
+           IsExecutableAddress(address) && MatchesBytes(address, expected);
+}
+
+bool MatchesBytes(const std::uintptr_t address,
+                  const std::span<const std::uint8_t> expected) {
+    std::vector<std::uint8_t> actual(expected.size());
+    return SafeCopy(reinterpret_cast<const void*>(address), actual.data(),
+                    actual.size()) &&
+           std::ranges::equal(actual, expected);
 }
 
 bool SafeCopy(const void* address, void* destination, std::size_t size) {
