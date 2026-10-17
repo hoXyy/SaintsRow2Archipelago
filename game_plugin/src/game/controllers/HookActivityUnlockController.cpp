@@ -54,6 +54,10 @@ constexpr std::uint32_t RaceClassBit(const RaceClass value) noexcept {
     return 1u << static_cast<std::uint32_t>(value);
 }
 
+constexpr std::uint32_t KindBit(const ActivityUnlockKind kind) noexcept {
+    return 1u << static_cast<std::uint32_t>(kind);
+}
+
 constexpr std::array kActivityUnlocks{
     ActivityUnlockDefinition{"Hitman Activity Unlock Pass",
                              ActivityUnlockKind::Hitman, std::nullopt},
@@ -76,52 +80,42 @@ constexpr std::array kActivityUnlocks{
                              RaceClass::BoatAndJetSki},
 };
 
-constexpr std::array<std::uint8_t, 6> kExpectedChopShop{
-    std::uint8_t{0x51}, 0x53, 0x8B, 0x5C, 0x24, 0x0C,
-};
-constexpr std::array<std::uint8_t, 12> kExpectedChopShopTriggers{
-    std::uint8_t{0x51},
-    0x80,
-    0x7C,
-    0x24,
-    0x0C,
-    0x00,
-    0x53,
-    0x55,
-    0x8B,
-    0x6C,
-    0x24,
-    0x10,
-};
-constexpr std::array<std::uint8_t, 13> kExpectedChopShopManager{
-    std::uint8_t{0x53},
-    0x8B,
-    0x5C,
-    0x24,
-    0x08,
-    0x56,
-    0x8B,
-    0xF1,
-    0x53,
-    0x56,
-    0x88,
-    0x5E,
-    0x14,
-};
 constexpr std::array<std::uint8_t, 9> kExpectedHitman{
-    std::uint8_t{0x53}, 0x55, 0x56, 0x57, 0xBD, 0x1C, 0x12, 0xEA, 0x00,
-};
+    0x53, 0x55, 0x56, 0x57, 0xBD, 0x1C, 0x12, 0xEA, 0x00};
 constexpr std::array<std::uint8_t, 7> kExpectedHitmanManager{
-    std::uint8_t{0x83}, 0xEC, 0x08, 0x53, 0x55, 0x56, 0x57,
-};
-constexpr std::array<std::uint8_t, 7> kExpectedCd{
-    std::uint8_t{0x56}, 0x8B, 0x35, 0x90, 0xD7, 0x15, 0x02,
-};
+    0x83, 0xEC, 0x08, 0x53, 0x55, 0x56, 0x57};
+constexpr std::array<std::uint8_t, 12> kExpectedChopShopTriggers{
+    0x51, 0x80, 0x7C, 0x24, 0x0C, 0x00, 0x53, 0x55, 0x8B, 0x6C, 0x24, 0x10};
+constexpr std::array<std::uint8_t, 13> kExpectedChopShopManager{
+    0x53, 0x8B, 0x5C, 0x24, 0x08, 0x56, 0x8B,
+    0xF1, 0x53, 0x56, 0x88, 0x5E, 0x14};
+constexpr std::array<std::uint8_t, 6> kExpectedChopShop{0x51, 0x53, 0x8B,
+                                                        0x5C, 0x24, 0x0C};
+constexpr std::array<std::uint8_t, 7> kExpectedCd{0x56, 0x8B, 0x35, 0x90,
+                                                  0xD7, 0x15, 0x02};
 constexpr std::array<std::uint8_t, 10> kExpectedTag{
-    std::uint8_t{0x51}, 0x53, 0x56, 0x57, 0x8B, 0x3D, 0xB4, 0x3F, 0x7A, 0x02,
-};
+    0x51, 0x53, 0x56, 0x57, 0x8B, 0x3D, 0xB4, 0x3F, 0x7A, 0x02};
 constexpr std::array<std::uint8_t, 10> kExpectedRace{
-    std::uint8_t{0x53}, 0x8A, 0x5C, 0x24, 0x08, 0x55, 0x56, 0x57, 0x33, 0xFF,
+    0x53, 0x8A, 0x5C, 0x24, 0x08, 0x55, 0x56, 0x57, 0x33, 0xFF};
+
+enum HookIndex : std::size_t {
+    kHitmanHook,
+    kHitmanManagerHook,
+    kChopShopTriggersHook,
+    kChopShopManagerHook,
+    kChopShopHook,
+    kCdHook,
+    kTagHook,
+    kRaceHook,
+    kHookCount,
+};
+
+struct HookDefinition {
+    std::string_view name;
+    ActivityUnlockKind kind;
+    std::ptrdiff_t rva;
+    std::span<const std::uint8_t> expected;
+    void* callback;
 };
 
 const ActivityUnlockDefinition* FindUnlock(
@@ -130,56 +124,6 @@ const ActivityUnlockDefinition* FindUnlock(
         kActivityUnlocks,
         [name](const auto& definition) { return definition.itemName == name; });
     return found == kActivityUnlocks.end() ? nullptr : &*found;
-}
-
-template <std::size_t Size>
-bool CreateManagedHook(const ModuleInfo& module, const bool managed,
-                       safetyhook::InlineHook& destination,
-                       const std::uintptr_t address,
-                       const std::array<std::uint8_t, Size>& expected,
-                       void* const callback, const std::string_view name) {
-    if (!managed) {
-        return true;
-    }
-    if (!ValidateHookTarget(module, address, expected)) {
-        LogError("WorldUnlock", std::string{name} + " hook target mismatch");
-        return false;
-    }
-
-    auto hook = safetyhook::InlineHook::create(
-        reinterpret_cast<void*>(address), callback,
-        safetyhook::InlineHook::StartDisabled);
-    if (!hook) {
-        LogError("WorldUnlock",
-                 "Could not create " + std::string{name} + " hook");
-        return false;
-    }
-    destination = std::move(*hook);
-    return true;
-}
-
-bool EnableHook(safetyhook::InlineHook& hook, const std::string_view name) {
-    if (!hook) {
-        return true;
-    }
-    if (!hook.enable()) {
-        LogError("WorldUnlock",
-                 "Could not enable " + std::string{name} + " hook");
-        return false;
-    }
-    return true;
-}
-
-bool DisableHook(safetyhook::InlineHook& hook, const std::string_view name) {
-    if (!hook || !hook.enabled()) {
-        return true;
-    }
-    if (!hook.disable()) {
-        LogError("WorldUnlock",
-                 "Could not disable " + std::string{name} + " hook");
-        return false;
-    }
-    return true;
 }
 }  // namespace
 
@@ -246,9 +190,7 @@ struct HookActivityUnlockController::Implementation {
             return false;
         }
 
-        // Session policies may be installed while the game is still at the
-        // main menu. Do not call native gameplay functions until the normal
-        // readiness checks say the world is interactive.
+        // Don't do anything until the game is actually in-game
         if (!ReadGameContext(&gameModule).IsInteractive()) {
             return false;
         }
@@ -299,29 +241,40 @@ struct HookActivityUnlockController::Implementation {
             return false;
         }
 
+        if (definition->kind == ActivityUnlockKind::Races) {
+            GrantRaceClass(*definition->raceClass);
+            return true;
+        }
+
+        ownedKinds |= KindBit(definition->kind);
         switch (definition->kind) {
             case ActivityUnlockKind::Hitman:
-                ownsHitman = true;
-                ApplyHitmanAfterReceipt();
+                if (nativeHitmanEnabled && nativeHitmanAvailable &&
+                    StoryActivitiesOpen()) {
+                    hooks[kHitmanManagerHook].thiscall<void>(hitmanManager,
+                                                             std::uint8_t{1});
+                    hooks[kHitmanHook].stdcall<void>(std::uint8_t{1});
+                }
                 break;
             case ActivityUnlockKind::ChopShop:
-                ownsChopShop = true;
-                ApplyChopShopAfterReceipt();
+                if (nativeChopShopEnabled && nativeChopShopAvailable &&
+                    StoryActivitiesOpen()) {
+                    hooks[kChopShopManagerHook].thiscall<void>(chopShopManager,
+                                                               std::uint8_t{1});
+                    hooks[kChopShopHook].stdcall<void>(std::uint8_t{1});
+                }
                 break;
             case ActivityUnlockKind::Cd:
-                ownsCds = true;
                 if (nativeCdsEnabled) {
-                    cdHook.fastcall<void>(std::uint8_t{1});
+                    hooks[kCdHook].fastcall<void>(std::uint8_t{1});
                 }
                 break;
             case ActivityUnlockKind::Tags:
-                ownsTags = true;
                 if (nativeTagsEnabled) {
-                    tagHook.ccall<void>(std::uint8_t{1});
+                    hooks[kTagHook].ccall<void>(std::uint8_t{1});
                 }
                 break;
             case ActivityUnlockKind::Races:
-                GrantRaceClass(*definition->raceClass);
                 break;
         }
         return true;
@@ -340,15 +293,7 @@ struct HookActivityUnlockController::Implementation {
             !ReadGameContext(&gameModule).IsInteractive()) {
             return;
         }
-
-        if (managedCds) {
-            cdHook.fastcall<void>(
-                static_cast<std::uint8_t>(nativeCdsEnabled && ownsCds));
-        }
-        if (managedTags) {
-            tagHook.ccall<void>(
-                static_cast<std::uint8_t>(nativeTagsEnabled && ownsTags));
-        }
+        ApplyCollectiblePolicy();
     }
 
     void Remove() {
@@ -371,6 +316,37 @@ struct HookActivityUnlockController::Implementation {
     }
 
    private:
+    static const std::array<HookDefinition, kHookCount>& HookDefinitions() {
+        static const std::array<HookDefinition, kHookCount> definitions{{
+            {"Hitman", ActivityUnlockKind::Hitman,
+             addresses::kHitmanSetAllEnabledRva, kExpectedHitman,
+             reinterpret_cast<void*>(&HitmanHook)},
+            {"Hitman manager", ActivityUnlockKind::Hitman,
+             addresses::kHitmanSetManagerAvailableRva, kExpectedHitmanManager,
+             reinterpret_cast<void*>(&HitmanManagerHook)},
+            {"Chop Shop triggers", ActivityUnlockKind::ChopShop,
+             addresses::kChopShopSetStartTriggersEnabledRva,
+             kExpectedChopShopTriggers,
+             reinterpret_cast<void*>(&ChopShopTriggersHook)},
+            {"Chop Shop manager", ActivityUnlockKind::ChopShop,
+             addresses::kChopShopSetManagerAvailableRva,
+             kExpectedChopShopManager,
+             reinterpret_cast<void*>(&ChopShopManagerHook)},
+            {"Chop Shop", ActivityUnlockKind::ChopShop,
+             addresses::kChopShopSetAllEnabledRva, kExpectedChopShop,
+             reinterpret_cast<void*>(&ChopShopHook)},
+            {"CD", ActivityUnlockKind::Cd,
+             addresses::kCdSetAllPickupsEnabledRva, kExpectedCd,
+             reinterpret_cast<void*>(&CdHook)},
+            {"tag", ActivityUnlockKind::Tags,
+             addresses::kTagSetAllSpotsEnabledRva, kExpectedTag,
+             reinterpret_cast<void*>(&TagHook)},
+            {"race", ActivityUnlockKind::Races, addresses::kRaceToggleAllRva,
+             kExpectedRace, reinterpret_cast<void*>(&RaceHook)},
+        }};
+        return definitions;
+    }
+
     bool ConfigureManagedItems(
         const std::span<const std::string> managedItems) {
         for (const auto& itemName : managedItems) {
@@ -380,73 +356,56 @@ struct HookActivityUnlockController::Implementation {
                 return false;
             }
 
-            switch (definition->kind) {
-                case ActivityUnlockKind::Hitman:
-                    managedHitman = true;
-                    break;
-                case ActivityUnlockKind::ChopShop:
-                    managedChopShop = true;
-                    break;
-                case ActivityUnlockKind::Cd:
-                    managedCds = true;
-                    break;
-                case ActivityUnlockKind::Tags:
-                    managedTags = true;
-                    break;
-                case ActivityUnlockKind::Races:
-                    managedRaceClasses |= RaceClassBit(*definition->raceClass);
-                    break;
+            if (definition->kind == ActivityUnlockKind::Races) {
+                managedRaceClasses |= RaceClassBit(*definition->raceClass);
+            } else {
+                managedKinds |= KindBit(definition->kind);
             }
         }
         return true;
     }
 
     bool IsManaged(const ActivityUnlockDefinition& definition) const noexcept {
-        switch (definition.kind) {
-            case ActivityUnlockKind::Hitman:
-                return managedHitman;
-            case ActivityUnlockKind::ChopShop:
-                return managedChopShop;
-            case ActivityUnlockKind::Cd:
-                return managedCds;
-            case ActivityUnlockKind::Tags:
-                return managedTags;
-            case ActivityUnlockKind::Races:
-                return definition.raceClass &&
-                       (managedRaceClasses &
-                        RaceClassBit(*definition.raceClass)) != 0;
+        if (definition.kind == ActivityUnlockKind::Races) {
+            return definition.raceClass &&
+                   (managedRaceClasses & RaceClassBit(*definition.raceClass)) !=
+                       0;
         }
-        return false;
+        return IsKindManaged(definition.kind);
+    }
+
+    bool IsKindManaged(const ActivityUnlockKind kind) const noexcept {
+        if (kind == ActivityUnlockKind::Races) {
+            return managedRaceClasses != 0;
+        }
+        return (managedKinds & KindBit(kind)) != 0;
+    }
+
+    // Unmanaged activities are always permitted; managed ones once received.
+    bool Permits(const ActivityUnlockKind kind) const noexcept {
+        return !IsKindManaged(kind) || (ownedKinds & KindBit(kind)) != 0;
     }
 
     void ResolveAddresses(const std::uintptr_t base) noexcept {
         gameBase = base;
-        hitmanAddress = base + addresses::kHitmanSetAllEnabledRva;
-        hitmanManagerAddress = base + addresses::kHitmanSetManagerAvailableRva;
-        chopShopAddress = base + addresses::kChopShopSetAllEnabledRva;
-        chopShopTriggersAddress =
-            base + addresses::kChopShopSetStartTriggersEnabledRva;
-        chopShopManagerAddress =
-            base + addresses::kChopShopSetManagerAvailableRva;
         hitmanManager =
             reinterpret_cast<void*>(base + addresses::kHitmanManagerRva);
         chopShopManager =
             reinterpret_cast<void*>(base + addresses::kChopShopManagerRva);
-        cdAddress = base + addresses::kCdSetAllPickupsEnabledRva;
-        tagAddress = base + addresses::kTagSetAllSpotsEnabledRva;
-        raceAddress = base + addresses::kRaceToggleAllRva;
         triggerEnableAddress = base + addresses::kTriggerEnableRva;
         storyLockedAddress = base + addresses::kDiversionsAreStoryLockedRva;
         gameplayInstanceAddress = base + addresses::kCurrentGameplayInstanceRva;
     }
 
     bool ValidateSupportingTargets() const {
-        if ((managedHitman || managedChopShop || managedRaceClasses != 0) &&
+        if ((IsKindManaged(ActivityUnlockKind::Hitman) ||
+             IsKindManaged(ActivityUnlockKind::ChopShop) ||
+             IsKindManaged(ActivityUnlockKind::Races)) &&
             !IsExecutableAddress(storyLockedAddress)) {
             LogError("WorldUnlock", "story gate function is unavailable");
             return false;
         }
-        if (managedRaceClasses != 0 &&
+        if (IsKindManaged(ActivityUnlockKind::Races) &&
             !IsExecutableAddress(triggerEnableAddress)) {
             LogError("WorldUnlock", "race trigger function is unavailable");
             return false;
@@ -455,80 +414,71 @@ struct HookActivityUnlockController::Implementation {
     }
 
     bool CreateManagedHooks() {
-        return CreateManagedHook(gameModule, managedHitman, hitmanHook,
-                                 hitmanAddress, kExpectedHitman,
-                                 reinterpret_cast<void*>(&HitmanHook),
-                                 "Hitman") &&
-               CreateManagedHook(gameModule, managedHitman, hitmanManagerHook,
-                                 hitmanManagerAddress, kExpectedHitmanManager,
-                                 reinterpret_cast<void*>(&HitmanManagerHook),
-                                 "Hitman manager") &&
-               CreateManagedHook(gameModule, managedChopShop, chopShopHook,
-                                 chopShopAddress, kExpectedChopShop,
-                                 reinterpret_cast<void*>(&ChopShopHook),
-                                 "Chop Shop") &&
-               CreateManagedHook(gameModule, managedChopShop,
-                                 chopShopTriggersHook, chopShopTriggersAddress,
-                                 kExpectedChopShopTriggers,
-                                 reinterpret_cast<void*>(&ChopShopTriggersHook),
-                                 "Chop Shop triggers") &&
-               CreateManagedHook(gameModule, managedChopShop,
-                                 chopShopManagerHook, chopShopManagerAddress,
-                                 kExpectedChopShopManager,
-                                 reinterpret_cast<void*>(&ChopShopManagerHook),
-                                 "Chop Shop manager") &&
-               CreateManagedHook(gameModule, managedCds, cdHook, cdAddress,
-                                 kExpectedCd, reinterpret_cast<void*>(&CdHook),
-                                 "CD") &&
-               CreateManagedHook(gameModule, managedTags, tagHook, tagAddress,
-                                 kExpectedTag,
-                                 reinterpret_cast<void*>(&TagHook), "tag") &&
-               CreateManagedHook(gameModule, managedRaceClasses != 0, raceHook,
-                                 raceAddress, kExpectedRace,
-                                 reinterpret_cast<void*>(&RaceHook), "race");
+        const auto& definitions = HookDefinitions();
+        for (std::size_t index = 0; index < kHookCount; ++index) {
+            const auto& definition = definitions[index];
+            if (!IsKindManaged(definition.kind)) {
+                continue;
+            }
+
+            const auto address = gameBase + definition.rva;
+            if (!ValidateHookTarget(gameModule, address, definition.expected)) {
+                LogError("WorldUnlock", std::string{definition.name} +
+                                            " hook target mismatch");
+                return false;
+            }
+
+            auto hook = safetyhook::InlineHook::create(
+                reinterpret_cast<void*>(address), definition.callback,
+                safetyhook::InlineHook::StartDisabled);
+            if (!hook) {
+                LogError("WorldUnlock", "Could not create " +
+                                            std::string{definition.name} +
+                                            " hook");
+                return false;
+            }
+            hooks[index] = std::move(*hook);
+        }
+        return true;
     }
 
     bool EnableManagedHooks() {
-        return EnableHook(hitmanHook, "Hitman") &&
-               EnableHook(hitmanManagerHook, "Hitman manager") &&
-               EnableHook(chopShopTriggersHook, "Chop Shop triggers") &&
-               EnableHook(chopShopManagerHook, "Chop Shop manager") &&
-               EnableHook(chopShopHook, "Chop Shop") &&
-               EnableHook(cdHook, "CD") && EnableHook(tagHook, "tag") &&
-               EnableHook(raceHook, "race");
+        const auto& definitions = HookDefinitions();
+        for (std::size_t index = 0; index < kHookCount; ++index) {
+            if (hooks[index] && !hooks[index].enable()) {
+                LogError("WorldUnlock",
+                         "Could not enable " +
+                             std::string{definitions[index].name} + " hook");
+                return false;
+            }
+        }
+        return true;
     }
 
     bool DisableEnabledHooks() {
+        const auto& definitions = HookDefinitions();
         bool success{true};
-        success = DisableHook(raceHook, "race") && success;
-        success = DisableHook(tagHook, "tag") && success;
-        success = DisableHook(cdHook, "CD") && success;
-        success = DisableHook(chopShopHook, "Chop Shop") && success;
-        success =
-            DisableHook(chopShopManagerHook, "Chop Shop manager") && success;
-        success =
-            DisableHook(chopShopTriggersHook, "Chop Shop triggers") && success;
-        success = DisableHook(hitmanManagerHook, "Hitman manager") && success;
-        success = DisableHook(hitmanHook, "Hitman") && success;
+        for (std::size_t index = kHookCount; index-- > 0;) {
+            auto& hook = hooks[index];
+            if (hook && hook.enabled() && !hook.disable()) {
+                LogError("WorldUnlock",
+                         "Could not disable " +
+                             std::string{definitions[index].name} + " hook");
+                success = false;
+            }
+        }
         return success;
     }
 
     bool AnyHookEnabled() const noexcept {
-        return hitmanHook.enabled() || hitmanManagerHook.enabled() ||
-               chopShopHook.enabled() || chopShopTriggersHook.enabled() ||
-               chopShopManagerHook.enabled() || cdHook.enabled() ||
-               tagHook.enabled() || raceHook.enabled();
+        return std::ranges::any_of(
+            hooks, [](const auto& hook) { return hook.enabled(); });
     }
 
     void ResetHookObjects() {
-        raceHook.reset();
-        tagHook.reset();
-        cdHook.reset();
-        chopShopManagerHook.reset();
-        chopShopTriggersHook.reset();
-        chopShopHook.reset();
-        hitmanManagerHook.reset();
-        hitmanHook.reset();
+        for (auto hook = hooks.rbegin(); hook != hooks.rend(); ++hook) {
+            hook->reset();
+        }
     }
 
     std::optional<bool> IsFreeroam() const {
@@ -549,77 +499,59 @@ struct HookActivityUnlockController::Implementation {
         return function() == 0;
     }
 
+    // True when the player is in freeroam and the story no longer locks
+    // diversions, so a received unlock can be shown immediately.
+    bool StoryActivitiesOpen() const {
+        const auto freeroam = IsFreeroam();
+        if (!freeroam || !*freeroam) {
+            return false;
+        }
+        const auto storyUnlocked = IsStoryUnlocked();
+        return storyUnlocked && *storyUnlocked;
+    }
+
     void ClearOwnership() noexcept {
-        ownsHitman = false;
-        ownsChopShop = false;
-        ownsCds = false;
-        ownsTags = false;
+        ownedKinds = 0;
         ownedRaceClasses = 0;
     }
 
     void ApplyCurrentPolicy() {
-        if (managedHitman) {
-            hitmanManagerHook.thiscall<void>(
+        if (IsKindManaged(ActivityUnlockKind::Hitman)) {
+            const bool owned = Permits(ActivityUnlockKind::Hitman);
+            hooks[kHitmanManagerHook].thiscall<void>(
                 hitmanManager,
-                static_cast<std::uint8_t>(nativeHitmanAvailable && ownsHitman));
-            hitmanHook.stdcall<void>(
-                static_cast<std::uint8_t>(nativeHitmanEnabled && ownsHitman));
+                static_cast<std::uint8_t>(nativeHitmanAvailable && owned));
+            hooks[kHitmanHook].stdcall<void>(
+                static_cast<std::uint8_t>(nativeHitmanEnabled && owned));
         }
-        if (managedChopShop) {
-            chopShopManagerHook.thiscall<void>(
-                chopShopManager, static_cast<std::uint8_t>(
-                                     nativeChopShopAvailable && ownsChopShop));
-            chopShopHook.stdcall<void>(static_cast<std::uint8_t>(
-                nativeChopShopEnabled && ownsChopShop));
+        if (IsKindManaged(ActivityUnlockKind::ChopShop)) {
+            const bool owned = Permits(ActivityUnlockKind::ChopShop);
+            hooks[kChopShopManagerHook].thiscall<void>(
+                chopShopManager,
+                static_cast<std::uint8_t>(nativeChopShopAvailable && owned));
+            hooks[kChopShopHook].stdcall<void>(
+                static_cast<std::uint8_t>(nativeChopShopEnabled && owned));
         }
-        if (managedCds) {
-            cdHook.fastcall<void>(
-                static_cast<std::uint8_t>(nativeCdsEnabled && ownsCds));
-        }
-        if (managedTags) {
-            tagHook.ccall<void>(
-                static_cast<std::uint8_t>(nativeTagsEnabled && ownsTags));
-        }
-        if (managedRaceClasses != 0) {
+        ApplyCollectiblePolicy();
+        if (IsKindManaged(ActivityUnlockKind::Races)) {
             ApplyRaceVisibility();
         }
     }
 
-    void ApplyHitmanAfterReceipt() {
-        const auto freeroam = IsFreeroam();
-        if (!nativeHitmanEnabled || !nativeHitmanAvailable || !freeroam ||
-            !*freeroam) {
-            return;
+    void ApplyCollectiblePolicy() {
+        if (IsKindManaged(ActivityUnlockKind::Cd)) {
+            hooks[kCdHook].fastcall<void>(static_cast<std::uint8_t>(
+                nativeCdsEnabled && Permits(ActivityUnlockKind::Cd)));
         }
-        const auto storyUnlocked = IsStoryUnlocked();
-        if (storyUnlocked && *storyUnlocked) {
-            hitmanManagerHook.thiscall<void>(hitmanManager, std::uint8_t{1});
-            hitmanHook.stdcall<void>(std::uint8_t{1});
-        }
-    }
-
-    void ApplyChopShopAfterReceipt() {
-        const auto freeroam = IsFreeroam();
-        if (!nativeChopShopEnabled || !nativeChopShopAvailable || !freeroam ||
-            !*freeroam) {
-            return;
-        }
-        const auto storyUnlocked = IsStoryUnlocked();
-        if (storyUnlocked && *storyUnlocked) {
-            chopShopManagerHook.thiscall<void>(chopShopManager,
-                                               std::uint8_t{1});
-            chopShopHook.stdcall<void>(std::uint8_t{1});
+        if (IsKindManaged(ActivityUnlockKind::Tags)) {
+            hooks[kTagHook].ccall<void>(static_cast<std::uint8_t>(
+                nativeTagsEnabled && Permits(ActivityUnlockKind::Tags)));
         }
     }
 
     void GrantRaceClass(const RaceClass raceClass) {
         ownedRaceClasses |= RaceClassBit(raceClass);
-        const auto freeroam = IsFreeroam();
-        if (!nativeRacesEnabled || !freeroam || !*freeroam) {
-            return;
-        }
-        const auto storyUnlocked = IsStoryUnlocked();
-        if (storyUnlocked && *storyUnlocked) {
+        if (nativeRacesEnabled && StoryActivitiesOpen()) {
             ApplyRaceVisibility();
         }
     }
@@ -660,12 +592,12 @@ struct HookActivityUnlockController::Implementation {
     void ApplyRaceVisibility() {
         const auto triggers = ReadRaceTriggers();
         if (!triggers) {
-            raceHook.ccall<void>(std::uint8_t{0});
+            hooks[kRaceHook].ccall<void>(std::uint8_t{0});
             LogWarning("WorldUnlock", "Invalid race trigger table");
             return;
         }
 
-        raceHook.ccall<void>(std::uint8_t{0});
+        hooks[kRaceHook].ccall<void>(std::uint8_t{0});
         if (!nativeRacesEnabled) {
             return;
         }
@@ -692,108 +624,100 @@ struct HookActivityUnlockController::Implementation {
         }
     }
 
-    static void __stdcall HitmanHook(const std::uint8_t requested) {
+    // The active controller, or null when it is gone or has no `index` hook.
+    static Implementation* ActiveFor(const HookIndex index) noexcept {
         auto* const self = active.load(std::memory_order_acquire);
-        if (!self || !self->hitmanHook) {
-            return;
+        return self && self->hooks[index] ? self : nullptr;
+    }
+
+    // What the original function receives: the game's request, unless the
+    // activity is managed and not yet received.
+    std::uint8_t Gate(const ActivityUnlockKind kind,
+                      const std::uint8_t requested) const noexcept {
+        return static_cast<std::uint8_t>(requested != 0 && Permits(kind));
+    }
+
+    // Gate, remembering the game's request so it can be re-applied once the
+    // unlock is received.
+    std::uint8_t Gate(const ActivityUnlockKind kind, bool& native,
+                      const std::uint8_t requested) noexcept {
+        native = requested != 0;
+        return Gate(kind, requested);
+    }
+
+    static void __stdcall HitmanHook(const std::uint8_t requested) {
+        if (auto* const self = ActiveFor(kHitmanHook)) {
+            self->hooks[kHitmanHook].stdcall<void>(
+                self->Gate(ActivityUnlockKind::Hitman,
+                           self->nativeHitmanEnabled, requested));
         }
-        self->nativeHitmanEnabled = requested != 0;
-        const bool permitted = !self->managedHitman || self->ownsHitman;
-        self->hitmanHook.stdcall<void>(
-            static_cast<std::uint8_t>(requested != 0 && permitted));
     }
 
     static void __fastcall HitmanManagerHook(void* const manager, void*,
                                              const std::uint8_t requested) {
-        auto* const self = active.load(std::memory_order_acquire);
-        if (!self || !self->hitmanManagerHook) {
-            return;
+        if (auto* const self = ActiveFor(kHitmanManagerHook)) {
+            self->hooks[kHitmanManagerHook].thiscall<void>(
+                manager, self->Gate(ActivityUnlockKind::Hitman,
+                                    self->nativeHitmanAvailable, requested));
         }
-        self->nativeHitmanAvailable = requested != 0;
-        const bool permitted = !self->managedHitman || self->ownsHitman;
-        self->hitmanManagerHook.thiscall<void>(
-            manager, static_cast<std::uint8_t>(requested != 0 && permitted));
     }
 
     static void __stdcall ChopShopHook(const std::uint8_t requested) {
-        auto* const self = active.load(std::memory_order_acquire);
-        if (!self || !self->chopShopHook) {
-            return;
+        if (auto* const self = ActiveFor(kChopShopHook)) {
+            self->hooks[kChopShopHook].stdcall<void>(
+                self->Gate(ActivityUnlockKind::ChopShop,
+                           self->nativeChopShopEnabled, requested));
         }
-        self->nativeChopShopEnabled = requested != 0;
-        const bool permitted = !self->managedChopShop || self->ownsChopShop;
-        self->chopShopHook.stdcall<void>(
-            static_cast<std::uint8_t>(requested != 0 && permitted));
     }
 
     static void __stdcall ChopShopTriggersHook(void* const manager,
                                                const std::uint8_t requested) {
-        auto* const self = active.load(std::memory_order_acquire);
-        if (!self || !self->chopShopTriggersHook) {
-            return;
+        if (auto* const self = ActiveFor(kChopShopTriggersHook)) {
+            self->hooks[kChopShopTriggersHook].stdcall<void>(
+                manager, self->Gate(ActivityUnlockKind::ChopShop, requested));
         }
-        const bool permitted = !self->managedChopShop || self->ownsChopShop;
-        self->chopShopTriggersHook.stdcall<void>(
-            manager, static_cast<std::uint8_t>(requested != 0 && permitted));
     }
 
     static void __fastcall ChopShopManagerHook(void* const manager, void*,
                                                const std::uint8_t requested) {
-        auto* const self = active.load(std::memory_order_acquire);
-        if (!self || !self->chopShopManagerHook) {
-            return;
+        if (auto* const self = ActiveFor(kChopShopManagerHook)) {
+            self->hooks[kChopShopManagerHook].thiscall<void>(
+                manager, self->Gate(ActivityUnlockKind::ChopShop,
+                                    self->nativeChopShopAvailable, requested));
         }
-        self->nativeChopShopAvailable = requested != 0;
-        const bool permitted = !self->managedChopShop || self->ownsChopShop;
-        self->chopShopManagerHook.thiscall<void>(
-            manager, static_cast<std::uint8_t>(requested != 0 && permitted));
     }
 
     static void __fastcall CdHook(const std::uint8_t requested) {
-        auto* const self = active.load(std::memory_order_acquire);
-        if (!self || !self->cdHook) {
-            return;
+        if (auto* const self = ActiveFor(kCdHook)) {
+            self->hooks[kCdHook].fastcall<void>(self->Gate(
+                ActivityUnlockKind::Cd, self->nativeCdsEnabled, requested));
         }
-        self->nativeCdsEnabled = requested != 0;
-        const bool permitted = !self->managedCds || self->ownsCds;
-        self->cdHook.fastcall<void>(
-            static_cast<std::uint8_t>(requested != 0 && permitted));
     }
 
     static void __cdecl TagHook(const std::uint8_t requested) {
-        auto* const self = active.load(std::memory_order_acquire);
-        if (!self || !self->tagHook) {
-            return;
+        if (auto* const self = ActiveFor(kTagHook)) {
+            self->hooks[kTagHook].ccall<void>(self->Gate(
+                ActivityUnlockKind::Tags, self->nativeTagsEnabled, requested));
         }
-        self->nativeTagsEnabled = requested != 0;
-        const bool permitted = !self->managedTags || self->ownsTags;
-        self->tagHook.ccall<void>(
-            static_cast<std::uint8_t>(requested != 0 && permitted));
     }
 
     static void __cdecl RaceHook(const std::uint8_t requested) {
-        auto* const self = active.load(std::memory_order_acquire);
-        if (!self || !self->raceHook) {
+        auto* const self = ActiveFor(kRaceHook);
+        if (!self) {
             return;
         }
         self->nativeRacesEnabled = requested != 0;
         if (!requested) {
-            self->raceHook.ccall<void>(std::uint8_t{0});
+            self->hooks[kRaceHook].ccall<void>(std::uint8_t{0});
             return;
         }
         self->ApplyRaceVisibility();
     }
 
-    bool managedHitman{};
-    bool managedChopShop{};
-    bool managedCds{};
-    bool managedTags{};
+    // KindBit masks for every kind except Races.
+    std::uint32_t managedKinds{};
+    std::uint32_t ownedKinds{};
     std::uint32_t managedRaceClasses{};
-
-    bool ownsHitman{};
-    bool ownsChopShop{};
-    bool ownsCds{};
-    bool ownsTags{};
     std::uint32_t ownedRaceClasses{};
 
     bool nativeHitmanEnabled{};
@@ -806,28 +730,13 @@ struct HookActivityUnlockController::Implementation {
 
     std::uintptr_t gameBase{};
     ModuleInfo gameModule;
-    std::uintptr_t hitmanAddress{};
-    std::uintptr_t hitmanManagerAddress{};
-    std::uintptr_t chopShopAddress{};
-    std::uintptr_t chopShopTriggersAddress{};
-    std::uintptr_t chopShopManagerAddress{};
     void* hitmanManager{};
     void* chopShopManager{};
-    std::uintptr_t cdAddress{};
-    std::uintptr_t tagAddress{};
-    std::uintptr_t raceAddress{};
     std::uintptr_t triggerEnableAddress{};
     std::uintptr_t storyLockedAddress{};
     std::uintptr_t gameplayInstanceAddress{};
 
-    safetyhook::InlineHook hitmanHook;
-    safetyhook::InlineHook hitmanManagerHook;
-    safetyhook::InlineHook chopShopHook;
-    safetyhook::InlineHook chopShopTriggersHook;
-    safetyhook::InlineHook chopShopManagerHook;
-    safetyhook::InlineHook cdHook;
-    safetyhook::InlineHook tagHook;
-    safetyhook::InlineHook raceHook;
+    std::array<safetyhook::InlineHook, kHookCount> hooks;
 
     bool installed{};
     bool initialized{};

@@ -80,33 +80,20 @@ std::optional<std::array<T, N>> ReadMemoryIntoArray(std::uintptr_t address) {
     return value;
 }
 
-template <std::size_t N>
-bool MatchesBytes(const std::uintptr_t address,
-                  const std::array<std::uint8_t, N>& expected) {
-    std::array<std::uint8_t, N> actual{};
-
-    return SafeCopy(reinterpret_cast<const void*>(address), actual.data(), N) &&
-           actual == expected;
-}
+bool MatchesBytes(std::uintptr_t address,
+                  std::span<const std::uint8_t> expected);
 
 // A function the plugin hooks or calls: inside the module, executable, and
 // not already detoured by another mod.
 bool ValidateFunctionTarget(const ModuleInfo& module, std::uintptr_t address);
 
-template <std::size_t N>
-bool ValidateHookTarget(const ModuleInfo& module, const std::uintptr_t address,
-                        const std::array<std::uint8_t, N>& expected) {
-    return ValidateFunctionTarget(module, address) &&
-           MatchesBytes(address, expected);
-}
+// ValidateFunctionTarget plus the expected entry bytes.
+bool ValidateHookTarget(const ModuleInfo& module, std::uintptr_t address,
+                        std::span<const std::uint8_t> expected);
 
 // An instruction the plugin overwrites in place: inside the module,
 // executable, and holding the expected bytes.
-template <std::size_t N>
-bool ValidatePatchSite(const ModuleInfo& module, const std::uintptr_t address,
-                       const std::array<std::uint8_t, N>& expected) {
-    return IsInsideModule(module, reinterpret_cast<const void*>(address)) &&
-           IsExecutableAddress(address) && MatchesBytes(address, expected);
-}
+bool ValidatePatchSite(const ModuleInfo& module, std::uintptr_t address,
+                       std::span<const std::uint8_t> expected);
 
 }  // namespace sr2ap

@@ -1,21 +1,9 @@
 #include "BytePatch.hpp"
 
-#include <algorithm>
-
 #include "game/Memory.hpp"
 #include "util/Logger.hpp"
 
 namespace sr2ap {
-namespace {
-bool Holds(const std::uintptr_t address,
-           const std::span<const std::uint8_t> expected) {
-    std::vector<std::uint8_t> actual(expected.size());
-    return SafeCopy(reinterpret_cast<const void*>(address), actual.data(),
-                    actual.size()) &&
-           std::ranges::equal(actual, expected);
-}
-}  // namespace
-
 bool BytePatch::Apply(const std::string_view subsystem,
                       const std::string_view name, const std::uintptr_t address,
                       const std::span<const std::uint8_t> original,
@@ -26,7 +14,7 @@ bool BytePatch::Apply(const std::string_view subsystem,
 
     subsystem_ = subsystem;
     name_ = name;
-    if (!Holds(address, original)) {
+    if (!MatchesBytes(address, original)) {
         LogError(subsystem_, "Unexpected bytes at " + name_);
         return false;
     }
@@ -52,7 +40,7 @@ void BytePatch::Restore() {
     }
     applied_ = false;
 
-    if (!Holds(address_, replacement_)) {
+    if (!MatchesBytes(address_, replacement_)) {
         LogWarning(subsystem_, name_ + " changed; not restoring");
         return;
     }
