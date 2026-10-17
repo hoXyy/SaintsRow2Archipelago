@@ -10,6 +10,7 @@
 #include <utility>
 
 #include "game/Addresses.hpp"
+#include "game/BytePatch.hpp"
 #include "game/Memory.hpp"
 #include "game/ModuleInfo.hpp"
 #include "util/HandlerActivity.hpp"
@@ -78,44 +79,23 @@ struct RespectController::Implementation {
         gameBase = game->base;
 
         const auto saveLoadAddress = gameBase + addresses::kRespectLoadWriteRva;
-        const std::optional<Instruction> saveLoadActual =
-            ReadMemoryIntoArray<std::uint8_t, kInstructionSize>(
-                saveLoadAddress);
-        if (!IsInsideModule(*game,
-                            reinterpret_cast<const void*>(saveLoadAddress)) ||
-            !IsExecutableAddress(saveLoadAddress) || !saveLoadActual ||
-            *saveLoadActual != kSaveLoadWriter) {
+        const auto capCheckAddress = gameBase + kRespectNeededCapCheckRva;
+
+        // Check every site before patching any of them.
+        if (!ValidatePatchSite(*game, saveLoadAddress, kSaveLoadWriter)) {
             LogError("Respect", "Unexpected bytes at writer=save_load");
             return false;
         }
-
         for (const auto& writer : kBlockedWriters) {
-            const auto address = gameBase + writer.rva;
-            std::optional<Instruction> actual =
-                ReadMemoryIntoArray<std::uint8_t, kInstructionSize>(address);
-
-            if (!IsInsideModule(*game,
-                                reinterpret_cast<const void*>(address)) ||
-                !IsExecutableAddress(address) || !actual ||
-                *actual != writer.expected) {
+            if (!ValidatePatchSite(*game, gameBase + writer.rva,
+                                   writer.expected)) {
                 LogError("Respect", std::string("Unexpected bytes at writer=") +
                                         writer.name);
                 return false;
             }
         }
-
-        const auto respectNeededCapCheckAddress =
-            gameBase + kRespectNeededCapCheckRva;
-
-        const auto respectNeededCapCheckActual =
-            ReadMemoryIntoArray<std::uint8_t, kRespectNeededCapCheckSize>(
-                respectNeededCapCheckAddress);
-
-        if (!IsInsideModule(*game, reinterpret_cast<const void*>(
-                                       respectNeededCapCheckAddress)) ||
-            !IsExecutableAddress(respectNeededCapCheckAddress) ||
-            !respectNeededCapCheckActual ||
-            *respectNeededCapCheckActual != kRespectNeededCapCheckExpected) {
+        if (!ValidatePatchSite(*game, capCheckAddress,
+                               kRespectNeededCapCheckExpected)) {
             LogError("Respect", "Unexpected bytes at respect-needed cap check");
             return false;
         }
@@ -123,15 +103,10 @@ struct RespectController::Implementation {
         handlerActivity.Start();
         active.store(this, std::memory_order_release);
 
-        const auto saveLoadAddressWriteResult = WriteExecutableMemory(
-            reinterpret_cast<void*>(saveLoadAddress), kNops);
-
-        if (saveLoadAddressWriteResult.bytesWritten) {
-            saveLoadPatched = true;
-        }
-
-        if (!saveLoadAddressWriteResult) {
-            LogError("Respect", "Failed to block writer=save_load");
+        // The native write is removed and re-done by SaveLoadHook only when
+        // the restore comes from a save load.
+        if (!saveLoadPatch.Apply("Respect", "writer=save_load", saveLoadAddress,
+                                 kSaveLoadWriter, kNops)) {
             Remove();
             return false;
         }
@@ -146,33 +121,18 @@ struct RespectController::Implementation {
         saveLoadHook = std::move(*hook);
 
         for (std::size_t index = 0; index < kBlockedWriters.size(); ++index) {
-            const auto writeResult = WriteExecutableMemory(
-                reinterpret_cast<void*>(gameBase + kBlockedWriters[index].rva),
-                kNops);
-
-            if (writeResult.bytesWritten) {
-                patchedCount = index + 1;
-            }
-
-            if (!writeResult) {
-                LogError("Respect", std::string("Failed to block writer=") +
-                                        kBlockedWriters[index].name);
+            const auto& writer = kBlockedWriters[index];
+            if (!writerPatches[index].Apply(
+                    "Respect", std::string("writer=") + writer.name,
+                    gameBase + writer.rva, writer.expected, kNops)) {
                 Remove();
                 return false;
             }
         }
 
-        const auto respectNeededCapCheckWriteResult = WriteExecutableMemory(
-            reinterpret_cast<void*>(respectNeededCapCheckAddress),
-            kRespectNeededCapCheckPatch);
-
-        if (respectNeededCapCheckWriteResult.bytesWritten) {
-            respectNeededCapCheckPatched = true;
-        }
-
-        if (!respectNeededCapCheckWriteResult) {
-            LogError("Respect",
-                     "Failed to disable respect-needed lifetime cap check");
+        if (!capCheckPatch.Apply(
+                "Respect", "respect-needed cap check", capCheckAddress,
+                kRespectNeededCapCheckExpected, kRespectNeededCapCheckPatch)) {
             Remove();
             return false;
         }
@@ -182,10 +142,10 @@ struct RespectController::Implementation {
     }
 
     void Remove() {
-        RestoreRespectNeededCapCheck();
-
-        if (patchedCount != 0) {
-            Restore(patchedCount);
+        capCheckPatch.Restore();
+        for (auto patch = writerPatches.rbegin(); patch != writerPatches.rend();
+             ++patch) {
+            patch->Restore();
         }
 
         active.store(nullptr, std::memory_order_release);
@@ -199,7 +159,7 @@ struct RespectController::Implementation {
             SwitchToThread();
         }
         saveLoadHook.reset();
-        RestoreSaveLoadWriter();
+        saveLoadPatch.Restore();
         permittedLoadThread.store(0, std::memory_order_release);
         installed = false;
     }
@@ -325,81 +285,17 @@ struct RespectController::Implementation {
         return true;
     }
 
-    void Restore(const std::size_t count) {
-        for (std::size_t index = count; index > 0; --index) {
-            const auto site = index - 1;
-            auto const address = gameBase + kBlockedWriters[site].rva;
-            std::optional<Instruction> actual =
-                ReadMemoryIntoArray<std::uint8_t, kInstructionSize>(address);
-
-            if (!actual || *actual != kNops) {
-                LogWarning(
-                    "Respect",
-                    std::string("Writer changed; not restoring writer=") +
-                        kBlockedWriters[site].name);
-                continue;
-            }
-            if (!WriteExecutableMemory(reinterpret_cast<void*>(address),
-                                       kBlockedWriters[site].expected)) {
-                LogError("Respect", std::string("Failed to restore writer=") +
-                                        kBlockedWriters[site].name);
-            }
-        }
-        patchedCount = 0;
-    }
-
-    void RestoreSaveLoadWriter() {
-        if (!saveLoadPatched) {
-            return;
-        }
-        auto* const address =
-            reinterpret_cast<void*>(gameBase + addresses::kRespectLoadWriteRva);
-        const std::optional<Instruction> actual =
-            ReadMemoryIntoArray<std::uint8_t, kInstructionSize>(
-                gameBase + addresses::kRespectLoadWriteRva);
-
-        if (!actual || *actual != kNops) {
-            LogWarning("Respect",
-                       "Writer changed; not restoring writer=save_load");
-        } else if (!WriteExecutableMemory(address, kSaveLoadWriter)) {
-            LogError("Respect", "Failed to restore writer=save_load");
-        }
-        saveLoadPatched = false;
-    }
-
-    void RestoreRespectNeededCapCheck() {
-        if (!respectNeededCapCheckPatched) {
-            return;
-        }
-
-        const auto address = gameBase + kRespectNeededCapCheckRva;
-
-        const auto actual =
-            ReadMemoryIntoArray<std::uint8_t, kRespectNeededCapCheckSize>(
-                address);
-
-        if (!actual || *actual != kRespectNeededCapCheckPatch) {
-            LogWarning("Respect",
-                       "Cap check changed; not restoring respect-needed patch");
-        } else if (!WriteExecutableMemory(reinterpret_cast<void*>(address),
-                                          kRespectNeededCapCheckExpected)) {
-            LogError("Respect", "Failed to restore respect-needed cap check");
-        }
-
-        respectNeededCapCheckPatched = false;
-    }
-
     inline static std::atomic<Implementation*> active{};
     inline static HandlerActivity handlerActivity;
     std::uintptr_t gameBase{};
     std::atomic<std::uint32_t> permittedLoadThread;
     std::atomic<std::uint64_t> blockedCheckpointRestores;
     std::uint64_t reportedBlockedCheckpointRestores{};
-    std::size_t patchedCount{};
+    BytePatch saveLoadPatch;
+    std::array<BytePatch, kBlockedWriters.size()> writerPatches;
+    BytePatch capCheckPatch;
     safetyhook::MidHook saveLoadHook;
-    bool saveLoadPatched{};
     bool installed{};
-    bool respectNeededCapCheckPatched{};
 };
 
 RespectController::RespectController() = default;

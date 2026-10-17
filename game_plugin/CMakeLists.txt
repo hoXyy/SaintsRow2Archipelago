@@ -181,6 +181,7 @@ if (WIN32)
             src/util/AtomicFile.cpp
             src/game/ModuleInfo.cpp
             src/game/Memory.cpp
+            src/game/BytePatch.cpp
             src/game/GameState.cpp
             src/game/GameThreadDispatcher.cpp
             src/game/ItemHandlerManager.cpp

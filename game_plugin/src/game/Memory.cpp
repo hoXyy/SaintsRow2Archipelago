@@ -46,6 +46,14 @@ bool IsInsideModule(const ModuleInfo& module, const void* address) {
     return value >= module.base && value - module.base < module.imageSize;
 }
 
+bool ValidateFunctionTarget(const ModuleInfo& module,
+                            const std::uintptr_t address) {
+    return IsInsideModule(module, reinterpret_cast<const void*>(address)) &&
+           IsExecutableAddress(address) &&
+           DetectDetour(reinterpret_cast<const void*>(address)) ==
+               DetourKind::None;
+}
+
 bool SafeCopy(const void* address, void* destination, std::size_t size) {
     if (!destination ||
         !IsReadableAddress(reinterpret_cast<std::uintptr_t>(address), size)) {
