@@ -89,13 +89,24 @@ bool MatchesBytes(const std::uintptr_t address,
            actual == expected;
 }
 
+// A function the plugin hooks or calls: inside the module, executable, and
+// not already detoured by another mod.
+bool ValidateFunctionTarget(const ModuleInfo& module, std::uintptr_t address);
+
 template <std::size_t N>
-bool ValidateHookTarget(const std::uintptr_t address,
+bool ValidateHookTarget(const ModuleInfo& module, const std::uintptr_t address,
                         const std::array<std::uint8_t, N>& expected) {
-    return IsExecutableAddress(address) &&
-           DetectDetour(reinterpret_cast<const void*>(address)) ==
-               DetourKind::None &&
+    return ValidateFunctionTarget(module, address) &&
            MatchesBytes(address, expected);
+}
+
+// An instruction the plugin overwrites in place: inside the module,
+// executable, and holding the expected bytes.
+template <std::size_t N>
+bool ValidatePatchSite(const ModuleInfo& module, const std::uintptr_t address,
+                       const std::array<std::uint8_t, N>& expected) {
+    return IsInsideModule(module, reinterpret_cast<const void*>(address)) &&
+           IsExecutableAddress(address) && MatchesBytes(address, expected);
 }
 
 }  // namespace sr2ap

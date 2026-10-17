@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "game/Addresses.hpp"
+#include "game/BytePatch.hpp"
 #include "game/GameThreadDispatcher.hpp"
 #include "game/Memory.hpp"
 #include "game/ModuleInfo.hpp"
@@ -117,17 +118,7 @@ struct CheatController::Implementation {
 
         constexpr std::array<std::uint8_t, 6> expectedActivate{
             0x81, 0xEC, 0x20, 0x05, 0x00, 0x00};
-
-        const auto actualActivate =
-            ReadMemoryIntoArray<std::uint8_t, expectedActivate.size()>(
-                activateAddress);
-
-        if (!IsInsideModule(*game,
-                            reinterpret_cast<const void*>(activateAddress)) ||
-            !IsExecutableAddress(activateAddress) ||
-            DetectDetour(reinterpret_cast<const void*>(activateAddress)) !=
-                DetourKind::None ||
-            !actualActivate || *actualActivate != expectedActivate) {
+        if (!ValidateHookTarget(*game, activateAddress, expectedActivate)) {
             return false;
         }
 
@@ -135,31 +126,14 @@ struct CheatController::Implementation {
             0x88, 0x1D, 0x5A, 0x7B, 0x52, 0x02,
             0x88, 0x1D, 0xE6, 0x7B, 0x52, 0x02,
         };
-
-        const auto actualSaveFlag =
-            ReadMemoryIntoArray<std::uint8_t, expectedSaveFlag.size()>(
-                saveFlagAddress);
-
-        if (!actualSaveFlag) {
-            return false;
-        }
-
-        std::array<std::uint8_t, expectedSaveFlag.size()> nops{};
+        std::array<std::uint8_t, saveFlagSize> nops{};
         nops.fill(0x90);
-        if (*actualSaveFlag == expectedSaveFlag) {
-            originalSaveFlag = *actualSaveFlag;
 
-            const auto saveFlagNopWriteResult = WriteExecutableMemory(
-                reinterpret_cast<void*>(saveFlagAddress), nops);
-
-            if (saveFlagNopWriteResult.bytesWritten) {
-                ownsSaveFlagPatch = true;
-            }
-
-            if (!saveFlagNopWriteResult) {
-                return false;
-            }
-        } else if (*actualSaveFlag != nops) {
+        // A site that is already NOPed is accepted as-is and not owned, so it
+        // is not restored on removal.
+        if (!MatchesBytes(saveFlagAddress, nops) &&
+            !saveFlagPatch.Apply("Cheats", "cheat save-flag instructions",
+                                 saveFlagAddress, expectedSaveFlag, nops)) {
             return false;
         }
 
@@ -168,33 +142,7 @@ struct CheatController::Implementation {
     }
 
     void Remove() {
-        if (ownsSaveFlagPatch) {
-            const auto current =
-                ReadMemoryIntoArray<std::uint8_t, saveFlagSize>(
-                    saveFlagAddress);
-            std::array<std::uint8_t, saveFlagSize> nops{};
-            nops.fill(0x90);
-
-            if (!current || *current != nops) {
-                LogWarning("Cheats",
-                           "Save-flag patch changed after installation; "
-                           "original bytes not restored");
-                ownsSaveFlagPatch = false;
-                installed = false;
-                return;
-            }
-
-            if (!WriteExecutableMemory(reinterpret_cast<void*>(saveFlagAddress),
-                                       originalSaveFlag)) {
-                LogError("Cheats",
-                         "Failed to restore cheat save-flag instructions");
-                ownsSaveFlagPatch = false;
-                installed = false;
-                return;
-            }
-        }
-
-        ownsSaveFlagPatch = false;
+        saveFlagPatch.Restore();
         installed = false;
     }
 
@@ -280,8 +228,7 @@ struct CheatController::Implementation {
     std::uintptr_t gameBase{};
     std::uintptr_t activateAddress{};
     std::uintptr_t saveFlagAddress{};
-    std::array<std::uint8_t, saveFlagSize> originalSaveFlag{};
-    bool ownsSaveFlagPatch{};
+    BytePatch saveFlagPatch;
     std::unordered_set<std::string> managedItemNames;
     bool installed{};
 };

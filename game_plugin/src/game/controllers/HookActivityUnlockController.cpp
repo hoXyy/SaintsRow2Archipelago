@@ -133,14 +133,15 @@ const ActivityUnlockDefinition* FindUnlock(
 }
 
 template <std::size_t Size>
-bool CreateManagedHook(const bool managed, safetyhook::InlineHook& destination,
+bool CreateManagedHook(const ModuleInfo& module, const bool managed,
+                       safetyhook::InlineHook& destination,
                        const std::uintptr_t address,
                        const std::array<std::uint8_t, Size>& expected,
                        void* const callback, const std::string_view name) {
     if (!managed) {
         return true;
     }
-    if (!ValidateHookTarget(address, expected)) {
+    if (!ValidateHookTarget(module, address, expected)) {
         LogError("WorldUnlock", std::string{name} + " hook target mismatch");
         return false;
     }
@@ -454,33 +455,36 @@ struct HookActivityUnlockController::Implementation {
     }
 
     bool CreateManagedHooks() {
-        return CreateManagedHook(
-                   managedHitman, hitmanHook, hitmanAddress, kExpectedHitman,
-                   reinterpret_cast<void*>(&HitmanHook), "Hitman") &&
-               CreateManagedHook(managedHitman, hitmanManagerHook,
+        return CreateManagedHook(gameModule, managedHitman, hitmanHook,
+                                 hitmanAddress, kExpectedHitman,
+                                 reinterpret_cast<void*>(&HitmanHook),
+                                 "Hitman") &&
+               CreateManagedHook(gameModule, managedHitman, hitmanManagerHook,
                                  hitmanManagerAddress, kExpectedHitmanManager,
                                  reinterpret_cast<void*>(&HitmanManagerHook),
                                  "Hitman manager") &&
-               CreateManagedHook(managedChopShop, chopShopHook, chopShopAddress,
-                                 kExpectedChopShop,
+               CreateManagedHook(gameModule, managedChopShop, chopShopHook,
+                                 chopShopAddress, kExpectedChopShop,
                                  reinterpret_cast<void*>(&ChopShopHook),
                                  "Chop Shop") &&
-               CreateManagedHook(managedChopShop, chopShopTriggersHook,
-                                 chopShopTriggersAddress,
+               CreateManagedHook(gameModule, managedChopShop,
+                                 chopShopTriggersHook, chopShopTriggersAddress,
                                  kExpectedChopShopTriggers,
                                  reinterpret_cast<void*>(&ChopShopTriggersHook),
                                  "Chop Shop triggers") &&
-               CreateManagedHook(managedChopShop, chopShopManagerHook,
-                                 chopShopManagerAddress,
+               CreateManagedHook(gameModule, managedChopShop,
+                                 chopShopManagerHook, chopShopManagerAddress,
                                  kExpectedChopShopManager,
                                  reinterpret_cast<void*>(&ChopShopManagerHook),
                                  "Chop Shop manager") &&
-               CreateManagedHook(managedCds, cdHook, cdAddress, kExpectedCd,
-                                 reinterpret_cast<void*>(&CdHook), "CD") &&
-               CreateManagedHook(managedTags, tagHook, tagAddress, kExpectedTag,
+               CreateManagedHook(gameModule, managedCds, cdHook, cdAddress,
+                                 kExpectedCd, reinterpret_cast<void*>(&CdHook),
+                                 "CD") &&
+               CreateManagedHook(gameModule, managedTags, tagHook, tagAddress,
+                                 kExpectedTag,
                                  reinterpret_cast<void*>(&TagHook), "tag") &&
-               CreateManagedHook(managedRaceClasses != 0, raceHook, raceAddress,
-                                 kExpectedRace,
+               CreateManagedHook(gameModule, managedRaceClasses != 0, raceHook,
+                                 raceAddress, kExpectedRace,
                                  reinterpret_cast<void*>(&RaceHook), "race");
     }
 

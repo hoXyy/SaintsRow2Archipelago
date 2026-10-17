@@ -183,12 +183,7 @@ struct UnlockableController::Implementation {
         constexpr std::array<std::uint8_t, overwrittenSize> expected{
             0x55, 0x8B, 0xEC, 0x83, 0xE4, 0xF8};
 
-        prologue = ReadMemoryIntoArray<std::uint8_t, overwrittenSize>(
-            processorAddress);
-
-        if (DetectDetour(reinterpret_cast<const void*>(processorAddress)) !=
-                DetourKind::None ||
-            !prologue || *prologue != expected) {
+        if (!ValidateHookTarget(*game, processorAddress, expected)) {
             return false;
         }
 
@@ -441,7 +436,6 @@ struct UnlockableController::Implementation {
     std::uintptr_t arrayPointerOperand{};
     std::uintptr_t countAddress{};
     std::uintptr_t queueCountAddress{};
-    std::optional<std::array<std::uint8_t, overwrittenSize>> prologue;
     safetyhook::InlineHook processorHook;
     std::mutex allowanceMutex;
     std::unordered_map<std::uint32_t, std::uint32_t> allowances;

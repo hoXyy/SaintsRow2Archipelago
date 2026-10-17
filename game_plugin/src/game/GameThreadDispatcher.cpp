@@ -38,17 +38,8 @@ struct GameThreadDispatcher::Implementation {
         constexpr std::array<std::uint8_t, 7> expectedFrameDispatch{
             0x83, 0x3D, 0x24, 0x8B, 0x52, 0x02, 0x00,
         };
-        const auto actualFrameDispatch =
-            ReadMemoryIntoArray<std::uint8_t, expectedFrameDispatch.size()>(
-                frameDispatchAddress);
-
-        if (!IsInsideModule(
-                *game, reinterpret_cast<const void*>(frameDispatchAddress)) ||
-            !IsExecutableAddress(frameDispatchAddress) ||
-            DetectDetour(reinterpret_cast<const void*>(frameDispatchAddress)) !=
-                DetourKind::None ||
-            !actualFrameDispatch ||
-            *actualFrameDispatch != expectedFrameDispatch) {
+        if (!ValidateHookTarget(*game, frameDispatchAddress,
+                                expectedFrameDispatch)) {
             return false;
         }
 

@@ -52,15 +52,7 @@ class NotorietyItemHandler final : public ItemHandler {
         setAddress_ = game->base + kNotorietySetRva;
         constexpr std::array<std::uint8_t, 6> expectedSet{0x81, 0xEC, 0x2C,
                                                           0x05, 0x00, 0x00};
-        const auto actualSet =
-            ReadMemoryIntoArray<std::uint8_t, expectedSet.size()>(setAddress_);
-
-        installed_ =
-            IsInsideModule(*game, reinterpret_cast<const void*>(setAddress_)) &&
-            IsExecutableAddress(setAddress_) &&
-            DetectDetour(reinterpret_cast<const void*>(setAddress_)) ==
-                DetourKind::None &&
-            actualSet && *actualSet == expectedSet;
+        installed_ = ValidateHookTarget(*game, setAddress_, expectedSet);
         return installed_;
     }
 
