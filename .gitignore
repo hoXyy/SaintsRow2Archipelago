@@ -9,6 +9,7 @@ SR2ArchipelagoStatus.txt
 cmake-build-*
 server.py
 apworld/__pycache__
+apworld/client/__pycache__
 apworld/test/__pycache__
 apworld/tracker/__pycache__
 .pytest_cache

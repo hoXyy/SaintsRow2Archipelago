@@ -5,7 +5,7 @@ from unittest.mock import patch
 from BaseClasses import CollectionState, MultiWorld
 
 from .bases import SR2TestBase
-from ..client import calculate_ut_respect
+from ..client.context import calculate_ut_respect
 from ..items import (
     BONUS_RESPECT_ITEM_NAME,
     ITEM_NAME_TO_ID,
