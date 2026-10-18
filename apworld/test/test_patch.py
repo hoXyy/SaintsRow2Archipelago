@@ -5,7 +5,6 @@ from types import SimpleNamespace
 from ..options import RONIN_ARC_NAME, ULTOR_EPILOGUE_ARC_NAME
 from ..patch import (
     generate_patched_mission_chains_file,
-    generate_main_menu_info_strings,
 )
 
 
