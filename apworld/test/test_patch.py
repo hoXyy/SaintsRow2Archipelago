@@ -5,6 +5,7 @@ from types import SimpleNamespace
 from ..options import RONIN_ARC_NAME, ULTOR_EPILOGUE_ARC_NAME
 from ..patch import (
     generate_patched_mission_chains_file,
+    generate_main_menu_info_strings,
 )
 
 
@@ -103,3 +104,19 @@ class TestMissionPatch(unittest.TestCase):
         missions = get_missions(xml)
 
         self.assertIsNone(missions["sh_tss_caverns"].find("StartNav"))
+
+    def test_menu_info_replaces_seed_and_player(self) -> None:
+        world = SimpleNamespace(
+            player=1,
+            multiworld=SimpleNamespace(
+                seed_name="Test Seed",
+                player_name={1: "PascalHD"},
+            ),
+        )
+
+        result = generate_main_menu_info_strings(world)
+
+        self.assertIn("Test Seed", result)
+        self.assertIn("PascalHD", result)
+        self.assertNotIn("{{SEED}}", result)
+        self.assertNotIn("{{PLAYER_NAME}}", result)
