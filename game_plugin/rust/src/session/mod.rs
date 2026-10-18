@@ -16,6 +16,13 @@ use std::{
 
 const SESSION_PROTOCOL: u32 = 5;
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum ConnectionState {
+    Disconnected,
+    WaitingForSession,
+    Active,
+}
+
 pub(crate) enum GameplayRequest {
     InstallPolicies(IncomingMessage),
     ResetPersistentItems,
@@ -54,6 +61,7 @@ pub(crate) struct SessionRuntime {
     game_supported: bool,
     save_monitoring: bool,
     active: bool,
+    client_connected: bool,
     pending: Option<Pending>,
     request_id: u64,
     #[cfg(test)]
@@ -76,6 +84,7 @@ impl SessionRuntime {
             game_supported,
             save_monitoring: false,
             active: false,
+            client_connected: false,
             pending: None,
             request_id: 0,
             #[cfg(test)]
@@ -91,6 +100,16 @@ impl SessionRuntime {
         self.active
     }
 
+    pub fn connection_state(&self) -> ConnectionState {
+        if self.active {
+            ConnectionState::Active
+        } else if self.client_connected {
+            ConnectionState::WaitingForSession
+        } else {
+            ConnectionState::Disconnected
+        }
+    }
+
     pub fn connect(&mut self, port: u16) -> io::Result<()> {
         self.client = Some(TcpClient::new(port)?);
         Ok(())
@@ -101,6 +120,7 @@ impl SessionRuntime {
         self.events.clear();
         self.pending = None;
         self.active = false;
+        self.client_connected = false;
     }
 
     fn send(&mut self, line: String) {
@@ -337,8 +357,9 @@ impl SessionRuntime {
         }
         while let Some(event) = self.events.pop_front() {
             match event {
-                NetworkEvent::Connected => {}
+                NetworkEvent::Connected => self.client_connected = true,
                 NetworkEvent::Disconnected => {
+                    self.client_connected = false;
                     self.active = false;
                     log::info!(target: "Session", "TCP disconnected; gameplay policy remains latched");
                 }

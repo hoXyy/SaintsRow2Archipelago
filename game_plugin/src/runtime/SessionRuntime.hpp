@@ -27,6 +27,7 @@ class SessionRuntime {
     void UpdateReadiness(GameReadiness current);
     void SendProgression(const ProgressionEvent& event);
     bool CommunicationsActive() const noexcept;
+    rust::ConnectionState ClientConnectionState() const noexcept;
     void UpdateItemHandlers();
     void Shutdown();
 

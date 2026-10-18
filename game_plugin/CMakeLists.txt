@@ -184,6 +184,7 @@ if (WIN32)
             src/game/BytePatch.cpp
             src/game/GameState.cpp
             src/game/GameThreadDispatcher.cpp
+            src/game/MenuVersionOverlay.cpp
             src/game/ItemHandlerManager.cpp
             src/game/ItemHandlerRegistry.cpp
             src/progression/ProgressionMonitor.cpp

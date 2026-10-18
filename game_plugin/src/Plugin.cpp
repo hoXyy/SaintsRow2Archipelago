@@ -5,6 +5,7 @@
 #include <atomic>
 
 #include "game/GameState.hpp"
+#include "game/MenuVersionOverlay.hpp"
 #include "game/ModuleInfo.hpp"
 #include "game/SaveRevisionMonitor.hpp"
 #include "progression/ProgressionMonitor.hpp"
@@ -20,6 +21,17 @@
 namespace sr2ap {
 namespace {
 std::atomic<bool> shutdownRequested{false};
+
+ConnectionStatus ToConnectionStatus(const rust::ConnectionState state) {
+    switch (state) {
+        case rust::ConnectionState::WaitingForSession:
+            return ConnectionStatus::WaitingForSession;
+        case rust::ConnectionState::Active:
+            return ConnectionStatus::Active;
+        default:
+            return ConnectionStatus::Disconnected;
+    }
+}
 
 }  // namespace
 
@@ -63,6 +75,19 @@ DWORD WINAPI PluginThread(void* parameter) {
                 "Unsupported executable; game-specific hooks are disabled.");
         } else {
             LogInfo("Plugin", "Supported executable found.");
+        }
+
+        MenuVersionOverlay menuOverlay;
+        if (gameSupported) {
+            if (menuOverlay.Install()) {
+                LogInfo("MenuOverlay", "Menu version text installed");
+            } else {
+                LogWarning("MenuOverlay", "Menu version text unavailable");
+            }
+        }
+        const bool showConnection = config.enabled && config.networkEnabled;
+        if (!showConnection) {
+            menuOverlay.SetConnectionStatus(ConnectionStatus::Disabled);
         }
 
         const auto game = InspectSupportedGameModule();
@@ -134,6 +159,10 @@ DWORD WINAPI PluginThread(void* parameter) {
             }
 
             session.PollNetwork(gameContext);
+            if (showConnection) {
+                menuOverlay.SetConnectionStatus(
+                    ToConnectionStatus(session.ClientConnectionState()));
+            }
             session.UpdateItemHandlers();
 
             Sleep(50);
@@ -142,6 +171,7 @@ DWORD WINAPI PluginThread(void* parameter) {
         LogInfo("Plugin", "SR2Archipelago shutting down");
         session.Shutdown();
         saveRevisions.Remove();
+        menuOverlay.Remove();
         log::Shutdown();
     } catch (const std::exception& error) {
         LogCritical(

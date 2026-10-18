@@ -518,3 +518,39 @@ fn rejected_restore_should_retry_reset_but_block_after_replay_failure() {
     assert!(runtime.handle_message(item(1), true).is_none());
     assert_eq!(last_message(runtime)["accepted"], false);
 }
+
+#[test]
+fn connection_state_follows_tcp_link_and_session_lifecycle() {
+    let mut fixture = Fixture::new();
+    let runtime = &mut fixture.runtime;
+    assert_eq!(runtime.connection_state(), ConnectionState::Disconnected);
+
+    runtime.events.push_back(NetworkEvent::Connected);
+    assert!(runtime.next_request(true).is_none());
+    assert_eq!(
+        runtime.connection_state(),
+        ConnectionState::WaitingForSession
+    );
+
+    activate(runtime);
+    assert_eq!(runtime.connection_state(), ConnectionState::Active);
+
+    let end = IncomingMessage {
+        kind: IncomingKind::SessionEnd,
+        ..IncomingMessage::default()
+    };
+    assert!(runtime.handle_message(end, true).is_none());
+    assert_eq!(
+        runtime.connection_state(),
+        ConnectionState::WaitingForSession
+    );
+
+    runtime.events.push_back(NetworkEvent::Disconnected);
+    assert!(runtime.next_request(true).is_none());
+    assert_eq!(runtime.connection_state(), ConnectionState::Disconnected);
+
+    runtime.events.push_back(NetworkEvent::Connected);
+    assert!(runtime.next_request(true).is_none());
+    runtime.shutdown();
+    assert_eq!(runtime.connection_state(), ConnectionState::Disconnected);
+}

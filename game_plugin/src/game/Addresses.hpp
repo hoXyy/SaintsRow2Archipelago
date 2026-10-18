@@ -122,6 +122,27 @@ inline constexpr std::ptrdiff_t kCurrentGameplayInstanceRva = 0x023B3C60;
 // Race records.
 inline constexpr std::size_t kRacingRecordStartTriggerOffset = 0x18;
 
+// Menu text overlay stuff.
+inline constexpr std::ptrdiff_t kMenuTextFlushRva = 0x0035B270;
+inline constexpr std::ptrdiff_t kStateDispatcherFlushReturnRva = 0x002974E8;
+inline constexpr std::ptrdiff_t kGameStateStackRva = 0x0104E760;
+inline constexpr std::ptrdiff_t kGameStateTopIndexRva = 0x00A96B7C;
+// Prints text with a size scale after x and y.
+inline constexpr std::ptrdiff_t kPrintScaledTextRva = 0x00915D00;
+inline constexpr std::ptrdiff_t kSetTextColorRva = 0x00914840;
+// Body text font handle, filled in at startup (0x0051D290). It's fnt_body_n,
+// except in Japanese, Chinese, Korean, Czech, Polish and Russian, where it's
+// a scaled copy of that language's font. Scaled copies have the high bit set;
+// -1 means loading failed.
+inline constexpr std::ptrdiff_t kMenuFontRva = 0x00A98A7C;
+// shamefully stolen from Juiced Patch
+inline constexpr std::ptrdiff_t kMainMenuFlagRva = 0x02127B75;
+inline constexpr std::ptrdiff_t kMainMenuShownRva = 0x00A8D56B;
+inline constexpr std::ptrdiff_t kWidescreenFlagRva = 0x021272DD;
+inline constexpr std::ptrdiff_t kAspectRatioRva = 0x01EFD8EC;
+inline constexpr std::uint8_t kPauseMenuFirstState = 20;
+inline constexpr std::uint8_t kPauseMenuLastState = 24;
+
 // Tags.
 inline constexpr std::ptrdiff_t kTagSpotHeadRva = 0x023A3FB4;
 inline constexpr std::size_t kTagSpotFlagsOffset = 0x00;
