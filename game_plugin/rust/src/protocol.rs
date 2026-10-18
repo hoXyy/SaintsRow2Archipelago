@@ -4,6 +4,9 @@ use serde::{Deserialize, Serialize};
 
 pub const MAXIMUM_LIST_SIZE: usize = 256;
 pub const MAXIMUM_NAME_SIZE: usize = 128;
+/// Display-only text (player and item names in notifications) is cut to this
+/// many UTF-8 bytes instead of rejecting the message.
+pub const MAXIMUM_DISPLAY_SIZE: usize = 128;
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub enum IncomingKind {
@@ -11,6 +14,7 @@ pub enum IncomingKind {
     Invalid,
     Unknown,
     Item,
+    ItemSent,
     SaveContext,
     SaveRevisionAcknowledgement,
     SessionReady,
@@ -23,6 +27,11 @@ pub struct IncomingMessage {
     pub error: String,
     pub index: u64,
     pub name: String,
+    /// Item: the player whose world the item was found in, empty when found
+    /// in this player's own world. ItemSent: the receiving player.
+    pub player: String,
+    /// Archipelago item flags (progression, useful, trap).
+    pub flags: u32,
     pub checksum: u32,
     pub next_index: u64,
     pub snapshot_known: bool,
@@ -59,6 +68,20 @@ struct ItemMessage {
     _message_type: String,
     index: u64,
     name: String,
+    #[serde(default)]
+    sender: String,
+    #[serde(default)]
+    flags: u32,
+}
+
+#[derive(Deserialize)]
+struct ItemSentMessage {
+    #[serde(rename = "type")]
+    _message_type: String,
+    item: String,
+    receiver: String,
+    #[serde(default)]
+    flags: u32,
 }
 
 #[derive(Deserialize)]
@@ -132,6 +155,17 @@ fn validate_name(name: &str) -> Result<(), &'static str> {
     Ok(())
 }
 
+fn display_text(mut text: String) -> String {
+    if text.len() > MAXIMUM_DISPLAY_SIZE {
+        let mut end = MAXIMUM_DISPLAY_SIZE;
+        while !text.is_char_boundary(end) {
+            end -= 1;
+        }
+        text.truncate(end);
+    }
+    text
+}
+
 fn validate_names(names: Vec<String>) -> Result<Vec<String>, &'static str> {
     if names.len() > MAXIMUM_LIST_SIZE {
         return Err("managed name list exceeds 256 entries");
@@ -167,6 +201,18 @@ pub fn parse_incoming(input: &[u8]) -> IncomingMessage {
                 kind: IncomingKind::Item,
                 index: item.index,
                 name: item.name,
+                player: display_text(item.sender),
+                flags: item.flags,
+                ..IncomingMessage::default()
+            },
+            Err(error) => *error,
+        },
+        "item_sent" => match decode::<ItemSentMessage>(input) {
+            Ok(sent) => IncomingMessage {
+                kind: IncomingKind::ItemSent,
+                name: display_text(sent.item),
+                player: display_text(sent.receiver),
+                flags: sent.flags,
                 ..IncomingMessage::default()
             },
             Err(error) => *error,
@@ -365,6 +411,40 @@ mod tests {
     use super::*;
 
     #[test]
+    fn parser_should_read_item_sender_and_flags_with_defaults() {
+        let item = parse_incoming(
+            br#"{"type":"item","index":2,"name":"Shotgun","sender":"Player2","flags":1}"#,
+        );
+        assert_eq!(item.kind, IncomingKind::Item);
+        assert_eq!(item.player, "Player2");
+        assert_eq!(item.flags, 1);
+
+        let own = parse_incoming(br#"{"type":"item","index":2,"name":"Shotgun"}"#);
+        assert_eq!(own.kind, IncomingKind::Item);
+        assert!(own.player.is_empty());
+        assert_eq!(own.flags, 0);
+    }
+
+    #[test]
+    fn parser_should_read_item_sent_and_truncate_display_text() {
+        let long_item = "é".repeat(MAXIMUM_DISPLAY_SIZE);
+        let input = format!(
+            r#"{{"type":"item_sent","item":"{long_item}","receiver":"Player2","flags":4}}"#
+        );
+        let sent = parse_incoming(input.as_bytes());
+        assert_eq!(sent.kind, IncomingKind::ItemSent);
+        assert_eq!(sent.player, "Player2");
+        assert_eq!(sent.flags, 4);
+        assert_eq!(sent.name.len(), MAXIMUM_DISPLAY_SIZE);
+        assert!(sent.name.chars().all(|c| c == 'é'));
+
+        assert_eq!(
+            parse_incoming(br#"{"type":"item_sent","item":"Shotgun"}"#).kind,
+            IncomingKind::Invalid
+        );
+    }
+
+    #[test]
     fn parser_should_reject_invalid_numeric_fields() {
         assert_eq!(
             parse_incoming(br#"{"type":"item","index":-1,"name":"x"}"#).kind,
@@ -428,7 +508,7 @@ mod tests {
     #[test]
     fn session_should_deduplicate_names_in_first_seen_order() {
         let message = parse_incoming(br#"{
-          "type":"session_ready","protocol":5,"seed_name":"seed","team":1,"slot":2,
+          "type":"session_ready","protocol":6,"seed_name":"seed","team":1,"slot":2,
           "managed_unlockables":["Taxi","Taxi","Boat"],"managed_cheats":[],
           "persistent_items":["Tag Pass","Tag Pass"],
           "features":{"exclusive_respect":true,"block_vanilla_unlockables":false,"notoriety_traps":true},

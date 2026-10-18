@@ -1,4 +1,4 @@
-use crate::session::{ConnectionState, GameplayRequest, SessionRuntime};
+use crate::session::{ConnectionState, GameplayRequest, Notification, SessionRuntime};
 use std::{ffi::OsString, os::windows::ffi::OsStringExt, path::PathBuf};
 
 #[cxx::bridge(namespace = "sr2ap::rust")]
@@ -9,6 +9,19 @@ pub(crate) mod bridge {
         ResetPersistentItems,
         ReplayPersistentItem,
         ActivateItem,
+    }
+    enum NotificationKind {
+        None,
+        ReceivedItem,
+        SentItem,
+    }
+    struct SessionNotification {
+        kind: NotificationKind,
+        item: String,
+        /// Sender for ReceivedItem (empty when found in this player's own
+        /// world), receiver for SentItem.
+        player: String,
+        flags: u32,
     }
     enum ConnectionState {
         Disconnected,
@@ -50,6 +63,7 @@ pub(crate) mod bridge {
         ) -> Result<()>;
         fn session_active(session: &SessionRuntime) -> bool;
         fn session_connection_state(session: &SessionRuntime) -> ConnectionState;
+        fn session_next_notification(session: &mut SessionRuntime) -> SessionNotification;
         fn session_shutdown(session: &mut SessionRuntime);
     }
 }
@@ -145,6 +159,32 @@ fn session_connection_state(session: &SessionRuntime) -> bridge::ConnectionState
         ConnectionState::Disconnected => bridge::ConnectionState::Disconnected,
         ConnectionState::WaitingForSession => bridge::ConnectionState::WaitingForSession,
         ConnectionState::Active => bridge::ConnectionState::Active,
+    }
+}
+fn session_next_notification(session: &mut SessionRuntime) -> bridge::SessionNotification {
+    let (kind, item, player, flags) = match session.next_notification() {
+        Some(Notification::ReceivedItem {
+            item,
+            sender,
+            flags,
+        }) => (bridge::NotificationKind::ReceivedItem, item, sender, flags),
+        Some(Notification::SentItem {
+            item,
+            receiver,
+            flags,
+        }) => (bridge::NotificationKind::SentItem, item, receiver, flags),
+        None => (
+            bridge::NotificationKind::None,
+            String::new(),
+            String::new(),
+            0,
+        ),
+    };
+    bridge::SessionNotification {
+        kind,
+        item,
+        player,
+        flags,
     }
 }
 fn session_shutdown(session: &mut SessionRuntime) {

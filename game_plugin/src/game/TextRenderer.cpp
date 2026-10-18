@@ -14,6 +14,7 @@
 #include <vector>
 
 #include "Addresses.hpp"
+#include "GameStateStack.hpp"
 #include "Memory.hpp"
 #include "ModuleInfo.hpp"
 #include "util/HandlerActivity.hpp"
@@ -35,7 +36,6 @@ constexpr std::array<std::array<int, 2>, 8> kOutlineOffsets{{
 constexpr float kWidescreenAspectRatio = 16.0f / 9.0f;
 constexpr int kVirtualWidth = 1280;
 constexpr int kVirtualHeight = 720;
-constexpr int kMaxGameStateDepth = 16;
 
 constexpr std::array<std::uint8_t, 6> kExpectedFlushEntry{
     0x8B, 0x15, 0xE8, 0xC4, 0xEA, 0x00,
@@ -104,8 +104,7 @@ struct TextRenderer::Implementation {
 
         dispatcherFlushReturn =
             base + addresses::kStateDispatcherFlushReturnRva;
-        gameStateStack = base + addresses::kGameStateStackRva;
-        gameStateTopIndex = base + addresses::kGameStateTopIndexRva;
+        gameStates.emplace(*game);
         font = base + addresses::kMenuFontRva;
         mainMenuFlag = base + addresses::kMainMenuFlagRva;
         mainMenuShown = base + addresses::kMainMenuShownRva;
@@ -250,30 +249,24 @@ struct TextRenderer::Implementation {
             return std::nullopt;
         }
 
-        const auto topIndex = Read<int>(gameStateTopIndex);
-        if (topIndex < 0 || topIndex >= kMaxGameStateDepth) {
+        const auto topIndex = gameStates->TopIndex();
+        const auto topState = gameStates->StateAt(topIndex);
+        if (!topState) {
             return std::nullopt;
         }
-        const auto topState = ReadState(topIndex);
         const auto dispatchedState = static_cast<std::uint32_t>(context.esi);
         // The in-game menu state is never flushed itself, so the layer right
         // under it is the last flush of the frame.
-        if (topState == addresses::kInGameMenuGameState) {
-            if (topIndex >= 1 && ReadState(topIndex - 1) == dispatchedState) {
-                return TextFrame{TextScreen::InGameMenu, topState};
+        if (*topState == addresses::kInGameMenuGameState) {
+            if (gameStates->StateAt(topIndex - 1) == dispatchedState) {
+                return TextFrame{TextScreen::InGameMenu, *topState};
             }
             return std::nullopt;
         }
-        if (topState == dispatchedState) {
-            return TextFrame{TextScreen::GameState, topState};
+        if (*topState == dispatchedState) {
+            return TextFrame{TextScreen::GameState, *topState};
         }
         return std::nullopt;
-    }
-
-    std::uint32_t ReadState(const int index) const {
-        return Read<std::uint32_t>(gameStateStack +
-                                   static_cast<std::uintptr_t>(index) *
-                                       sizeof(std::uint32_t));
     }
 
     void SetTextColor(const TextColor& color) const {
@@ -284,8 +277,7 @@ struct TextRenderer::Implementation {
     std::uintptr_t printTextAddress{};
     std::uintptr_t setTextColorAddress{};
     std::uintptr_t dispatcherFlushReturn{};
-    std::uintptr_t gameStateStack{};
-    std::uintptr_t gameStateTopIndex{};
+    std::optional<GameStateStack> gameStates;
     std::uintptr_t font{};
     std::uintptr_t mainMenuFlag{};
     std::uintptr_t mainMenuShown{};

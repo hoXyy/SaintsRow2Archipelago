@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <filesystem>
 #include <memory>
+#include <optional>
 #include <string_view>
 
 #include "game/GameState.hpp"
@@ -18,7 +19,7 @@ class SessionRuntime {
    public:
     SessionRuntime(bool gameSupported,
                    const std::filesystem::path& revisionJournalPath,
-                   const ModuleInfo* game);
+                   const ModuleInfo* game, GameThreadDispatcher& dispatcher);
 
     bool InstallSaveMonitoring(SaveRevisionMonitor& monitor, bool enabled);
     void Connect(std::uint16_t port);
@@ -28,6 +29,7 @@ class SessionRuntime {
     void SendProgression(const ProgressionEvent& event);
     bool CommunicationsActive() const noexcept;
     rust::ConnectionState ClientConnectionState() const noexcept;
+    std::optional<rust::SessionNotification> NextNotification();
     void UpdateItemHandlers();
     void Shutdown();
 

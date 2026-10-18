@@ -554,3 +554,95 @@ fn connection_state_follows_tcp_link_and_session_lifecycle() {
     runtime.shutdown();
     assert_eq!(runtime.connection_state(), ConnectionState::Disconnected);
 }
+
+#[test]
+fn applied_item_notifies_with_sender_and_flags() {
+    let mut fixture = Fixture::new();
+    let runtime = &mut fixture.runtime;
+    activate(runtime);
+
+    runtime.events.push_back(NetworkEvent::Line(
+        r#"{"type":"item","index":0,"name":"Shotgun","sender":"Player2","flags":1}"#.into(),
+    ));
+    let Some(GameplayRequest::ActivateItem(_)) = runtime.next_request(true) else {
+        panic!("expected item activation")
+    };
+    let id = runtime.current_request_id();
+    assert!(runtime.next_notification().is_none());
+
+    runtime.complete_request(id, true).unwrap();
+    assert_eq!(
+        runtime.next_notification(),
+        Some(Notification::ReceivedItem {
+            item: "Shotgun".into(),
+            sender: "Player2".into(),
+            flags: 1,
+        })
+    );
+    assert!(runtime.next_notification().is_none());
+}
+
+#[test]
+fn rejected_and_duplicate_items_do_not_notify() {
+    let mut fixture = Fixture::new();
+    let runtime = &mut fixture.runtime;
+    activate(runtime);
+
+    let id = queue_item(runtime, 0, "first");
+    runtime.complete_request(id, false).unwrap();
+    assert!(runtime.next_notification().is_none());
+
+    let id = queue_item(runtime, 0, "first");
+    runtime.complete_request(id, true).unwrap();
+    assert!(runtime.next_notification().is_some());
+
+    runtime.events.push_back(NetworkEvent::Line(
+        r#"{"type":"item","index":0,"name":"first"}"#.into(),
+    ));
+    assert!(runtime.next_request(true).is_none());
+    assert!(runtime.next_notification().is_none());
+}
+
+#[test]
+fn sent_items_notify_only_for_an_active_session() {
+    let mut fixture = Fixture::new();
+    let runtime = &mut fixture.runtime;
+    let sent = r#"{"type":"item_sent","item":"Hookshot","receiver":"Player2","flags":1}"#;
+
+    runtime.events.push_back(NetworkEvent::Line(sent.into()));
+    assert!(runtime.next_request(true).is_none());
+    assert!(runtime.next_notification().is_none());
+
+    activate(runtime);
+    runtime.events.push_back(NetworkEvent::Line(sent.into()));
+    assert!(runtime.next_request(false).is_none());
+    assert_eq!(
+        runtime.next_notification(),
+        Some(Notification::SentItem {
+            item: "Hookshot".into(),
+            receiver: "Player2".into(),
+            flags: 1,
+        })
+    );
+}
+
+#[test]
+fn notification_queue_drops_the_oldest_when_full() {
+    let mut fixture = Fixture::new();
+    let runtime = &mut fixture.runtime;
+    for index in 0..=MAXIMUM_PENDING_NOTIFICATIONS {
+        runtime.notify(Notification::SentItem {
+            item: index.to_string(),
+            receiver: String::new(),
+            flags: 0,
+        });
+    }
+    assert_eq!(
+        runtime.next_notification(),
+        Some(Notification::SentItem {
+            item: "1".into(),
+            receiver: String::new(),
+            flags: 0,
+        })
+    );
+}

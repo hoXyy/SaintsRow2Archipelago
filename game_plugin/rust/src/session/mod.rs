@@ -14,13 +14,35 @@ use std::{
     path::PathBuf,
 };
 
-const SESSION_PROTOCOL: u32 = 5;
+const SESSION_PROTOCOL: u32 = 6;
+/// Oldest notifications are dropped past this so a plugin that never actually shows
+/// them can't grow the queue infinitely.
+const MAXIMUM_PENDING_NOTIFICATIONS: usize = 256;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(crate) enum ConnectionState {
     Disconnected,
     WaitingForSession,
     Active,
+}
+
+/// Something for the game to show the player. Purely informational: nothing
+/// is acknowledged back to the client.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub(crate) enum Notification {
+    /// A received item was applied. `sender` is empty when it was found in
+    /// this player's own world.
+    ReceivedItem {
+        item: String,
+        sender: String,
+        flags: u32,
+    },
+    /// This player found an item for someone else.
+    SentItem {
+        item: String,
+        receiver: String,
+        flags: u32,
+    },
 }
 
 pub(crate) enum GameplayRequest {
@@ -34,7 +56,12 @@ enum Pending {
     Policies(IncomingMessage),
     ResetPersistentItems,
     ReplayPersistentItem(String),
-    Item { index: u64, name: String },
+    Item {
+        index: u64,
+        name: String,
+        sender: String,
+        flags: u32,
+    },
 }
 
 #[derive(Default)]
@@ -63,6 +90,7 @@ pub(crate) struct SessionRuntime {
     active: bool,
     client_connected: bool,
     pending: Option<Pending>,
+    notifications: VecDeque<Notification>,
     request_id: u64,
     #[cfg(test)]
     outgoing: Vec<String>,
@@ -86,6 +114,7 @@ impl SessionRuntime {
             active: false,
             client_connected: false,
             pending: None,
+            notifications: VecDeque::new(),
             request_id: 0,
             #[cfg(test)]
             outgoing: Vec::new(),
@@ -110,6 +139,18 @@ impl SessionRuntime {
         }
     }
 
+    pub fn next_notification(&mut self) -> Option<Notification> {
+        self.notifications.pop_front()
+    }
+
+    fn notify(&mut self, notification: Notification) {
+        if self.notifications.len() == MAXIMUM_PENDING_NOTIFICATIONS {
+            self.notifications.pop_front();
+            log::warn!(target: "Notifications", "Notification queue full; dropped the oldest");
+        }
+        self.notifications.push_back(notification);
+    }
+
     pub fn connect(&mut self, port: u16) -> io::Result<()> {
         self.client = Some(TcpClient::new(port)?);
         Ok(())
@@ -119,6 +160,7 @@ impl SessionRuntime {
         self.client = None;
         self.events.clear();
         self.pending = None;
+        self.notifications.clear();
         self.active = false;
         self.client_connected = false;
     }
@@ -519,8 +561,19 @@ impl SessionRuntime {
                     self.pending = Some(Pending::Item {
                         index,
                         name: name.clone(),
+                        sender: message.player,
+                        flags: message.flags,
                     });
                     return Some(GameplayRequest::ActivateItem(name));
+                }
+            }
+            IncomingKind::ItemSent => {
+                if self.active {
+                    self.notify(Notification::SentItem {
+                        item: message.name,
+                        receiver: message.player,
+                        flags: message.flags,
+                    });
                 }
             }
             IncomingKind::Invalid => {
@@ -583,7 +636,12 @@ impl SessionRuntime {
                     }
                 }
             }
-            Some(Pending::Item { index, name }) => {
+            Some(Pending::Item {
+                index,
+                name,
+                sender,
+                flags,
+            }) => {
                 if accepted {
                     self.delivery.next_index = index + 1;
                     if self
@@ -591,8 +649,13 @@ impl SessionRuntime {
                         .as_ref()
                         .is_some_and(|session| session.persistent_items.contains(&name))
                     {
-                        self.persistent_items.insert(name);
+                        self.persistent_items.insert(name.clone());
                     }
+                    self.notify(Notification::ReceivedItem {
+                        item: name,
+                        sender,
+                        flags,
+                    });
                 } else {
                     log::warn!(target: "Items", "Controller rejected received item index={index}");
                 }
