@@ -140,8 +140,8 @@ inline constexpr std::ptrdiff_t kMainMenuFlagRva = 0x02127B75;
 inline constexpr std::ptrdiff_t kMainMenuShownRva = 0x00A8D56B;
 inline constexpr std::ptrdiff_t kWidescreenFlagRva = 0x021272DD;
 inline constexpr std::ptrdiff_t kAspectRatioRva = 0x01EFD8EC;
-inline constexpr std::uint8_t kPauseMenuFirstState = 20;
-inline constexpr std::uint8_t kPauseMenuLastState = 24;
+// Game state pushed over gameplay (5) for the pause menu, phone and map.
+inline constexpr std::uint32_t kInGameMenuGameState = 6;
 
 // Tags.
 inline constexpr std::ptrdiff_t kTagSpotHeadRva = 0x023A3FB4;

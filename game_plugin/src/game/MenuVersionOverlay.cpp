@@ -45,12 +45,12 @@ constexpr std::array<StatusLine, 4> kStatusLines{{
 
 constexpr float kTextScale = 0.6f;
 constexpr int kLineHeight = 17;
-constexpr int kMainMenuWidescreenX = 10;
-constexpr int kMainMenuWidescreenY = 700 - 2 * kLineHeight;
-constexpr int kMainMenuX = 0;
-constexpr int kMainMenuY = kLineHeight;
-constexpr int kPauseMenuX = 160;
-constexpr int kPauseMenuY = 680 - kLineHeight;
+// Used for both the main menu and the in-game menu. On ultrawide screens, x
+// in the right half of the 1280-wide layout moves with the right edge.
+constexpr int kWidescreenX = 10;
+constexpr int kWidescreenY = 700 - 2 * kLineHeight;
+constexpr int kNarrowX = 0;
+constexpr int kNarrowY = kLineHeight;
 
 constexpr float kWidescreenAspectRatio = 16.0f / 9.0f;
 constexpr int kVirtualWidth = 1280;
@@ -104,7 +104,6 @@ struct MenuVersionOverlay::Implementation {
         menuFont = base + addresses::kMenuFontRva;
         mainMenuFlag = base + addresses::kMainMenuFlagRva;
         mainMenuShown = base + addresses::kMainMenuShownRva;
-        menuState = base + addresses::kMenuStateRva;
         widescreenFlag = base + addresses::kWidescreenFlagRva;
         aspectRatio = base + addresses::kAspectRatioRva;
         versionText = BuildVersionText();
@@ -157,48 +156,51 @@ struct MenuVersionOverlay::Implementation {
         const auto returnAddress =
             *reinterpret_cast<const std::uintptr_t*>(context.esp);
         if (returnAddress == dispatcherFlushReturn) {
-            if (IsPauseMenuTopState(context.esi)) {
-                DrawLines(kPauseMenuX, kPauseMenuY);
+            if (IsUnderInGameMenu(context.esi)) {
+                DrawLinesAtMenuPosition();
             }
             return;
         }
 
-        if (Read<std::uint8_t>(mainMenuFlag) != 1 ||
-            Read<std::uint8_t>(mainMenuShown) != 1) {
-            return;
+        if (Read<std::uint8_t>(mainMenuFlag) == 1 &&
+            Read<std::uint8_t>(mainMenuShown) == 1) {
+            DrawLinesAtMenuPosition();
         }
+    }
+
+    void DrawLinesAtMenuPosition() const {
         if (Read<std::uint8_t>(widescreenFlag) != 0) {
-            DrawLines(WidescreenRightX(kMainMenuWidescreenX),
-                      kMainMenuWidescreenY);
+            DrawLines(AnchorX(kWidescreenX), kWidescreenY);
         } else {
-            DrawLines(kMainMenuX, kMainMenuY);
+            DrawLines(kNarrowX, kNarrowY);
         }
     }
 
     // The dispatcher flushes once per state on the stack, bottom to top, with
-    // the state in ESI. Drawing only for the top state draws once per frame,
-    // above the layers below it.
-    bool IsPauseMenuTopState(const std::uintptr_t dispatchedState) const {
-        const auto state = Read<std::uint8_t>(menuState);
-        if (state < addresses::kPauseMenuFirstState ||
-            state > addresses::kPauseMenuLastState) {
-            return false;
-        }
+    // the state in ESI. The in-game menu state (pause menu, phone, map) is
+    // never flushed itself, so the layer right under it is the last flush of
+    // the frame.
+    bool IsUnderInGameMenu(const std::uintptr_t dispatchedState) const {
         const auto topIndex = Read<int>(gameStateTopIndex);
-        if (topIndex < 0 || topIndex >= kMaxGameStateDepth) {
+        if (topIndex < 1 || topIndex >= kMaxGameStateDepth) {
             return false;
         }
-        const auto topState = Read<std::uint32_t>(
-            gameStateStack +
-            static_cast<std::uintptr_t>(topIndex) * sizeof(std::uint32_t));
-        return topState == dispatchedState;
+        return ReadState(topIndex) == addresses::kInGameMenuGameState &&
+               ReadState(topIndex - 1) == dispatchedState;
     }
 
-    // Moves x right by half the extra width past 16:9, the same way Juiced
-    // keeps its version text on the right edge of ultrawide screens.
-    int WidescreenRightX(const int x) const {
+    std::uint32_t ReadState(const int index) const {
+        return Read<std::uint32_t>(gameStateStack +
+                                   static_cast<std::uintptr_t>(index) *
+                                       sizeof(std::uint32_t));
+    }
+
+    // Moves right-anchored x right by half the extra width past 16:9, the
+    // same way Juiced keeps its version text on the right edge of ultrawide
+    // screens.
+    int AnchorX(const int x) const {
         const auto ratio = Read<float>(aspectRatio);
-        if (ratio < kWidescreenAspectRatio) {
+        if (x < kVirtualWidth / 2 || ratio < kWidescreenAspectRatio) {
             return x;
         }
         const auto extraWidth =
@@ -262,7 +264,6 @@ struct MenuVersionOverlay::Implementation {
     std::uintptr_t menuFont{};
     std::uintptr_t mainMenuFlag{};
     std::uintptr_t mainMenuShown{};
-    std::uintptr_t menuState{};
     std::uintptr_t widescreenFlag{};
     std::uintptr_t aspectRatio{};
     std::string versionText;
