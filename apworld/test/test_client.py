@@ -1,3 +1,4 @@
+import asyncio
 import os
 import unittest
 from pathlib import Path
@@ -65,6 +66,7 @@ def make_ready_context():
                 "races": True,
             },
         },
+        remote_revisions={},
         send_plugin=AsyncMock(return_value=True),
     )
 
@@ -78,7 +80,11 @@ def make_revision_context(item_count: int = 5):
     )
 
 
-def make_reconciliation_context(names: list[str], stored_cursor: int | None = None):
+def make_reconciliation_context(
+    names: list[str],
+    stored_cursor: int | None = None,
+    remote_cursor: int | None = None,
+):
     items = [SimpleNamespace(item=index) for index in range(len(names))]
     item_names = SimpleNamespace(
         lookup_in_game=Mock(side_effect=lambda item, _game: names[item])
@@ -93,9 +99,23 @@ def make_reconciliation_context(names: list[str], stored_cursor: int | None = No
         game="Saints Row 2",
         slot_data={"persistent_items": ["persistent"]},
         stored_revision_cursor=Mock(return_value=stored_cursor),
+        remote_revision_cursor=Mock(return_value=remote_cursor),
         persist_revision=Mock(),
         send_plugin=AsyncMock(return_value=True),
     )
+
+
+def make_remote_context(directory: str, connected: bool = True):
+    ctx = object.__new__(SR2Context)
+    ctx.seed_name = "seed"
+    ctx.team = 0
+    ctx.slot = 1
+    ctx.ledger_path = Path(directory) / "ledger.json"
+    ctx.ledger = {"version": 1, "sessions": {}}
+    ctx.remote_revisions = None
+    ctx.server = SimpleNamespace(socket=object()) if connected else None
+    ctx.send_msgs = AsyncMock()
+    return ctx
 
 
 class TestClientProgression(unittest.IsolatedAsyncioTestCase):
@@ -429,6 +449,15 @@ class TestSessionReady(unittest.IsolatedAsyncioTestCase):
         self.assertFalse(ctx.session_sent)
         ctx.send_plugin.assert_not_awaited()
 
+    async def test_server_revisions_are_required(self) -> None:
+        ctx = make_ready_context()
+        ctx.remote_revisions = None
+
+        await send_session_ready(ctx)
+
+        ctx.send_plugin.assert_not_awaited()
+        self.assertFalse(ctx.session_sent)
+
     async def test_plugin_slot_data_is_required(self) -> None:
         ctx = make_ready_context()
         ctx.slot_data = None
@@ -552,6 +581,74 @@ class TestSaveReconciliation(unittest.IsolatedAsyncioTestCase):
         ctx.send_plugin.assert_not_awaited()
         self.assertIsNone(ctx.live_cursor)
 
+    async def test_server_revision_recovers_save_unknown_to_both_local_copies(self) -> None:
+        ctx = make_reconciliation_context(
+            ["persistent", "ordinary"], remote_cursor=2
+        )
+
+        await process_game_context(
+            ctx,
+            {
+                "type": "game_context",
+                "checksum": 42,
+                "next_index": 0,
+                "needs_cursor": True,
+                "snapshot_known": False,
+                "persistent_items": [],
+            },
+        )
+
+        ctx.persist_revision.assert_called_once_with(42, 2)
+        ctx.send_plugin.assert_awaited_once_with(
+            {
+                "type": "save_context",
+                "checksum": 42,
+                "next_index": 2,
+                "snapshot_known": True,
+                "persistent_items": ["persistent"],
+            }
+        )
+
+    async def test_out_of_range_server_revision_is_ignored(self) -> None:
+        ctx = make_reconciliation_context(["persistent"], remote_cursor=5)
+
+        await process_game_context(
+            ctx,
+            {
+                "type": "game_context",
+                "checksum": 42,
+                "next_index": 0,
+                "needs_cursor": True,
+                "snapshot_known": False,
+                "persistent_items": [],
+            },
+        )
+
+        ctx.persist_revision.assert_called_once_with(42, 0)
+        response = ctx.send_plugin.await_args.args[0]
+        self.assertEqual(response["next_index"], 0)
+        self.assertEqual(response["persistent_items"], [])
+
+    async def test_local_revision_wins_over_server_revision(self) -> None:
+        ctx = make_reconciliation_context(
+            ["persistent", "ordinary"], stored_cursor=2, remote_cursor=1
+        )
+
+        await process_game_context(
+            ctx,
+            {
+                "type": "game_context",
+                "checksum": 42,
+                "next_index": 0,
+                "needs_cursor": True,
+                "snapshot_known": False,
+                "persistent_items": [],
+            },
+        )
+
+        ctx.remote_revision_cursor.assert_not_called()
+        self.assertEqual(ctx.send_plugin.await_args.args[0]["next_index"], 2)
+
     async def test_active_context_acknowledgement_starts_delivery(self) -> None:
         ctx = make_reconciliation_context([])
 
@@ -585,6 +682,86 @@ class TestRevisionPersistence(unittest.TestCase):
                     ctx.persist_revision(42, 3)
 
             self.assertEqual(ctx.ledger, {"version": 1, "sessions": {}})
+
+
+class TestRemoteRevisions(unittest.IsolatedAsyncioTestCase):
+    async def test_persisted_revision_is_mirrored_to_data_storage(self) -> None:
+        with TemporaryDirectory() as directory:
+            ctx = make_remote_context(directory)
+            ctx.remote_revisions = {}
+
+            ctx.persist_revision(42, 3)
+            await asyncio.sleep(0)
+
+            ctx.send_msgs.assert_awaited_once_with(
+                [
+                    {
+                        "cmd": "Set",
+                        "key": "saints_row_2_revisions_v1_0_1",
+                        "default": {},
+                        "want_reply": False,
+                        "operations": [
+                            {"operation": "update", "value": {"0000002A": 3}}
+                        ],
+                    }
+                ]
+            )
+
+    async def test_no_data_storage_write_while_disconnected(self) -> None:
+        with TemporaryDirectory() as directory:
+            ctx = make_remote_context(directory, connected=False)
+            ctx.remote_revisions = {}
+
+            ctx.persist_revision(42, 3)
+            await asyncio.sleep(0)
+
+            ctx.send_msgs.assert_not_awaited()
+            self.assertEqual(ctx.stored_revision_cursor(42), 3)
+
+    async def test_no_data_storage_write_before_retrieval(self) -> None:
+        with TemporaryDirectory() as directory:
+            ctx = make_remote_context(directory)
+
+            ctx.persist_revision(42, 3)
+            await asyncio.sleep(0)
+
+            ctx.send_msgs.assert_not_awaited()
+
+    async def test_retrieval_pushes_only_missing_local_revisions(self) -> None:
+        with TemporaryDirectory() as directory:
+            ctx = make_remote_context(directory)
+            ctx.ledger["sessions"]["seed|0|1"] = {
+                "revisions": {"00000001": 1, "00000002": 2, "00000003": 3}
+            }
+
+            ctx.load_remote_revisions({"00000001": 1, "00000002": 5})
+            await asyncio.sleep(0)
+
+            operations = ctx.send_msgs.await_args.args[0][0]["operations"]
+            self.assertEqual(
+                operations, [{"operation": "update", "value": {"00000003": 3}}]
+            )
+            self.assertEqual(ctx.remote_revision_cursor(2), 5)
+            self.assertEqual(ctx.stored_revision_cursor(2), 2)
+
+    async def test_malformed_server_revisions_are_dropped(self) -> None:
+        with TemporaryDirectory() as directory:
+            ctx = make_remote_context(directory)
+
+            ctx.load_remote_revisions(
+                {"0000002A": 3, "2a": 1, "0000002B": -1, "0000002C": True, "0000002D": "4"}
+            )
+
+            self.assertEqual(ctx.remote_revisions, {"0000002A": 3})
+
+    async def test_non_dict_server_value_is_treated_as_empty(self) -> None:
+        with TemporaryDirectory() as directory:
+            ctx = make_remote_context(directory)
+
+            ctx.load_remote_revisions(None)
+
+            self.assertEqual(ctx.remote_revisions, {})
+            self.assertIsNone(ctx.remote_revision_cursor(42))
 
 
 class TestSaveRevision(unittest.IsolatedAsyncioTestCase):

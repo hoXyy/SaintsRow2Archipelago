@@ -7,6 +7,7 @@ import copy
 import json
 import os
 import pkgutil
+import re
 from pathlib import Path
 from typing import Any
 
@@ -158,6 +159,7 @@ class SR2Context(SuperContext):
         self.bridge_event = asyncio.Event()
         self.ledger_path = Path(user_path("saints_row_2", "item_ledger.json"))
         self.ledger = self._load_ledger()
+        self.remote_revisions: dict[str, int] | None = None
 
     def make_gui(self):
         base_manager = super().make_gui()
@@ -204,6 +206,13 @@ class SR2Context(SuperContext):
         elif cmd == "Connected":
             self.slot_data = args.get("slot_data")
             self.inventory_synced = True
+            self.remote_revisions = None
+            asyncio.create_task(
+                self.send_msgs([{"cmd": "Get", "keys": [self.remote_revisions_key()]}])
+            )
+            self.bridge_event.set()
+        elif cmd == "Retrieved" and self.remote_revisions_key() in args["keys"]:
+            self.load_remote_revisions(args["keys"][self.remote_revisions_key()])
             self.bridge_event.set()
         elif cmd == "ReceivedItems":
             start_index = int(args["index"])
@@ -242,6 +251,7 @@ class SR2Context(SuperContext):
         self.inventory_synced = False
         self.slot_data = None
         self.live_cursor = None
+        self.remote_revisions = None
         await super().connection_closed()
 
     async def send_plugin(self, message: dict[str, Any]) -> bool:
@@ -292,6 +302,65 @@ class SR2Context(SuperContext):
                 pass
             raise
         self.ledger = updated
+        self.push_remote_revisions({f"{checksum:08X}": next_index})
+
+    def remote_revisions_key(self) -> str:
+        return f"saints_row_2_revisions_v1_{self.team}_{self.slot}"
+
+    def remote_revision_cursor(self, checksum: int) -> int | None:
+        if self.remote_revisions is None:
+            return None
+        return self.remote_revisions.get(f"{checksum:08X}")
+
+    def load_remote_revisions(self, value: Any) -> None:
+        # Data storage is writable by every client in the room, so only
+        # well-formed entries are kept and they never override the local ledger.
+        revisions: dict[str, int] = {}
+        if isinstance(value, dict):
+            for key, cursor in value.items():
+                if (
+                    isinstance(key, str)
+                    and re.fullmatch(r"[0-9A-F]{8}", key)
+                    and type(cursor) is int
+                    and cursor >= 0
+                ):
+                    revisions[key] = cursor
+        self.remote_revisions = revisions
+
+        session = self.ledger.get("sessions", {}).get(self.session_key(), {})
+        local = {key: int(cursor) for key, cursor in session.get("revisions", {}).items()}
+        for key, cursor in local.items():
+            if key in revisions and revisions[key] != cursor:
+                logger.warning(
+                    f"Server save revision for checksum={key} disagrees with the local "
+                    f"ledger (server={revisions[key]} local={cursor}); keeping local"
+                )
+        self.push_remote_revisions(local)
+
+    def push_remote_revisions(self, revisions: dict[str, int]) -> None:
+        if self.remote_revisions is None or not (self.server and self.server.socket):
+            return
+        missing = {
+            key: cursor
+            for key, cursor in revisions.items()
+            if key not in self.remote_revisions
+        }
+        if not missing:
+            return
+        self.remote_revisions.update(missing)
+        asyncio.create_task(
+            self.send_msgs(
+                [
+                    {
+                        "cmd": "Set",
+                        "key": self.remote_revisions_key(),
+                        "default": {},
+                        "want_reply": False,
+                        "operations": [{"operation": "update", "value": missing}],
+                    }
+                ]
+            )
+        )
 
     def _load_ledger(self) -> dict[str, Any]:
         try:
@@ -310,6 +379,7 @@ async def send_session_ready(ctx: SR2Context) -> None:
         or not ctx.plugin_hello
         or not ctx.inventory_synced
         or ctx.slot_data is None
+        or ctx.remote_revisions is None
         or ctx.seed_name is None
         or ctx.team is None
         or ctx.slot is None
@@ -447,8 +517,16 @@ async def process_game_context(ctx: SR2Context, message: dict[str, Any]) -> None
                 )
                 return
             if client_cursor is None:
-                next_index = 0
-                plugin_items = []
+                # Neither local copy knows this save; the server mirror is the last resort.
+                remote_cursor = ctx.remote_revision_cursor(checksum)
+                if remote_cursor is not None and remote_cursor > len(ctx.items_received):
+                    logger.warning(
+                        f"Ignored server save revision cursor checksum={checksum:08X} "
+                        f"next_index={remote_cursor}"
+                    )
+                    remote_cursor = None
+                next_index = 0 if remote_cursor is None else remote_cursor
+                plugin_items = persistent_items_for_cursor(ctx, next_index)
                 try:
                     ctx.persist_revision(checksum, next_index)
                 except OSError as error:
@@ -457,6 +535,11 @@ async def process_game_context(ctx: SR2Context, message: dict[str, Any]) -> None
                         f"checksum={checksum:08X}: {error}"
                     )
                     return
+                if remote_cursor is not None:
+                    logger.info(
+                        f"Recovered save revision from the server checksum={checksum:08X} "
+                        f"next_index={next_index}"
+                    )
                 plugin_known = True
             else:
                 next_index = client_cursor
