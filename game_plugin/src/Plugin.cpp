@@ -8,6 +8,7 @@
 #include "game/MenuVersionOverlay.hpp"
 #include "game/ModuleInfo.hpp"
 #include "game/SaveRevisionMonitor.hpp"
+#include "game/TextRenderer.hpp"
 #include "progression/ProgressionMonitor.hpp"
 #include "runtime/SessionRuntime.hpp"
 #include "util/Config.hpp"
@@ -77,14 +78,16 @@ DWORD WINAPI PluginThread(void* parameter) {
             LogInfo("Plugin", "Supported executable found.");
         }
 
-        MenuVersionOverlay menuOverlay;
+        TextRenderer textRenderer;
         if (gameSupported) {
-            if (menuOverlay.Install()) {
-                LogInfo("MenuOverlay", "Menu version text installed");
+            if (textRenderer.Install()) {
+                LogInfo("TextRenderer", "On-screen text installed");
             } else {
-                LogWarning("MenuOverlay", "Menu version text unavailable");
+                LogWarning("TextRenderer", "On-screen text unavailable");
             }
         }
+        MenuVersionOverlay menuOverlay{textRenderer};
+        menuOverlay.Install();
         const bool showConnection = config.enabled && config.networkEnabled;
         if (!showConnection) {
             menuOverlay.SetConnectionStatus(ConnectionStatus::Disabled);
@@ -172,6 +175,7 @@ DWORD WINAPI PluginThread(void* parameter) {
         session.Shutdown();
         saveRevisions.Remove();
         menuOverlay.Remove();
+        textRenderer.Remove();
         log::Shutdown();
     } catch (const std::exception& error) {
         LogCritical(
