@@ -2203,18 +2203,9 @@ Main_menu_top = {
 	current_selection = 0,
 }
 
-Main_menu_sr2ap_info = {
-	header_label_str = "SR2AP_MAIN_MENU_LABEL",
-	num_items = 2,
-	on_map = main_menu_restore,
-	on_back = main_menu_restore,
-
-	[0] = { label = "SR2AP_MAIN_MENU_SEED_LABEL", type = MENU_ITEM_TYPE_SELECTABLE },
-	[1] = { label = "SR2AP_MAIN_MENU_PLAYER_LABEL", type = MENU_ITEM_TYPE_SELECTABLE },
-}
 
 Main_menu_master = {
-	num_items = 6,
+	num_items = 5,
 
 	[0] = { label = "MAINMENU_CONTINUE", 		type = MENU_ITEM_TYPE_SELECTABLE,	on_select = main_menu_continue_select	},
 	[1] = { label = "MAINMENU_NEW",				type = MENU_ITEM_TYPE_SELECTABLE,	on_select = main_menu_new_game_select	},
@@ -2222,10 +2213,9 @@ Main_menu_master = {
 	--[3] = { label = "MAINMENU_COOP", 			type = MENU_ITEM_TYPE_SELECTABLE	},	
 	--[4] = { label = "MAINMENU_MULTI",			type = MENU_ITEM_TYPE_SELECTABLE	}, 
 	[3] = { label = "MAINMENU_OPTIONS", 		type = MENU_ITEM_TYPE_SUB_MENU,		sub_menu = Pause_options_menu	}, 
-	[4] = { label = "SR2AP_MAIN_MENU_LABEL",			type = MENU_ITEM_TYPE_SUB_MENU,  sub_menu = Main_menu_sr2ap_info		},
 	--[6] = { label = "MAINMENU_EXTRAS",			type = MENU_ITEM_TYPE_SUB_MENU,		sub_menu = Main_menu_extras	}, 
 	-- PC
-	[5] = { label = "MAINMENU_EXIT",			type = MENU_ITEM_TYPE_SUB_MENU,		on_select = main_menu_exit_game_pc	}, 
+	[4] = { label = "MAINMENU_EXIT",			type = MENU_ITEM_TYPE_SUB_MENU,		on_select = main_menu_exit_game_pc	}, 
 }
 
 function multi_menu_log_restore()
