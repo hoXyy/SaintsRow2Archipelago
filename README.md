@@ -75,13 +75,14 @@ With everything installed correctly, you should see a new option instead of the 
 
 The room info will not be available without installing the room-specific game files.
 
-### Extra instruction for Linux users
-
-You need to add an extra environment variable, the way to do it depends fully on how you launch the game. As an example, for Steam you'd add this to the game's launch options:
-
+> [!IMPORTANT]
+> ### Extra instruction for Linux users
+>
+> You need to add an extra environment variable, the way to do it depends fully on how you launch the game. As an example, for Steam you'd add this to the game's launch options:
+>
 > WINEDLLOVERRIDES=dinput8=n,b %command%
-
-Replace `dinput8` with the DLL name you use for your ASI loader if it's different.
+>
+> Replace `dinput8` with the DLL name you use for your ASI loader if it's different.
 
 ### Installing multiworld room game files
 
