@@ -56,7 +56,7 @@ from .missions import (
 )
 from .items import BONUS_RESPECT_ITEM_NAME, ITEM_NAME_TO_ID, RESPECT_ITEM_NAME
 
-PROTOCOL_VERSION = 5
+PROTOCOL_VERSION = 6
 SLOT_DATA_PROTOCOL_VERSION = 4
 DEFAULT_PLUGIN_PORT = 38282
 RETRY_SECONDS = 1.0
@@ -213,6 +213,22 @@ class SR2Context(SuperContext):
                 or start_index + received_count == len(self.items_received)
             )
             self.bridge_event.set()
+        elif cmd == "PrintJSON" and args.get("type") == "ItemSend":
+            item = args["item"]
+            receiving = args["receiving"]
+            if item.player == self.slot and receiving != self.slot:
+                asyncio.create_task(
+                    self.send_plugin(
+                        {
+                            "type": "item_sent",
+                            "item": self.item_names.lookup_in_slot(
+                                item.item, receiving
+                            ),
+                            "receiver": self.player_names[receiving],
+                            "flags": item.flags,
+                        }
+                    )
+                )
 
     async def server_auth(self, password_requested: bool = False) -> None:
         if password_requested and not self.password:
@@ -615,10 +631,16 @@ async def bridge_watcher(ctx: SR2Context) -> None:
             generation = ctx.context_generation
             item = ctx.items_received[index]
             name = ctx.item_names.lookup_in_game(item.item, ctx.game)
+            message = {
+                "type": "item",
+                "index": index,
+                "name": name,
+                "flags": item.flags,
+            }
+            if item.player != ctx.slot:
+                message["sender"] = ctx.player_names[item.player]
             ctx.pending_ack = asyncio.get_running_loop().create_future()
-            if not await ctx.send_plugin(
-                {"type": "item", "index": index, "name": name}
-            ):
+            if not await ctx.send_plugin(message):
                 break
             try:
                 ack_index, accepted = await asyncio.wait_for(
