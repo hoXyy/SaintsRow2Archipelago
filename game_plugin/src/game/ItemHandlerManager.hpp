@@ -12,7 +12,7 @@ namespace sr2ap {
 
 class ItemHandlerManager {
    public:
-    ItemHandlerManager() = default;
+    explicit ItemHandlerManager(GameThreadDispatcher& dispatcher);
     ~ItemHandlerManager();
 
     ItemHandlerManager(const ItemHandlerManager&) = delete;
@@ -30,7 +30,7 @@ class ItemHandlerManager {
     void Remove();
 
    private:
-    GameThreadDispatcher dispatcher_;
+    GameThreadDispatcher& dispatcher_;
     RespectController respectController_;
     ItemHandlers handlers_;
     bool installed_{};

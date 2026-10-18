@@ -5,11 +5,14 @@
 #include <atomic>
 
 #include "game/GameState.hpp"
+#include "game/GameThreadDispatcher.hpp"
+#include "game/HudNotifications.hpp"
 #include "game/MenuVersionOverlay.hpp"
 #include "game/ModuleInfo.hpp"
 #include "game/SaveRevisionMonitor.hpp"
 #include "game/TextRenderer.hpp"
 #include "progression/ProgressionMonitor.hpp"
+#include "runtime/ItemNotifications.hpp"
 #include "runtime/SessionRuntime.hpp"
 #include "util/Config.hpp"
 #include "util/Helpers.hpp"
@@ -78,6 +81,13 @@ DWORD WINAPI PluginThread(void* parameter) {
             LogInfo("Plugin", "Supported executable found.");
         }
 
+        GameThreadDispatcher dispatcher;
+        if (gameSupported && !dispatcher.Install()) {
+            LogWarning("Plugin",
+                       "Game-thread dispatch unavailable; AP item delivery "
+                       "and notifications disabled");
+        }
+
         TextRenderer textRenderer;
         if (gameSupported) {
             if (textRenderer.Install()) {
@@ -88,6 +98,10 @@ DWORD WINAPI PluginThread(void* parameter) {
         }
         MenuVersionOverlay menuOverlay{textRenderer};
         menuOverlay.Install();
+        HudNotifications notifications{dispatcher};
+        if (gameSupported && !notifications.Install()) {
+            LogWarning("Notifications", "HUD notifications unavailable");
+        }
         const bool showConnection = config.enabled && config.networkEnabled;
         if (!showConnection) {
             menuOverlay.SetConnectionStatus(ConnectionStatus::Disabled);
@@ -96,7 +110,7 @@ DWORD WINAPI PluginThread(void* parameter) {
         const auto game = InspectSupportedGameModule();
         SessionRuntime session{
             gameSupported, pluginDirectory / L"SR2ArchipelagoRevisions.json",
-            game};
+            game, dispatcher};
         SaveRevisionMonitor saveRevisions;
         const bool saveRevisionInstalled =
             session.InstallSaveMonitoring(saveRevisions, config.enabled);
@@ -162,6 +176,12 @@ DWORD WINAPI PluginThread(void* parameter) {
             }
 
             session.PollNetwork(gameContext);
+            while (const auto notification = session.NextNotification()) {
+                if (const auto text = FormatItemNotification(*notification)) {
+                    notifications.Post(*text);
+                }
+            }
+            notifications.Update();
             if (showConnection) {
                 menuOverlay.SetConnectionStatus(
                     ToConnectionStatus(session.ClientConnectionState()));
@@ -174,8 +194,10 @@ DWORD WINAPI PluginThread(void* parameter) {
         LogInfo("Plugin", "SR2Archipelago shutting down");
         session.Shutdown();
         saveRevisions.Remove();
+        notifications.Remove();
         menuOverlay.Remove();
         textRenderer.Remove();
+        dispatcher.Remove();
         log::Shutdown();
     } catch (const std::exception& error) {
         LogCritical(

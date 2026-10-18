@@ -5,6 +5,10 @@
 
 namespace sr2ap {
 
+ItemHandlerManager::ItemHandlerManager(GameThreadDispatcher& dispatcher)
+    : dispatcher_{dispatcher} {
+}
+
 ItemHandlerManager::~ItemHandlerManager() {
     Remove();
 }
@@ -16,7 +20,7 @@ bool ItemHandlerManager::Install(ItemHandlerConfiguration configuration,
         return false;
     }
 
-    if (!dispatcher_.Install()) {
+    if (!dispatcher_.IsInstalled()) {
         return false;
     }
 
@@ -65,7 +69,7 @@ void ItemHandlerManager::Update() const {
 }
 
 void ItemHandlerManager::Remove() {
-    dispatcher_.Remove();
+    dispatcher_.CancelPending();
     for (auto& handler : std::views::reverse(handlers_)) {
         handler->Remove();
     }

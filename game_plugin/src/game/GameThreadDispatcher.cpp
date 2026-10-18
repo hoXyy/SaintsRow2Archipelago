@@ -74,9 +74,19 @@ struct GameThreadDispatcher::Implementation {
             Deactivate();
         }
 
+        // A batch started before the hook was disabled may still be running.
+        std::lock_guard<std::mutex> drainLock(drainMutex);
         std::lock_guard<std::mutex> lock(pendingMutex);
         pendingTasks.clear();
         installed = false;
+    }
+
+    void CancelPending() {
+        {
+            std::lock_guard<std::mutex> lock(pendingMutex);
+            pendingTasks.clear();
+        }
+        std::lock_guard<std::mutex> drainLock(drainMutex);
     }
 
     bool Dispatch(Task task) {
@@ -101,6 +111,7 @@ struct GameThreadDispatcher::Implementation {
     }
 
     void DrainPendingTasks() {
+        std::lock_guard<std::mutex> drainLock(drainMutex);
         std::vector<Task> tasks;
         {
             std::lock_guard<std::mutex> lock(pendingMutex);
@@ -120,6 +131,8 @@ struct GameThreadDispatcher::Implementation {
 
     safetyhook::MidHook frameHook;
     std::mutex pendingMutex;
+    // Held while a batch runs; tasks may Dispatch more (pendingMutex only).
+    std::mutex drainMutex;
     std::vector<Task> pendingTasks;
     bool installed{};
     inline static std::atomic<Implementation*> active{};
@@ -147,6 +160,16 @@ bool GameThreadDispatcher::Install() {
 
 void GameThreadDispatcher::Remove() {
     implementation_.reset();
+}
+
+bool GameThreadDispatcher::IsInstalled() const noexcept {
+    return implementation_ != nullptr;
+}
+
+void GameThreadDispatcher::CancelPending() {
+    if (implementation_) {
+        implementation_->CancelPending();
+    }
 }
 
 bool GameThreadDispatcher::Dispatch(Task task) {

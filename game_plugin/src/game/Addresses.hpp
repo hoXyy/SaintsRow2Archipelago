@@ -140,8 +140,15 @@ inline constexpr std::ptrdiff_t kMainMenuFlagRva = 0x02127B75;
 inline constexpr std::ptrdiff_t kMainMenuShownRva = 0x00A8D56B;
 inline constexpr std::ptrdiff_t kWidescreenFlagRva = 0x021272DD;
 inline constexpr std::ptrdiff_t kAspectRatioRva = 0x01EFD8EC;
-// Game state pushed over gameplay (5) for the pause menu, phone and map.
+// Top game state while playing, with the gameplay HUD loaded.
+inline constexpr std::uint32_t kGameplayGameState = 5;
+// Game state pushed over gameplay for the pause menu, phone and map.
 inline constexpr std::uint32_t kInGameMenuGameState = 6;
+
+// Runs a Lua string in the UI (vint) Lua state: code in EAX, state in ESI.
+// Same call as Juiced's General::VintExecute.
+inline constexpr std::ptrdiff_t kVintLuaExecuteRva = 0x008DA000;
+inline constexpr std::ptrdiff_t kVintLuaStateRva = 0x0212A1B8;
 
 // Tags.
 inline constexpr std::ptrdiff_t kTagSpotHeadRva = 0x023A3FB4;

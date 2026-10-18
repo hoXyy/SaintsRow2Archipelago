@@ -24,13 +24,15 @@ std::vector<std::string> Strings(const ::rust::Vec<::rust::String>& values) {
 
 SessionRuntime::SessionRuntime(bool gameSupported,
                                const std::filesystem::path& path,
-                               const ModuleInfo* game)
+                               const ModuleInfo* game,
+                               GameThreadDispatcher& dispatcher)
     : events_{std::make_shared<GameEventQueue>(
           [game] { return ReadGameContext(game).IsInteractive(); })},
       session_{rust::session_new(
           gameSupported,
           {reinterpret_cast<const std::uint16_t*>(path.native().data()),
            path.native().size()})},
+      itemHandlers_{dispatcher},
       gameSupported_{gameSupported} {
 }
 
@@ -185,6 +187,14 @@ bool SessionRuntime::CommunicationsActive() const noexcept {
 
 rust::ConnectionState SessionRuntime::ClientConnectionState() const noexcept {
     return rust::session_connection_state(*session_);
+}
+
+std::optional<rust::SessionNotification> SessionRuntime::NextNotification() {
+    auto notification = rust::session_next_notification(*session_);
+    if (notification.kind == rust::NotificationKind::None) {
+        return std::nullopt;
+    }
+    return notification;
 }
 
 void SessionRuntime::UpdateItemHandlers() {

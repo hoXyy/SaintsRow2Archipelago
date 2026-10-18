@@ -176,6 +176,7 @@ if (WIN32)
             src/dllmain.cpp
             src/Plugin.cpp
             src/runtime/SessionRuntime.cpp
+            src/runtime/ItemNotifications.cpp
             src/util/Logger.cpp
             src/util/Config.cpp
             src/util/AtomicFile.cpp
@@ -184,8 +185,10 @@ if (WIN32)
             src/game/BytePatch.cpp
             src/game/GameState.cpp
             src/game/GameThreadDispatcher.cpp
+            src/game/GameStateStack.cpp
             src/game/MenuVersionOverlay.cpp
             src/game/TextRenderer.cpp
+            src/game/HudNotifications.cpp
             src/game/ItemHandlerManager.cpp
             src/game/ItemHandlerRegistry.cpp
             src/progression/ProgressionMonitor.cpp
