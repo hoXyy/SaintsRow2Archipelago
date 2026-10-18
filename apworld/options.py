@@ -94,7 +94,7 @@ class IncludeSecretMissionAsGoal(Toggle):
     """
     Whether to include the Ultor mission 'Revelation' as part of the completion goal.
 
-    NOTE: Requires having the option to add the mission as a location enabled.
+    NOTE: Enabling this also adds the mission as a location.
     """
 
     display_name = (
@@ -107,7 +107,7 @@ class IncludeStilwaterCavernsAsGoal(Toggle):
     """
     Whether to include the Stilwater Caverns Saints stronghold as part of the completion goal.
 
-    NOTE: Requires having the option to add the stronghold as a location enabled.
+    NOTE: Enabling this also adds the stronghold as a location.
     """
 
     display_name = "Include Stilwater Caverns stronghold in the completion goal"
