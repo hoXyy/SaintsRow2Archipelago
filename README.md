@@ -71,7 +71,7 @@ mods/sr2ap_seed_files
 7. In the Archipelago Launcher, open the `Saints Row 2 Client` and connect to your room.
 8. Launch Saints Row 2, the AP client should show a message that the game integration plugin connected successfully.
 
-With everything installed correctly, you should see a new option instead of the Credits in the main menu:
+With everything installed correctly, you should see a new option instead of the Credits in the main menu alongside the version number and connection status in the bottom left:
 ![correctly modified main menu](.github/readme_imgs/ap_main_menu.jpg) 
 
 The room info will not be available without installing the room-specific game files.
