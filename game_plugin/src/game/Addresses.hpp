@@ -122,7 +122,7 @@ inline constexpr std::ptrdiff_t kCurrentGameplayInstanceRva = 0x023B3C60;
 // Race records.
 inline constexpr std::size_t kRacingRecordStartTriggerOffset = 0x18;
 
-// Menu text overlay stuff.
+// On-screen text (TextRenderer).
 inline constexpr std::ptrdiff_t kMenuTextFlushRva = 0x0035B270;
 inline constexpr std::ptrdiff_t kStateDispatcherFlushReturnRva = 0x002974E8;
 inline constexpr std::ptrdiff_t kGameStateStackRva = 0x0104E760;

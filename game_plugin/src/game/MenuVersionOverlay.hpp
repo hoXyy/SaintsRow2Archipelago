@@ -1,7 +1,11 @@
 #pragma once
 
+#include <atomic>
 #include <cstdint>
-#include <memory>
+#include <optional>
+#include <string>
+
+#include "TextRenderer.hpp"
 
 namespace sr2ap {
 
@@ -16,7 +20,7 @@ enum class ConnectionStatus : std::uint8_t {
 // and the pause menu.
 class MenuVersionOverlay {
    public:
-    MenuVersionOverlay();
+    explicit MenuVersionOverlay(TextRenderer& renderer);
     ~MenuVersionOverlay();
 
     MenuVersionOverlay(const MenuVersionOverlay&) = delete;
@@ -24,13 +28,17 @@ class MenuVersionOverlay {
     MenuVersionOverlay(MenuVersionOverlay&&) = delete;
     MenuVersionOverlay& operator=(MenuVersionOverlay&&) = delete;
 
-    bool Install();
+    void Install();
     void Remove();
     void SetConnectionStatus(ConnectionStatus status) noexcept;
 
    private:
-    struct Implementation;
-    std::unique_ptr<Implementation> implementation_;
+    void Draw(const TextCanvas& canvas, const TextFrame& frame) const;
+
+    TextRenderer& renderer_;
+    std::optional<TextRenderer::CallbackId> callbackId_;
+    std::string versionText_;
+    std::atomic<ConnectionStatus> status_{ConnectionStatus::Disconnected};
 };
 
 }  // namespace sr2ap
