@@ -35,15 +35,27 @@ struct StatusLine {
 };
 
 constexpr std::string_view kVersionPrefix = "SR2AP ";
-constexpr TextColor kVersionColor{160, 160, 160, 128};
+constexpr TextColor kVersionColor{160, 160, 160, 255};
 constexpr std::array<StatusLine, 4> kStatusLines{{
     {"Status: Client disabled", {160, 160, 160, 128}},
-    {"Status: Not connected", {220, 80, 80, 160}},
-    {"Status: Waiting for session", {230, 200, 80, 160}},
-    {"Status: Connected", {110, 210, 110, 160}},
+    {"Status: Not connected", {220, 80, 80, 255}},
+    {"Status: Waiting for session", {230, 200, 80, 255}},
+    {"Status: Connected", {110, 210, 110, 255}},
 }};
 
 constexpr float kTextScale = 0.6f;
+constexpr TextColor kOutlineColor{0, 0, 0, 160};
+constexpr int kOutlineThickness = 1;
+constexpr std::array<std::array<int, 2>, 8> kOutlineOffsets{{
+    {-1, -1},
+    {0, -1},
+    {1, -1},
+    {-1, 0},
+    {1, 0},
+    {-1, 1},
+    {0, 1},
+    {1, 1},
+}};
 constexpr int kLineHeight = 17;
 // Used for both the main menu and the in-game menu. On ultrawide screens, x
 // in the right half of the 1280-wide layout moves with the right edge.
@@ -226,9 +238,19 @@ struct MenuVersionOverlay::Implementation {
 
     void DrawText(const char* text, const TextColor& color, const int font,
                   const int x, const int y) const {
+        SetTextColor(kOutlineColor);
+        for (const auto& [dx, dy] : kOutlineOffsets) {
+            CallPrintText(printTextAddress, text, font,
+                          x + dx * kOutlineThickness,
+                          y + dy * kOutlineThickness, kTextScale);
+        }
+        SetTextColor(color);
+        CallPrintText(printTextAddress, text, font, x, y, kTextScale);
+    }
+
+    void SetTextColor(const TextColor& color) const {
         reinterpret_cast<SetTextColorFunction>(setTextColorAddress)(
             color.red, color.green, color.blue, color.alpha);
-        CallPrintText(printTextAddress, text, font, x, y, kTextScale);
     }
 
     // Text in ESI, font in EDI, then x, y and scale on the stack; the caller
