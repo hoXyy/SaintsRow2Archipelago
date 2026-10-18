@@ -60,18 +60,17 @@ Make sure Juiced Patch is installed and working before installing the Archipelag
 
 1. Download `SR2Archipelago.zip` and `saints_row_2.apworld` from the `Releases` tab.
 2. Open the Archipelago client, and use the `Install APWorld` option to install the .apworld file you downloaded.
-3. Follow your chosen's ASI loader install instructions (when using the Ultimate ASI Loader use `dinput8.dll` as the DLL name of choice).
-4. Extract the `scripts` and `Mods` folders along with `dinput8.dll` from `SR2Archipelago.zip` into the game folder (same folder that includes `SR2_pc.exe`).
-5. Add the following line to the end of `loose.txt`:
+3. Extract the `scripts` and `Mods` folders along with `dinput8.dll` from `SR2Archipelago.zip` into the game folder (same folder that includes `SR2_pc.exe`).
+4. Add the following line to the end of `loose.txt`:
 ```
 mods/sr2ap_core_files
 mods/sr2ap_seed_files
 ```
-6. Generate your settings YAML using the Archipelago launcher's `Options Creator` and generate the world.
-7. In the Archipelago Launcher, open the `Saints Row 2 Client` and connect to your room.
-8. Launch Saints Row 2, the AP client should show a message that the game integration plugin connected successfully.
+5. Generate your settings YAML using the Archipelago launcher's `Options Creator` and generate the world.
+6. In the Archipelago Launcher, open the `Saints Row 2 Client` and connect to your room.
+7. Launch Saints Row 2, the AP client should show a message that the game integration plugin connected successfully.
 
-With everything installed correctly, you should see a new option instead of the Credits in the main menu:
+With everything installed correctly, you should see a new option instead of the Credits in the main menu alongside the version number and connection status in the bottom left:
 ![correctly modified main menu](.github/readme_imgs/ap_main_menu.jpg) 
 
 The room info will not be available without installing the room-specific game files.

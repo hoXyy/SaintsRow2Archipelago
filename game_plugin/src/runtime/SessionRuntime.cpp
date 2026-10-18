@@ -183,6 +183,10 @@ bool SessionRuntime::CommunicationsActive() const noexcept {
     return rust::session_active(*session_);
 }
 
+rust::ConnectionState SessionRuntime::ClientConnectionState() const noexcept {
+    return rust::session_connection_state(*session_);
+}
+
 void SessionRuntime::UpdateItemHandlers() {
     itemHandlers_.Update();
 }

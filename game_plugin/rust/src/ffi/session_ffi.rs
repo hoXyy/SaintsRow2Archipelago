@@ -1,4 +1,4 @@
-use crate::session::{GameplayRequest, SessionRuntime};
+use crate::session::{ConnectionState, GameplayRequest, SessionRuntime};
 use std::{ffi::OsString, os::windows::ffi::OsStringExt, path::PathBuf};
 
 #[cxx::bridge(namespace = "sr2ap::rust")]
@@ -9,6 +9,11 @@ pub(crate) mod bridge {
         ResetPersistentItems,
         ReplayPersistentItem,
         ActivateItem,
+    }
+    enum ConnectionState {
+        Disconnected,
+        WaitingForSession,
+        Active,
     }
     struct SessionRequest {
         kind: GameplayRequestKind,
@@ -44,6 +49,7 @@ pub(crate) mod bridge {
             current: u32,
         ) -> Result<()>;
         fn session_active(session: &SessionRuntime) -> bool;
+        fn session_connection_state(session: &SessionRuntime) -> ConnectionState;
         fn session_shutdown(session: &mut SessionRuntime);
     }
 }
@@ -133,6 +139,13 @@ fn session_progression(
 }
 fn session_active(session: &SessionRuntime) -> bool {
     session.communications_active()
+}
+fn session_connection_state(session: &SessionRuntime) -> bridge::ConnectionState {
+    match session.connection_state() {
+        ConnectionState::Disconnected => bridge::ConnectionState::Disconnected,
+        ConnectionState::WaitingForSession => bridge::ConnectionState::WaitingForSession,
+        ConnectionState::Active => bridge::ConnectionState::Active,
+    }
 }
 fn session_shutdown(session: &mut SessionRuntime) {
     session.shutdown();
