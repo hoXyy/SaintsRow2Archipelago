@@ -44,23 +44,6 @@ ARC_INTRO_CHAIN_MISSIONS = {
 
 NO_PREREQUISITES_LOCKED_FLAG = "No Prerequisites Locked"
 
-TEXT_LANGUAGES = [
-    "CH",
-    "CZ",
-    "DE",
-    "DK",
-    "ES",
-    "FR",
-    "IT",
-    "JP",
-    "NL",
-    "PL",
-    "RU",
-    "SE",
-    "SK",
-    "US",
-]
-
 
 class SR2PatchContainer(APPlayerContainer):
     game = "Saints Row 2"
@@ -122,11 +105,6 @@ def generate_patched_game_files(world: "SR2World", output_directory: str) -> Non
             else missions_global_file_content
         ),  # this file needs to be included even if it's unmodified in case someone has a modified version installed already
     }
-
-    for language in TEXT_LANGUAGES:
-        patch_files[f"sr2ap_seed_{language}.cxt"] = generate_main_menu_info_strings(
-            world
-        )
 
     patch = SR2PatchContainer(
         patch_files,
@@ -199,16 +177,3 @@ def generate_patched_mission_chains_file(
         mission.remove(start_nav)
 
     return XmlTree.tostring(root, encoding="unicode")
-
-
-def generate_main_menu_info_strings(world: SR2World) -> str:
-    seed = world.multiworld.seed_name
-    player_name = world.multiworld.player_name[world.player]
-
-    template_string = GAME_FILES_DIR.joinpath(
-        "templates", "ap_main_menu_info.cxt"
-    ).read_text(encoding="utf-8")
-
-    return template_string.replace("{{SEED}}", seed).replace(
-        "{{PLAYER_NAME}}", player_name
-    )
