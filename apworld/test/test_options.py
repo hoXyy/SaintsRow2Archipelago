@@ -44,12 +44,3 @@ class TestInvalidOptions(SR2TestBase):
 
         with self.assertRaisesRegex(OptionError, "enable any gang arcs"):
             self.world_setup()
-
-    def test_secret_goal_requires_secret_location(self) -> None:
-        self.options = {
-            "include_secret_mission": 0,
-            "include_secret_mission_as_goal": 1,
-        }
-
-        with self.assertRaisesRegex(OptionError, "secret mission"):
-            self.world_setup()

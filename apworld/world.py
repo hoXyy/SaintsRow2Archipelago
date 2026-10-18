@@ -89,6 +89,13 @@ class SR2World(World):
                         option.from_any(value),
                     )
 
+        # Goal-only optional missions still need to exist as locations
+        if self.options.include_secret_mission_as_goal.value == 1:
+            self.options.include_secret_mission.value = 1
+
+        if self.options.include_stilwater_caverns_as_goal.value == 1:
+            self.options.include_stilwater_caverns.value = 1
+
         enabled_gang_arcs = self.options.required_gang_arcs.value
 
         filler_weight_total = sum(
@@ -104,22 +111,6 @@ class SR2World(World):
             raise OptionError(
                 "At least one filler category weight must be greater than zero "
                 "unless Trap Chance is 100."
-            )
-
-        if (
-            self.options.include_secret_mission.value == 0
-            and self.options.include_secret_mission_as_goal.value == 1
-        ):
-            raise OptionError(
-                "You can't include the secret mission as part of the goal if it's not part of the locations."
-            )
-
-        if (
-            self.options.include_stilwater_caverns.value == 0
-            and self.options.include_stilwater_caverns_as_goal.value == 1
-        ):
-            raise OptionError(
-                "You can't include the Stilwater Caverns as part of the goal if it's not part of the locations."
             )
 
         if len(enabled_gang_arcs) == 0:

@@ -213,6 +213,25 @@ class TestStilwaterCavernsLocationDisabled(SR2TestBase):
         )
 
 
+class TestSecretMissionGoalOnly(SR2TestBase):
+    options = {"include_secret_mission": 0, "include_secret_mission_as_goal": 1}
+
+    def test_secret_mission_goal_enables_location(self) -> None:
+        self.assertEqual(self.world.options.include_secret_mission.value, 1)
+        self.world.get_location(ULTOR_SECRET_MISSION.name)
+
+
+class TestStilwaterCavernsGoalOnly(SR2TestBase):
+    options = {
+        "include_stilwater_caverns": 0,
+        "include_stilwater_caverns_as_goal": 1,
+    }
+
+    def test_stilwater_caverns_goal_enables_location(self) -> None:
+        self.assertEqual(self.world.options.include_stilwater_caverns.value, 1)
+        self.world.get_location(STILWATER_CAVERNS_STRONGHOLD.name)
+
+
 class TestEpilogueAccess(SR2TestBase):
     run_default_tests = False
     options = {"required_gang_arcs": {ULTOR_EPILOGUE_ARC_NAME}}
