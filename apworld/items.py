@@ -52,6 +52,9 @@ PLANE_RACES_UNLOCK_ITEM = "Plane Races Activity Unlock Pass"
 HELICOPTER_RACES_UNLOCK_ITEM = "Helicopter Races Activity Unlock Pass"
 BOAT_RACES_UNLOCK_ITEM = "Boat Races Activity Unlock Pass"
 
+EM01_UNLOCK_ITEM = "Dex's Phone Number"
+TSS_SH_CAVERNS_UNLOCK_ITEM = "Stilwater Caverns Stronghold Unlock"
+
 LEVEL_ACTIVITY_UNLOCK_ITEMS = [
     INSURANCE_FRAUD_UNLOCK_ITEM,
     CROWD_CONTROL_UNLOCK_ITEM,
@@ -123,6 +126,8 @@ ITEM_NAME_TO_ID = {
 DEFAULT_ITEM_CLASSIFICATION = {
     RESPECT_ITEM_NAME: ItemClassification.progression,
     BONUS_RESPECT_ITEM_NAME: ItemClassification.useful,
+    EM01_UNLOCK_ITEM: ItemClassification.progression,
+    TSS_SH_CAVERNS_UNLOCK_ITEM: ItemClassification.progression,
     **{name: ItemClassification.filler for name in MONEY_ITEM_NAMES},
     **{name: ItemClassification.filler for name in WEAPON_ITEM_NAMES},
     **{name: ItemClassification.useful for name in USEFUL_UNLOCKABLES},
@@ -217,7 +222,7 @@ def get_all_items(world: SR2World) -> None:
             f"Saints Row 2 ({world.player_name}): requires "
             f"{respect_count} progression Respect items, but the selected "
             f"options provide only {len(respect_safe_locations)} "
-            "Respect-safe locations. Enable more non-Heli activities."
+            "Respect-safe locations. Enable more activities."
         )
 
     total_respect_count = respect_count + bonus_respect_count
@@ -241,6 +246,12 @@ def get_all_items(world: SR2World) -> None:
     enabled_activity_items.remove(starting_activity_item)
 
     item_pool.extend([world.create_item(name) for name in enabled_activity_items])
+
+    if world.options.include_secret_mission.value == 1:
+        item_pool.extend([EM01_UNLOCK_ITEM])
+
+    if world.options.include_stilwater_caverns.value == 1:
+        item_pool.extend([TSS_SH_CAVERNS_UNLOCK_ITEM])
 
     available_slots = unfilled_locations_count - len(item_pool)
 
