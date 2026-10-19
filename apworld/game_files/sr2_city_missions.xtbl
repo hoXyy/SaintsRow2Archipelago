@@ -86,7 +86,7 @@
 		<Team>Playas</Team>
 		<StartNav>sr2_city_$sh_tss_caverns</StartNav>
 		<MissionStronghold>
-			<Cost>8000</Cost>
+			<Cost>0</Cost>
 			<CashReward>10000</CashReward>
 			<Start>sh_tss_caverns_start</Start>
 			<Cleanup>sh_tss_caverns_cleanup</Cleanup>
@@ -97,7 +97,6 @@
 				<Hood>sr2_ho_caverns01</Hood>
 				</Rewards>
 			<Prerequisites>
-				<Prereq>tss03</Prereq>
 				</Prerequisites>
 			<Setup>sh_tss_caverns_setup</Setup>
 			<display_group>prologue</display_group>
@@ -106,6 +105,7 @@
 			<Category>Third Street Saints (Prologue):Strongholds</Category>
 			</_Editor>
 		<Flags>
+		<Flag>No Prerequisites Locked</Flag>
 			</Flags>
 		</Mission>
 	<Mission>
@@ -2219,7 +2219,7 @@
 		<Type>Mission</Type>
 		<Team>Ultor</Team>
 		<MissionStronghold>
-			<Cost>8000</Cost>
+			<Cost>0</Cost>
 			<Start>em01_start</Start>
 			<Cleanup>em01_cleanup</Cleanup>
 			<Setup>em01_setup</Setup>

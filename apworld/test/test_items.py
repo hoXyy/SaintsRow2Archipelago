@@ -4,6 +4,8 @@ from .bases import SR2TestBase
 from ..items import (
     RESPECT_ITEM_NAME,
     BONUS_RESPECT_ITEM_NAME,
+    EM01_UNLOCK_ITEM,
+    TSS_SH_CAVERNS_UNLOCK_ITEM,
     PERSISTENT_ACTIVITY_UNLOCK_ITEMS,
     get_enabled_unlock_items_list,
 )
@@ -15,7 +17,7 @@ from ..items_list import (
     MONEY_ITEM_NAMES,
     USEFUL_UNLOCKABLES,
 )
-from ..missions import get_required_respect_count
+from ..missions import get_mission_by_key, get_required_respect_count
 from ..options import (
     RONIN_ARC_NAME,
     BROTHERHOOD_ARC_NAME,
@@ -61,6 +63,28 @@ class TestFullGameItemPool(SR2TestBase):
         for item_name in get_enabled_unlock_items_list(self.world):
             with self.subTest(item=item_name):
                 self.assertEqual(1, counts[item_name])
+
+
+class TestOptionalMissionUnlockItemPool(SR2TestBase):
+    run_default_tests = False
+    auto_construct = False
+
+    def test_unlock_item_is_generated_only_when_mission_is_included(self) -> None:
+        for option, item_name in (
+            ("include_secret_mission", EM01_UNLOCK_ITEM),
+            ("include_stilwater_caverns", TSS_SH_CAVERNS_UNLOCK_ITEM),
+        ):
+            for enabled in (0, 1):
+                with self.subTest(option=option, enabled=enabled):
+                    self.options = {option: enabled}
+                    self.world_setup()
+                    counts = Counter(
+                        item.name
+                        for item in self.multiworld.itempool
+                        if item.player == self.player
+                    )
+
+                    self.assertEqual(enabled, counts[item_name])
 
 
 class TestRoninOnlyItemPool(SR2TestBase):
@@ -193,6 +217,13 @@ class TestItemPlacementRules(SR2TestBase):
                 else:
                     self.assertFalse(location.item_rule(respect_item))
 
+    def test_unlock_items_are_forbidden_on_intro_mission(self) -> None:
+        location = self.world.get_location(get_mission_by_key("tss01").name)
+
+        for item_name in (EM01_UNLOCK_ITEM, TSS_SH_CAVERNS_UNLOCK_ITEM):
+            with self.subTest(item=item_name):
+                self.assertFalse(location.item_rule(self.world.create_item(item_name)))
+
     def test_event_locations_are_locked(self) -> None:
         for location in self.multiworld.get_locations(self.player):
             if location.address is None:
@@ -207,6 +238,12 @@ class TestItemClassification(SR2TestBase):
     def test_respect_is_progression(self) -> None:
         respect_item = self.world.create_item(RESPECT_ITEM_NAME)
         self.assertEqual(respect_item.advancement, True)
+
+    def test_optional_mission_unlock_items_are_progression(self) -> None:
+        for item_name in (EM01_UNLOCK_ITEM, TSS_SH_CAVERNS_UNLOCK_ITEM):
+            with self.subTest(item=item_name):
+                item = self.world.create_item(item_name)
+                self.assertTrue(item.advancement)
 
     def test_persistent_unlock_items_are_progression(self) -> None:
         for item_name in PERSISTENT_ACTIVITY_UNLOCK_ITEMS:

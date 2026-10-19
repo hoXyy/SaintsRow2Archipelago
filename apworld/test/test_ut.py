@@ -8,8 +8,10 @@ from .bases import SR2TestBase
 from ..client.context import calculate_ut_respect
 from ..items import (
     BONUS_RESPECT_ITEM_NAME,
+    EM01_UNLOCK_ITEM,
     ITEM_NAME_TO_ID,
     RESPECT_ITEM_NAME,
+    TSS_SH_CAVERNS_UNLOCK_ITEM,
 )
 from ..missions import (
     ALL_MISSIONS,
@@ -183,34 +185,27 @@ class TestUTMissionAccess(SR2UTTestBase):
             ).can_reach(checked_state)
         )
 
-    def test_special_missions_and_events_use_tracker_respect(self) -> None:
-        checked_locations = self.intro_checked()
+    def test_special_missions_and_events_need_unlock_item(self) -> None:
+        for mission, unlock_item in (
+            (ULTOR_SECRET_MISSION, EM01_UNLOCK_ITEM),
+            (STILWATER_CAVERNS_STRONGHOLD, TSS_SH_CAVERNS_UNLOCK_ITEM),
+        ):
+            location = self.world.get_location(mission.name)
+            event = self.world.get_location(get_mission_complete_event_name(mission))
 
-        for mission in (ULTOR_SECRET_MISSION, STILWATER_CAVERNS_STRONGHOLD):
-            available_state = self.tracker_state(
-                checked_locations,
+            locked_state = self.tracker_state(
+                self.intro_checked(),
                 received_respect=3,
             )
-            with self.subTest(mission=mission.key, status="available"):
-                self.assertTrue(
-                    self.world.get_location(mission.name).can_reach(available_state)
-                )
-                self.assertTrue(
-                    self.world.get_location(
-                        get_mission_complete_event_name(mission)
-                    ).can_reach(available_state)
-                )
+            with self.subTest(mission=mission.key, status="locked"):
+                self.assertFalse(location.can_reach(locked_state))
+                self.assertFalse(event.can_reach(locked_state))
 
-            checked_state = self.tracker_state(
-                checked_locations | {mission.id},
-                received_respect=3,
-            )
-            with self.subTest(mission=mission.key, status="checked"):
-                self.assertTrue(
-                    self.world.get_location(
-                        get_mission_complete_event_name(mission)
-                    ).can_reach(checked_state)
-                )
+            unlocked_state = self.tracker_state(set(), received_respect=0)
+            unlocked_state.collect(self.world.create_item(unlock_item))
+            with self.subTest(mission=mission.key, status="unlocked"):
+                self.assertTrue(location.can_reach(unlocked_state))
+                self.assertTrue(event.can_reach(unlocked_state))
 
 
 class TestUTSlotData(SR2TestBase):

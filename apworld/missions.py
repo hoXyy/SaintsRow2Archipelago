@@ -381,14 +381,13 @@ ULTOR_EPILOGUE_CHAIN: MissionChain = {
 }
 
 ULTOR_SECRET_MISSION = Mission(
-    id=56, key="em01", name="Ultor Secret Mission: Revelation", unlocked_by="tss04"
+    id=56, key="em01", name="Ultor Secret Mission: Revelation"
 )
 
 STILWATER_CAVERNS_STRONGHOLD = Mission(
     id=5,
     key="sh_tss_caverns",
     name="Saints Stronghold: Stilwater Caverns",
-    unlocked_by="tss03",
 )
 
 MISSION_CHAINS = [
@@ -515,9 +514,5 @@ def create_minimum_respect_table() -> dict[str, int]:
     add_chain(SAMEDI_CHAIN)
     add_chain(BROTHERHOOD_CHAIN)
     add_chain(ULTOR_EPILOGUE_CHAIN)
-
-    # special entry for Revelation and Stronghold Caverns
-    table[ULTOR_SECRET_MISSION.key] = 3
-    table[STILWATER_CAVERNS_STRONGHOLD.key] = 2
 
     return table

@@ -33,8 +33,10 @@ from .activities import (
     ACTIVITY_STARTING_ACTIVITY_ITEM_MAPPING,
 )
 from .items import (
+    EM01_UNLOCK_ITEM,
     RESPECT_ITEM_NAME,
     HITMAN_UNLOCK_ITEM,
+    TSS_SH_CAVERNS_UNLOCK_ITEM,
     get_race_unlock_item,
     CHOP_SHOP_UNLOCK_ITEM,
     LEVEL_ACTIVITY_UNLOCK_ITEMS,
@@ -91,19 +93,23 @@ def set_mission_rules(world: SR2World) -> None:
 
     # Mission access rules
 
-    for mission in (
-        ULTOR_SECRET_MISSION,
-        STILWATER_CAVERNS_STRONGHOLD,
+    for mission, unlock_item in (
+        (ULTOR_SECRET_MISSION, EM01_UNLOCK_ITEM),
+        (STILWATER_CAVERNS_STRONGHOLD, TSS_SH_CAVERNS_UNLOCK_ITEM),
     ):
-        add_mission_predecessor_rule(world, location_cache, mission)
+        if mission.name not in location_cache:
+            continue
 
-        add_mission_respect_rules(
-            world,
-            location_cache,
-            mission,
-            minimum_respect_needed_table[mission.key],
-            is_ut=is_ut,
-        )
+        def has_unlock_item(state, unlock_item=unlock_item) -> bool:
+            return state.has(unlock_item, world.player)
+
+        add_rule(world.get_location(mission.name), has_unlock_item)
+
+        if mission.creates_unlock_item:
+            add_rule(
+                world.get_location(get_mission_complete_event_name(mission)),
+                has_unlock_item,
+            )
 
     # Mark each arc finale as needing all strongholds done
     ronin_finale = get_mission_by_key("rn11")
@@ -325,7 +331,9 @@ def set_item_rules(world: SR2World):
     for mission in intro_missions:
         forbid_items(
             world.get_location(mission),
-            LEVEL_ACTIVITY_UNLOCK_ITEMS + PERSISTENT_ACTIVITY_UNLOCK_ITEMS,
+            LEVEL_ACTIVITY_UNLOCK_ITEMS
+            + PERSISTENT_ACTIVITY_UNLOCK_ITEMS
+            + [EM01_UNLOCK_ITEM, TSS_SH_CAVERNS_UNLOCK_ITEM],
         )
 
 
