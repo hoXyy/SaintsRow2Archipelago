@@ -22,10 +22,14 @@ from .missions import (
 )
 from .activities import (
     ACTIVITIES_LEVEL_BASED,
+    BIKE_RACES,
+    BOAT_RACES,
+    CAR_RACES,
     CHOP_SHOP_LISTS,
+    HELI_RACES,
     HITMAN_LISTS,
     ACTIVITY_LEVEL_IDS,
-    RACES,
+    PLANE_RACES,
     MEDAL_STRINGS,
     is_activity_enabled_in_options,
 )
@@ -190,8 +194,64 @@ def create_activities_location(world: SR2World) -> None:
                     )
                 )
 
-    if is_activity_enabled_in_options(world, "Races"):
-        for race in RACES.values():
+    if is_activity_enabled_in_options(world, "Boat Races"):
+        for race in BOAT_RACES.values():
+            for medal in MEDAL_STRINGS.values():
+                curr_key = f"{race} - {medal}"
+                region.locations.append(
+                    SR2Location(
+                        world.player,
+                        curr_key,
+                        ACTIVITY_LEVEL_IDS[curr_key],
+                        region,
+                        respect_safe=True,
+                    )
+                )
+
+    if is_activity_enabled_in_options(world, "Bike Races"):
+        for race in BIKE_RACES.values():
+            for medal in MEDAL_STRINGS.values():
+                curr_key = f"{race} - {medal}"
+                region.locations.append(
+                    SR2Location(
+                        world.player,
+                        curr_key,
+                        ACTIVITY_LEVEL_IDS[curr_key],
+                        region,
+                        respect_safe=True,
+                    )
+                )
+
+    if is_activity_enabled_in_options(world, "Car Races"):
+        for race in CAR_RACES.values():
+            for medal in MEDAL_STRINGS.values():
+                curr_key = f"{race} - {medal}"
+                region.locations.append(
+                    SR2Location(
+                        world.player,
+                        curr_key,
+                        ACTIVITY_LEVEL_IDS[curr_key],
+                        region,
+                        respect_safe=True,
+                    )
+                )
+
+    if is_activity_enabled_in_options(world, "Heli Races"):
+        for race in HELI_RACES.values():
+            for medal in MEDAL_STRINGS.values():
+                curr_key = f"{race} - {medal}"
+                region.locations.append(
+                    SR2Location(
+                        world.player,
+                        curr_key,
+                        ACTIVITY_LEVEL_IDS[curr_key],
+                        region,
+                        respect_safe=True,
+                    )
+                )
+
+    if is_activity_enabled_in_options(world, "Plane Races"):
+        for race in PLANE_RACES.values():
             for medal in MEDAL_STRINGS.values():
                 curr_key = f"{race} - {medal}"
                 region.locations.append(

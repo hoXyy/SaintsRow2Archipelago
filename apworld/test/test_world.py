@@ -66,7 +66,13 @@ class TestSlotData(SR2TestBase):
         self.assertEqual(slot_enabled_progression, expected_enabled_progression)
 
     def test_enabled_progression_no_races(self) -> None:
-        self.options = {"include_races": 0}
+        self.options = {
+            "include_bike_races": 0,
+            "include_boat_races": 0,
+            "include_car_races": 0,
+            "include_heli_races": 0,
+            "include_plane_races": 0,
+        }
         self.world_setup()
         slot_data = self.world.fill_slot_data()
         slot_enabled_progression = slot_data["enabled_progression"]
