@@ -198,7 +198,15 @@ class SR2World(World):
                 "hitman": bool(self.options.include_hitman.value),
                 "chop_shop": bool(self.options.include_chop_shop.value),
                 "cds": bool(self.options.include_cds.value),
-                "races": bool(self.options.include_races.value),
+                "races": any(
+                    (
+                        self.options.include_plane_races.value,
+                        self.options.include_heli_races.value,
+                        self.options.include_car_races.value,
+                        self.options.include_bike_races.value,
+                        self.options.include_boat_races.value,
+                    )
+                ),
                 "tags": bool(self.options.include_tags.value),
                 "style_level": self.options.style_level_location_count > 0,
             },

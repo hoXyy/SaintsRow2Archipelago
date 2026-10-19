@@ -55,8 +55,16 @@ def is_activity_enabled_in_options(world: SR2World, name: str) -> bool:
             return world.options.include_chop_shop.value == 1
         case "Hitman":
             return world.options.include_hitman.value == 1
-        case "Races":
-            return world.options.include_races.value == 1
+        case "Boat Races":
+            return world.options.include_boat_races.value == 1
+        case "Bike Races":
+            return world.options.include_bike_races.value == 1
+        case "Car Races":
+            return world.options.include_car_races.value == 1
+        case "Heli Races":
+            return world.options.include_heli_races.value == 1
+        case "Plane Races":
+            return world.options.include_plane_races.value == 1
         case _:
             return False
 
@@ -248,14 +256,25 @@ HITMAN_LISTS = {
     ],
 }
 
-RACES = {
+BIKE_RACES = {
     "bike_air": "Race (Bike, Huntersfield)",
     "bike_ht": "Race (Bike, Stilwater Boardwalk)",
     "bike_mu": "Race (Bike, Amberbrook)",
     "bike_tp": "Race (Bike, Elysian Fields)",
     "bike_un": "Race (Bike, Sunsinger)",
+}
+
+BOAT_RACES = {
     "boat_ht": "Race (Boat, Centennial Beach (Ocean))",
     "boat_pr": "Race (Boat, Hangman's Wharf (Ocean))",
+    "jetski_cv": "Race (Jetski, Stilwater Caverns)",
+    "jetski_fa": "Race (Jetski, Black Bottom (Ocean))",
+    "jetski_nu": "Race (Jetski, Stilwater Nuclear (Ocean))",
+    "jetski_pr": "Race (Jetski, Stilwater Penitentiary (Ocean))",
+    "jetski_sr": "Race (Jetski, Harrowgate (Ocean))",
+}
+
+CAR_RACES = {
     "car_air1": "Race (Car, Wardill Airport (Carpark))",
     "car_air2": "Race (Car, Wardill Airport (South Runway))",
     "car_dt": "Race (Car, Union Square)",
@@ -266,17 +285,20 @@ RACES = {
     "car_sr": "Race (Car, Mission Beach)",
     "car_sx": "Race (Car, Misty Lane)",
     "car_tp": "Race (Car, Elysian Fields)",
+}
+
+HELI_RACES = {
     "heli_dt": "Race (Helicopter, Brighton)",
     "heli_mu": "Race (Helicopter, Humbolt Park)",
     "heli_sr": "Race (Helicopter, Athos Bay)",
-    "jetski_cv": "Race (Jetski, Stilwater Caverns)",
-    "jetski_fa": "Race (Jetski, Black Bottom (Ocean))",
-    "jetski_nu": "Race (Jetski, Stilwater Nuclear (Ocean))",
-    "jetski_pr": "Race (Jetski, Stilwater Penitentiary (Ocean))",
-    "jetski_sr": "Race (Jetski, Harrowgate (Ocean))",
+}
+
+PLANE_RACES = {
     "plane_air": "Race (Plane, Wardill Airport (East Runway))",
     "plane_un": "Race (Plane, Pleasant View)",
 }
+
+RACES = {**BIKE_RACES, **BOAT_RACES, **CAR_RACES, **HELI_RACES, **PLANE_RACES}
 
 MEDAL_STRINGS = {
     "gold": "Gold Medal",

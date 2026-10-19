@@ -1,9 +1,16 @@
+from typing import TYPE_CHECKING
+
 from .bases import SR2TestBase
 from ..activities import (
     ACTIVITIES_LEVEL_BASED,
     ACTIVITY_STARTING_ACTIVITY_ITEM_MAPPING,
+    BIKE_RACES,
+    BOAT_RACES,
+    CAR_RACES,
     CHOP_SHOP_LISTS,
+    HELI_RACES,
     HITMAN_LISTS,
+    PLANE_RACES,
     RACES,
     MEDAL_STRINGS,
 )
@@ -223,7 +230,13 @@ class TestHitmanDisabled(SR2TestBase):
 
 class TestRacesDisabled(SR2TestBase):
     run_default_tests = False
-    options = {"include_races": 0}
+    options = {
+        "include_bike_races": 0,
+        "include_boat_races": 0,
+        "include_car_races": 0,
+        "include_heli_races": 0,
+        "include_plane_races": 0,
+    }
 
     def test_race_disabled(self) -> None:
         for race in RACES.values():
@@ -232,6 +245,101 @@ class TestRacesDisabled(SR2TestBase):
                     self.assertRaises(
                         KeyError, self.world.get_location, f"{race} - {medal}"
                     )
+
+
+RACE_CLASS_OPTIONS = {
+    "include_bike_races": BIKE_RACES,
+    "include_boat_races": BOAT_RACES,
+    "include_car_races": CAR_RACES,
+    "include_heli_races": HELI_RACES,
+    "include_plane_races": PLANE_RACES,
+}
+
+
+if TYPE_CHECKING:
+    _RaceTestBase = SR2TestBase
+else:
+    _RaceTestBase = object
+
+
+def race_options_with_disabled(disabled_option: str) -> dict[str, int]:
+    return {option: int(option != disabled_option) for option in RACE_CLASS_OPTIONS}
+
+
+class RaceClassDisabledTests(_RaceTestBase):
+    disabled_option: str
+
+    def test_disabled_race_class_has_no_locations(self) -> None:
+        for race in RACE_CLASS_OPTIONS[self.disabled_option].values():
+            for medal in MEDAL_STRINGS.values():
+                with self.subTest(race=race, medal=medal):
+                    self.assertRaises(
+                        KeyError, self.world.get_location, f"{race} - {medal}"
+                    )
+
+    def test_other_race_classes_keep_locations(self) -> None:
+        for option, races in RACE_CLASS_OPTIONS.items():
+            if option == self.disabled_option:
+                continue
+            for race in races.values():
+                for medal in MEDAL_STRINGS.values():
+                    with self.subTest(race=race, medal=medal):
+                        self.world.get_location(f"{race} - {medal}")
+
+    def test_disabled_race_class_unlock_pass_not_created(self) -> None:
+        race_key = next(iter(RACE_CLASS_OPTIONS[self.disabled_option]))
+        unlock_item = get_race_unlock_item(race_key)
+        created_items = [
+            item.name
+            for item in self.multiworld.itempool
+            + self.multiworld.precollected_items[self.player]
+            if item.player == self.player
+        ]
+        self.assertNotIn(unlock_item, created_items)
+
+    def test_other_race_class_unlock_passes_created(self) -> None:
+        created_items = [
+            item.name
+            for item in self.multiworld.itempool
+            + self.multiworld.precollected_items[self.player]
+            if item.player == self.player
+        ]
+        for option, races in RACE_CLASS_OPTIONS.items():
+            if option == self.disabled_option:
+                continue
+            unlock_item = get_race_unlock_item(next(iter(races)))
+            with self.subTest(unlock_item=unlock_item):
+                self.assertIn(unlock_item, created_items)
+
+
+class TestBikeRacesDisabled(RaceClassDisabledTests, SR2TestBase):
+    run_default_tests = False
+    disabled_option = "include_bike_races"
+    options = race_options_with_disabled(disabled_option)
+
+
+class TestBoatRacesDisabled(RaceClassDisabledTests, SR2TestBase):
+    run_default_tests = False
+    disabled_option = "include_boat_races"
+    options = race_options_with_disabled(disabled_option)
+
+
+class TestCarRacesDisabled(RaceClassDisabledTests, SR2TestBase):
+    run_default_tests = False
+    disabled_option = "include_car_races"
+    options = race_options_with_disabled(disabled_option)
+
+
+class TestHeliRacesDisabled(RaceClassDisabledTests, SR2TestBase):
+    run_default_tests = False
+    disabled_option = "include_heli_races"
+    options = race_options_with_disabled(disabled_option)
+
+
+class TestPlaneRacesDisabled(RaceClassDisabledTests, SR2TestBase):
+    run_default_tests = False
+    disabled_option = "include_plane_races"
+    options = race_options_with_disabled(disabled_option)
 
 
 class TestLevelBasedActivityDisabled(SR2TestBase):

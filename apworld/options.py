@@ -249,14 +249,58 @@ class IncludeCDs(Toggle):
     default = 1
 
 
-class IncludeRaces(Toggle):
+class IncludeBoatRaces(Toggle):
     """
-    Whether to include all races as individual location checks.
+    Whether to include boat and jetski races as individual location checks.
 
     Each race will include a location for the Bronze, Silver and Gold medal.
     """
 
-    display_name = "Includes Races"
+    display_name = "Include Boat and Jetski Races"
+    default = 1
+
+
+class IncludeBikeRaces(Toggle):
+    """
+    Whether to include bike races as individual location checks.
+
+    Each race will include a location for the Bronze, Silver and Gold medal.
+    """
+
+    display_name = "Include Bike Races"
+    default = 1
+
+
+class IncludeCarRaces(Toggle):
+    """
+    Whether to include car races as individual location checks.
+
+    Each race will include a location for the Bronze, Silver and Gold medal.
+    """
+
+    display_name = "Include Car Races"
+    default = 1
+
+
+class IncludeHeliRaces(Toggle):
+    """
+    Whether to include helicopter races as individual location checks.
+
+    Each race will include a location for the Bronze, Silver and Gold medal.
+    """
+
+    display_name = "Include Helicopter Races"
+    default = 1
+
+
+class IncludePlaneRaces(Toggle):
+    """
+    Whether to include plane races as individual location checks.
+
+    Each race will include a location for the Bronze, Silver and Gold medal.
+    """
+
+    display_name = "Include Plane Races"
     default = 1
 
 
@@ -415,7 +459,11 @@ class SR2Options(PerGameCommonOptions):
     include_snatch: IncludeSnatch
     include_torch: IncludeTorch
     include_cds: IncludeCDs
-    include_races: IncludeRaces
+    include_boat_races: IncludeBoatRaces
+    include_bike_races: IncludeBikeRaces
+    include_car_races: IncludeCarRaces
+    include_heli_races: IncludeHeliRaces
+    include_plane_races: IncludePlaneRaces
     include_tags: IncludeTags
     trap_chance: TrapChance
     bonus_respect_percentage: BonusRespectPercentage
@@ -450,7 +498,11 @@ option_groups = [
             IncludeHeliAssault,
             IncludeHitman,
             IncludeMayhem,
-            IncludeRaces,
+            IncludeBoatRaces,
+            IncludeBikeRaces,
+            IncludeCarRaces,
+            IncludeHeliRaces,
+            IncludePlaneRaces,
             IncludeSewage,
             IncludeSnatch,
             IncludeTorch,
@@ -496,11 +548,11 @@ ACTIVITY_STARTING_ACTIVITY_OPTION_MAPPING = {
     StartingActivity.option_demo_derby: "Demolition Derby",
     StartingActivity.option_chop_shop: "Chop Shop",
     StartingActivity.option_hitman: "Hitman",
-    StartingActivity.option_helicopter_races: "Races",
-    StartingActivity.option_boat_races: "Races",
-    StartingActivity.option_car_races: "Races",
-    StartingActivity.option_bike_races: "Races",
-    StartingActivity.option_plane_races: "Races",
+    StartingActivity.option_helicopter_races: "Heli Races",
+    StartingActivity.option_boat_races: "Boat Races",
+    StartingActivity.option_car_races: "Car Races",
+    StartingActivity.option_bike_races: "Bike Races",
+    StartingActivity.option_plane_races: "Plane Races",
     StartingActivity.option_cd: "CD",
     StartingActivity.option_tags: "Tags",
 }
