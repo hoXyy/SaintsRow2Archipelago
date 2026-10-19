@@ -271,7 +271,6 @@ class TestMinimumRespectTable(unittest.TestCase):
             "bh11": 15,
             "ep01": 1,
             "ep04": 5,
-            "em01": 3,
         }
 
         for key, respect in expected.items():

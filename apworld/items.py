@@ -109,6 +109,8 @@ ACTIVITY_UNLOCK_ITEMS_SETTINGS_MAPPING = {
 ITEM_NAME_TO_ID = {
     RESPECT_ITEM_NAME: 2,
     BONUS_RESPECT_ITEM_NAME: 3,
+    EM01_UNLOCK_ITEM: 4,
+    TSS_SH_CAVERNS_UNLOCK_ITEM: 5,
     **{name: 100 + i for i, name in enumerate(WEAPON_ITEM_NAMES)},
     **{name: 200 + i for i, name in enumerate(USEFUL_UNLOCKABLES)},
     **{name: 300 + i for i, name in enumerate(FILLER_UNLOCKABLES)},
@@ -248,10 +250,10 @@ def get_all_items(world: SR2World) -> None:
     item_pool.extend([world.create_item(name) for name in enabled_activity_items])
 
     if world.options.include_secret_mission.value == 1:
-        item_pool.extend([EM01_UNLOCK_ITEM])
+        item_pool.extend([world.create_item(EM01_UNLOCK_ITEM)])
 
     if world.options.include_stilwater_caverns.value == 1:
-        item_pool.extend([TSS_SH_CAVERNS_UNLOCK_ITEM])
+        item_pool.extend([world.create_item(TSS_SH_CAVERNS_UNLOCK_ITEM)])
 
     available_slots = unfilled_locations_count - len(item_pool)
 
