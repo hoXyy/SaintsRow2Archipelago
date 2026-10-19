@@ -15,7 +15,7 @@ struct ActivityUnlockItem {
     std::array<const char*, 2> activitiesToUnlock;
 };
 
-constexpr std::array<ActivityUnlockItem, 12> supportedItems{
+constexpr std::array<ActivityUnlockItem, 14> supportedItems{
     {{.itemName = "Insurance Fraud Activity Unlock Pass",
       .activitiesToUnlock = {"fraud_mu", "fraud_fc"}},
      {.itemName = "Crowd Control Activity Unlock Pass",
@@ -39,7 +39,10 @@ constexpr std::array<ActivityUnlockItem, 12> supportedItems{
      {.itemName = "Snatch Activity Unlock Pass",
       .activitiesToUnlock = {"snatch_ct", "snatch_dt"}},
      {.itemName = "Trail Blazing Activity Unlock Pass",
-      .activitiesToUnlock = {"torch_ap", "torch_dt"}}}};
+      .activitiesToUnlock = {"torch_ap", "torch_dt"}},
+     {.itemName = "Dex's Phone Number", .activitiesToUnlock = {"em01"}},
+     {.itemName = "Stilwater Caverns Stronghold Unlock",
+      .activitiesToUnlock = {"sh_tss_caverns"}}}};
 
 const ActivityUnlockItem* FindItem(const std::string_view itemName) noexcept {
     const auto found = std::ranges::find_if(
