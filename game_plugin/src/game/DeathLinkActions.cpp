@@ -25,6 +25,9 @@ constexpr std::array<std::uint8_t, 12> kVehicleDamageEntry{
 constexpr std::array<std::uint8_t, 7> kCurrentActivityTypeEntry{
     0xA1, 0x60, 0x3C, 0x7B, 0x02, 0x85, 0xC0,
 };
+constexpr std::array<std::uint8_t, 7> kCurrentDiversionTypeEntry{
+    0xA1, 0x88, 0x78, 0x52, 0x02, 0x85, 0xC0,
+};
 
 // The same arguments Lua vehicle_detonate passes.
 constexpr float kDetonationRadius{100.0f};
@@ -45,7 +48,7 @@ using VehicleDamageFunction = void(__cdecl*)(
     const float* position, const float* direction, float radius,
     std::int32_t damage, std::int32_t damageType, const float* impulse, float,
     std::int32_t, std::int32_t, std::int32_t);
-using CurrentActivityTypeFunction = std::int32_t(__cdecl*)();
+using CurrentTypeFunction = std::int32_t(__cdecl*)();
 
 void CallDamage(const std::uintptr_t function, const std::uintptr_t human,
                 const float damage) {
@@ -165,6 +168,7 @@ std::optional<Functions> ResolveFunctions(const ModuleInfo& game) {
         .setHitPoints = game.base + addresses::kHumanSetHitPointsRva,
         .vehicleDamage = game.base + addresses::kVehicleDamageRva,
         .currentActivityType = game.base + addresses::kCurrentActivityTypeRva,
+        .currentDiversionType = game.base + addresses::kCurrentDiversionTypeRva,
     };
     if (!ValidateHookTarget(game, functions.isDead, kIsDeadEntry) ||
         !ValidateHookTarget(game, functions.damage, kDamageEntry) ||
@@ -172,7 +176,9 @@ std::optional<Functions> ResolveFunctions(const ModuleInfo& game) {
         !ValidateHookTarget(game, functions.vehicleDamage,
                             kVehicleDamageEntry) ||
         !ValidateHookTarget(game, functions.currentActivityType,
-                            kCurrentActivityTypeEntry)) {
+                            kCurrentActivityTypeEntry) ||
+        !ValidateHookTarget(game, functions.currentDiversionType,
+                            kCurrentDiversionTypeEntry)) {
         return std::nullopt;
     }
     return functions;
@@ -207,8 +213,10 @@ Result KillPlayer(const ModuleInfo& game, const Functions& functions,
         return {Outcome::Dropped, "the player is already dead"};
     }
 
-    const auto activity = reinterpret_cast<CurrentActivityTypeFunction>(
-        functions.currentActivityType)();
+    const auto activity =
+        reinterpret_cast<CurrentTypeFunction>(functions.currentActivityType)();
+    const auto diversion =
+        reinterpret_cast<CurrentTypeFunction>(functions.currentDiversionType)();
 
     if (activity == addresses::kActivityTypeDemolitionDerby) {
         const auto state =
@@ -221,23 +229,28 @@ Result KillPlayer(const ModuleInfo& game, const Functions& functions,
         return Detonate(game, functions, suppression, handle ? *handle : 0);
     }
 
-    if (activity == addresses::kActivityTypeRacing) {
+    if (activity == addresses::kActivityTypeRacing ||
+        diversion == addresses::kDiversionTypeRacing) {
         const auto manager =
             ReadMemory<std::uint32_t>(game.base + addresses::kRaceManagerRva);
-        if (!manager || *manager == 0) {
+        if (manager && *manager != 0) {
+            const auto state = ReadMemory<std::uint32_t>(
+                *manager + addresses::kRaceManagerStateOffset);
+            if (!state || *state < addresses::kRaceStateCountdown) {
+                return {Outcome::Deferred, "race car is not assigned yet"};
+            }
+            if (*state <= addresses::kRaceStateRacing) {
+                const auto handle = ReadMemory<std::uint32_t>(
+                    *manager + addresses::kRaceManagerPlayerVehicleOffset);
+                return Detonate(game, functions, suppression,
+                                handle ? *handle : 0);
+            }
+            // The race is over; nothing left to fail.
+        } else if (activity == addresses::kActivityTypeRacing) {
             return {Outcome::Deferred, "race has not started"};
         }
-        const auto state = ReadMemory<std::uint32_t>(
-            *manager + addresses::kRaceManagerStateOffset);
-        if (!state || *state < addresses::kRaceStateCountdown) {
-            return {Outcome::Deferred, "race car is not assigned yet"};
-        }
-        if (*state <= addresses::kRaceStateRacing) {
-            const auto handle = ReadMemory<std::uint32_t>(
-                *manager + addresses::kRaceManagerPlayerVehicleOffset);
-            return Detonate(game, functions, suppression, handle ? *handle : 0);
-        }
-        // The race is over; nothing left to fail.
+        // Only the racing diversion is known to have type 0, so any other one
+        // without a race gets the normal kill instead of waiting forever.
     }
 
     return KillOnFoot(functions, suppression, player);

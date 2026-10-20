@@ -197,7 +197,12 @@ inline constexpr std::uint32_t kVehicleWreckedFlag = 0x1;
 inline constexpr std::ptrdiff_t kCurrentActivityTypeRva = 0x0013C4D0;
 inline constexpr std::int32_t kActivityTypeDemolitionDerby = 0;
 inline constexpr std::int32_t kActivityTypeRacing = 0x0E;
-// Null outside races.
+// Diversions. Returns -1 when no diversion runs, otherwise its type. The
+// races you get from the city run as a racing diversion, not the activity,
+// but drive the same race manager.
+inline constexpr std::ptrdiff_t kCurrentDiversionTypeRva = 0x00203E30;
+inline constexpr std::int32_t kDiversionTypeRacing = 0;
+// Null outside races (the Racing activity and the racing diversion).
 inline constexpr std::ptrdiff_t kRaceManagerRva = 0x02127B14;
 inline constexpr std::size_t kRaceManagerStateOffset = 0x00;
 inline constexpr std::size_t kRaceManagerPlayerVehicleOffset = 0x17C;

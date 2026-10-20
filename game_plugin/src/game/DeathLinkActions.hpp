@@ -13,6 +13,7 @@ struct Functions {
     std::uintptr_t setHitPoints{};
     std::uintptr_t vehicleDamage{};
     std::uintptr_t currentActivityType{};
+    std::uintptr_t currentDiversionType{};
 };
 
 // Null when any target is missing or already detoured by another mod.
