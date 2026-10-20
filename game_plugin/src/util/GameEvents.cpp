@@ -24,6 +24,11 @@ void GameEventQueue::PushRequestCompleted(const std::uint64_t requestId,
     events_.push_back({GameEventKind::RequestCompleted, 0, requestId, applied});
 }
 
+void GameEventQueue::PushPlayerDied() {
+    std::lock_guard<std::mutex> lock(mutex_);
+    events_.push_back({GameEventKind::PlayerDied, 0, 0, false});
+}
+
 std::vector<GameEvent> GameEventQueue::Drain() {
     std::vector<GameEvent> events;
     std::lock_guard<std::mutex> lock(mutex_);

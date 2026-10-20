@@ -16,6 +16,7 @@ constexpr std::uint32_t kUsefulColor = 0x6D8BE8;
 constexpr std::uint32_t kTrapColor = 0xFA8072;
 constexpr std::uint32_t kFillerColor = 0x00EEEE;
 constexpr std::uint32_t kOtherPlayerColor = 0xFAFAD2;
+constexpr std::uint32_t kDeathLinkColor = 0xEE0000;
 
 std::uint32_t ItemColor(const std::uint32_t flags) {
     if (flags & kProgressionFlag) {
@@ -62,6 +63,20 @@ std::optional<NotificationText> FormatItemNotification(
         default:
             return std::nullopt;
     }
+}
+
+NotificationText FormatDeathLinkNotification(const std::string_view source,
+                                             const std::string_view cause) {
+    NotificationText text;
+    text.Append("(Deathlink)", kDeathLinkColor).Append(" ");
+    if (!cause.empty()) {
+        text.Append(cause);
+    } else if (!source.empty()) {
+        text.Append(source).Append(" died");
+    } else {
+        text.Append("A player died");
+    }
+    return text;
 }
 
 }  // namespace sr2ap

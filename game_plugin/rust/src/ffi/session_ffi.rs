@@ -28,6 +28,11 @@ pub(crate) mod bridge {
         WaitingForSession,
         Active,
     }
+    struct DeathLinkRequest {
+        present: bool,
+        source: String,
+        cause: String,
+    }
     struct SessionRequest {
         kind: GameplayRequestKind,
         id: u64,
@@ -64,6 +69,8 @@ pub(crate) mod bridge {
         fn session_active(session: &SessionRuntime) -> bool;
         fn session_connection_state(session: &SessionRuntime) -> ConnectionState;
         fn session_next_notification(session: &mut SessionRuntime) -> SessionNotification;
+        fn session_player_died(session: &mut SessionRuntime);
+        fn session_next_death_link(session: &mut SessionRuntime) -> DeathLinkRequest;
         fn session_shutdown(session: &mut SessionRuntime);
     }
 }
@@ -185,6 +192,23 @@ fn session_next_notification(session: &mut SessionRuntime) -> bridge::SessionNot
         item,
         player,
         flags,
+    }
+}
+fn session_player_died(session: &mut SessionRuntime) {
+    session.player_died();
+}
+fn session_next_death_link(session: &mut SessionRuntime) -> bridge::DeathLinkRequest {
+    match session.next_death_link() {
+        Some(death) => bridge::DeathLinkRequest {
+            present: true,
+            source: death.source,
+            cause: death.cause,
+        },
+        None => bridge::DeathLinkRequest {
+            present: false,
+            source: String::new(),
+            cause: String::new(),
+        },
     }
 }
 fn session_shutdown(session: &mut SessionRuntime) {

@@ -93,6 +93,7 @@ function hud_msg_init()
 end
 
 function hud_msg_process()
+	sr2ap_msg_exclude_from_hud_fades()
 	sr2ap_msg_expire()
 
 
@@ -326,6 +327,20 @@ function hud_msg_hide_region(region, hide)
 	
 	if region ~= nil then
 		vint_set_property(region.anchor, "visible", hide == false)
+	end
+end
+
+
+function sr2ap_msg_exclude_from_hud_fades()
+	if Hud_element_groups == nil or Hud_element_groups["MESSAGES"] == nil then
+		return
+	end
+
+	local group = Hud_element_groups["MESSAGES"]
+	for i, name in group do
+		if name == "msg_multi_chat_anchor" then
+			group[i] = nil
+		end
 	end
 end
 

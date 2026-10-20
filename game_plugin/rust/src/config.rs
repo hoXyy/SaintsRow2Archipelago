@@ -14,6 +14,7 @@ pub(crate) struct Config {
     pub enable_hotkeys: bool,
     pub module_report_hotkey: u32,
     pub snapshot_hotkey: u32,
+    pub death_link_hotkey: u32,
 }
 
 impl Default for Config {
@@ -29,6 +30,7 @@ impl Default for Config {
             enable_hotkeys: false,
             module_report_hotkey: 0x76,
             snapshot_hotkey: 0x77,
+            death_link_hotkey: 0x78,
         }
     }
 }
@@ -118,6 +120,7 @@ struct HotkeyConfig {
     enable_hotkeys: bool,
     module_report_hotkey: u32,
     snapshot_hotkey: u32,
+    death_link_hotkey: u32,
 }
 
 impl Default for HotkeyConfig {
@@ -126,6 +129,7 @@ impl Default for HotkeyConfig {
             enable_hotkeys: false,
             module_report_hotkey: 0x76,
             snapshot_hotkey: 0x77,
+            death_link_hotkey: 0x78,
         }
     }
 }
@@ -153,6 +157,7 @@ pub(crate) fn parse(text: &str) -> Result<ConfigLoadResult, ConfigError> {
             enable_hotkeys: file.debug.hotkeys.enable_hotkeys,
             module_report_hotkey: file.debug.hotkeys.module_report_hotkey,
             snapshot_hotkey: file.debug.hotkeys.snapshot_hotkey,
+            death_link_hotkey: file.debug.hotkeys.death_link_hotkey,
         },
         file_found: false,
         warnings,
@@ -183,6 +188,7 @@ mod tests {
 
         assert_eq!(result.config.polling_interval_ms, 1_000);
         assert_eq!(result.config.network_port, 38_282);
+        assert_eq!(result.config.death_link_hotkey, 0x78);
         assert!(result.config.enabled);
     }
 
@@ -209,6 +215,7 @@ write_status_file = true
 enable_hotkeys = true
 module_report_hotkey = 0x70
 snapshot_hotkey = 0x71
+death_link_hotkey = 0x72
 "#,
         )
         .expect("parse full configuration");
@@ -217,6 +224,7 @@ snapshot_hotkey = 0x71
         assert_eq!(result.config.polling_interval_ms, 250);
         assert_eq!(result.config.network_port, 12_345);
         assert_eq!(result.config.snapshot_hotkey, 0x71);
+        assert_eq!(result.config.death_link_hotkey, 0x72);
     }
 
     #[test]

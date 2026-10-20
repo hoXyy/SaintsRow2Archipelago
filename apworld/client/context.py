@@ -78,9 +78,7 @@ class SR2Context(SuperContext):
     ) -> None:
         super().__init__(server_address, password)
         self.slot_data: dict[str, Any] | None = None
-        # True once items_received matches the server's full item list.
         self.inventory_synced = False
-        # Every location the plugin has reported, including ones not yet sent.
         self.observed_locations: set[int] = set()
         self.sync_event = asyncio.Event()
         self.revisions = RevisionStore(
@@ -110,6 +108,19 @@ class SR2Context(SuperContext):
 
     # AP server events
 
+    def on_deathlink(self, data: dict) -> None:
+        super().on_deathlink(data)
+
+        asyncio.create_task(
+            self.bridge.send(
+                {
+                    "type": "death_link",
+                    "source": data.get("source", ""),
+                    "cause": data.get("cause", ""),
+                }
+            )
+        )
+
     def on_package(self, cmd: str, args: dict[str, Any]) -> None:
         super().on_package(cmd, args)
 
@@ -117,6 +128,10 @@ class SR2Context(SuperContext):
             self.seed_name = args["seed_name"]
         elif cmd == "Connected":
             self.slot_data = args.get("slot_data")
+            features = (self.slot_data or {}).get("features", {})
+            asyncio.create_task(
+                self.update_death_link(features.get("death_link", False))
+            )
             self.inventory_synced = True
             self.revisions.start_session(self.seed_name, self.team, self.slot)
             self.request_sync()

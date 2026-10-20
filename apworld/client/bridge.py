@@ -13,8 +13,8 @@ from .save_sync import Inventory, accept_save_revision, resolve_save_context
 if TYPE_CHECKING:
     from .context import SR2Context
 
-PROTOCOL_VERSION = 6
-SLOT_DATA_PROTOCOL_VERSION = 4
+PROTOCOL_VERSION = 7
+SLOT_DATA_PROTOCOL_VERSION = 5
 ACK_TIMEOUT_SECONDS = 5.0
 RETRY_SECONDS = 1.0
 
@@ -54,6 +54,7 @@ class PluginBridge:
             "save_revision": self._on_save_revision,
             "progression": self._on_progression,
             "session_reject": self._on_session_reject,
+            "death": self._on_death,
         }
 
     @property
@@ -345,4 +346,9 @@ class PluginBridge:
                 for item in ctx.items_received
             ],
             persistent_names=frozenset(ctx.slot_data["persistent_items"]),
+        )
+
+    async def _on_death(self, message: dict[str, Any]) -> None:
+        await self.ctx.send_death(
+            f"{self.ctx.player_names[self.ctx.slot]} got smoked on the streets of Stilwater."
         )

@@ -20,6 +20,7 @@ namespace {
         config.enable_hotkeys,
         config.module_report_hotkey,
         config.snapshot_hotkey,
+        config.death_link_hotkey,
     };
 }
 }  // namespace

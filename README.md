@@ -42,6 +42,9 @@ The items in the pool are:
     - Each type is toggleable in the settings
 - Money (1k, 5k, 10k, 25k, 50k, 100k)
 
+Currently supported world sync options:
+- Deathlink
+
 The full list of items can be found in [items_list.py](https://github.com/hoXyy/SaintsRow2Archipelago/blob/main/apworld/items_list.py).
 
 This APWorld also has support for the [Universal Tracker](https://archipelago.miraheze.org/wiki/Universal_Tracker), including it's map tracker.
@@ -139,5 +142,4 @@ Open an **x86 Native Tools Command Prompt for VS**. Navigate to the `game_plugin
     - other collectibles like and stunt jumps
     - buyable items in liquor stores and fast food places?
 - In-game AP indicators ([ImGui](https://github.com/ocornut/imgui)-based?)
-- Deathlink
 - Support for the PC DLC mod

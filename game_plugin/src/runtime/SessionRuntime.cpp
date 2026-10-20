@@ -5,6 +5,7 @@
 #include <utility>
 #include <vector>
 
+#include "game/DeathMonitor.hpp"
 #include "game/GameState.hpp"
 #include "game/SaveRevisionMonitor.hpp"
 #include "rust/cxx.h"
@@ -33,6 +34,8 @@ SessionRuntime::SessionRuntime(bool gameSupported,
           {reinterpret_cast<const std::uint16_t*>(path.native().data()),
            path.native().size()})},
       itemHandlers_{dispatcher},
+      deathSuppression_{std::make_shared<DeathSuppression>()},
+      deathLink_{dispatcher, events_, deathSuppression_},
       gameSupported_{gameSupported} {
 }
 
@@ -79,6 +82,22 @@ bool SessionRuntime::InstallSaveMonitoring(SaveRevisionMonitor& monitor,
     return saveMonitoring_;
 }
 
+bool SessionRuntime::InstallDeathMonitoring(DeathMonitor& monitor,
+                                            bool enabled) {
+    if (!enabled || !gameSupported_) {
+        return false;
+    }
+    if (!deathLink_.Install()) {
+        LogWarning("DeathLink", "Kills unavailable; received deaths ignored");
+    }
+    if (!monitor.Install(deathSuppression_,
+                         [events = events_] { events->PushPlayerDied(); })) {
+        return false;
+    }
+    deathMonitor_ = &monitor;
+    return true;
+}
+
 void SessionRuntime::Connect(std::uint16_t port) {
     rust::session_connect(*session_, port);
 }
@@ -88,6 +107,7 @@ void SessionRuntime::ProcessGameEvents() {
         try {
             switch (event.kind) {
                 case GameEventKind::SaveLoaded:
+                    ResetDeathLink();
                     rust::session_save_loaded(*session_, event.checksum);
                     break;
                 case GameEventKind::SaveWritten:
@@ -96,6 +116,9 @@ void SessionRuntime::ProcessGameEvents() {
                 case GameEventKind::RequestCompleted:
                     rust::session_complete_request(*session_, event.requestId,
                                                    event.applied);
+                    break;
+                case GameEventKind::PlayerDied:
+                    rust::session_player_died(*session_);
                     break;
             }
         } catch (const ::rust::Error& error) {
@@ -154,6 +177,7 @@ void SessionRuntime::UpdateReadiness(GameReadiness current) {
     const bool loaded = IsGameplayLoaded(current);
     if (gameplayLoaded_ && !loaded) {
         events_->InvalidateWorld();
+        ResetDeathLink();
     }
     gameplayLoaded_ = loaded;
 
@@ -201,8 +225,35 @@ void SessionRuntime::UpdateItemHandlers() {
     itemHandlers_.Update();
 }
 
+std::optional<DeathLinkController::Death> SessionRuntime::UpdateDeathLink(
+    const GameContext& context) {
+    for (;;) {
+        const auto death = rust::session_next_death_link(*session_);
+        if (!death.present) {
+            break;
+        }
+        deathLink_.Receive(
+            std::string{death.source.data(), death.source.size()},
+            std::string{death.cause.data(), death.cause.size()});
+    }
+    return deathLink_.Update(context);
+}
+
+void SessionRuntime::QueueTestDeathLink() {
+    LogInfo("DeathLink", "Test death queued by hotkey");
+    deathLink_.Receive("", "Test death from the DeathLink hotkey");
+}
+
+void SessionRuntime::ResetDeathLink() {
+    deathLink_.Reset();
+    if (deathMonitor_) {
+        deathMonitor_->Reset();
+    }
+}
+
 void SessionRuntime::Shutdown() {
     rust::session_shutdown(*session_);
     ShutdownItemHandlers();
+    deathLink_.Remove();
 }
 }  // namespace sr2ap

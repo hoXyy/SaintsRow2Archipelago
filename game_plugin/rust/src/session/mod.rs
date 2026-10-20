@@ -14,10 +14,12 @@ use std::{
     path::PathBuf,
 };
 
-const SESSION_PROTOCOL: u32 = 6;
+pub(crate) const SESSION_PROTOCOL: u32 = 7;
 /// Oldest notifications are dropped past this so a plugin that never actually shows
 /// them can't grow the queue infinitely.
 const MAXIMUM_PENDING_NOTIFICATIONS: usize = 256;
+/// The game collapses queued deaths into one kill, so only a few are kept.
+const MAXIMUM_PENDING_DEATH_LINKS: usize = 16;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(crate) enum ConnectionState {
@@ -43,6 +45,14 @@ pub(crate) enum Notification {
         receiver: String,
         flags: u32,
     },
+}
+
+/// Another player died and DeathLink is enabled: the game should kill the
+/// local player. Not acknowledged and independent of item delivery.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub(crate) struct DeathLink {
+    pub source: String,
+    pub cause: String,
 }
 
 pub(crate) enum GameplayRequest {
@@ -89,8 +99,10 @@ pub(crate) struct SessionRuntime {
     save_monitoring: bool,
     active: bool,
     client_connected: bool,
+    gameplay_loaded: bool,
     pending: Option<Pending>,
     notifications: VecDeque<Notification>,
+    death_links: VecDeque<DeathLink>,
     request_id: u64,
     #[cfg(test)]
     outgoing: Vec<String>,
@@ -113,8 +125,10 @@ impl SessionRuntime {
             save_monitoring: false,
             active: false,
             client_connected: false,
+            gameplay_loaded: false,
             pending: None,
             notifications: VecDeque::new(),
+            death_links: VecDeque::new(),
             request_id: 0,
             #[cfg(test)]
             outgoing: Vec::new(),
@@ -151,6 +165,33 @@ impl SessionRuntime {
         self.notifications.push_back(notification);
     }
 
+    fn death_link_enabled(&self) -> bool {
+        self.active
+            && self
+                .session
+                .as_ref()
+                .is_some_and(|session| session.death_link)
+    }
+
+    pub fn next_death_link(&mut self) -> Option<DeathLink> {
+        self.death_links.pop_front()
+    }
+
+    fn clear_death_links(&mut self) {
+        if !self.death_links.is_empty() {
+            log::info!(target: "DeathLink", "Dropped {} pending death(s) for the previous world", self.death_links.len());
+            self.death_links.clear();
+        }
+    }
+
+    /// The local player died in game.
+    pub fn player_died(&mut self) {
+        if self.death_link_enabled() {
+            log::info!(target: "DeathLink", "Sending local player death");
+            self.send(protocol::serialize_death());
+        }
+    }
+
     pub fn connect(&mut self, port: u16) -> io::Result<()> {
         self.client = Some(TcpClient::new(port)?);
         Ok(())
@@ -161,6 +202,7 @@ impl SessionRuntime {
         self.events.clear();
         self.pending = None;
         self.notifications.clear();
+        self.death_links.clear();
         self.active = false;
         self.client_connected = false;
     }
@@ -240,6 +282,10 @@ impl SessionRuntime {
     }
 
     pub fn update_readiness(&mut self, main_menu: bool, loaded: bool) {
+        self.gameplay_loaded = loaded;
+        if !loaded {
+            self.clear_death_links();
+        }
         if loaded && self.save_load_pending && self.delivery.context != Context::AwaitingCursor {
             self.save_load_pending = false;
         }
@@ -283,6 +329,7 @@ impl SessionRuntime {
 
     pub fn save_loaded(&mut self, checksum: u32) {
         self.cancel_gameplay_request();
+        self.clear_death_links();
         self.delivery.load(checksum);
         self.restore_checksum = Some(checksum);
         self.restore = RestoreState::AwaitingSnapshot;
@@ -573,6 +620,20 @@ impl SessionRuntime {
                         item: message.name,
                         receiver: message.player,
                         flags: message.flags,
+                    });
+                }
+            }
+            IncomingKind::DeathLink => {
+                if !self.death_link_enabled() || !self.gameplay_loaded {
+                    log::debug!(target: "DeathLink", "Ignored death from {} while DeathLink is disabled or no world is loaded", message.player);
+                } else {
+                    if self.death_links.len() == MAXIMUM_PENDING_DEATH_LINKS {
+                        self.death_links.pop_front();
+                    }
+                    log::info!(target: "DeathLink", "Received death from {}", message.player);
+                    self.death_links.push_back(DeathLink {
+                        source: message.player,
+                        cause: message.cause,
                     });
                 }
             }

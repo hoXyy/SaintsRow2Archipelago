@@ -26,7 +26,7 @@ class TestSlotData(SR2TestBase):
         self.world_setup()
         slot_data = self.world.fill_slot_data()
 
-        self.assertEqual(slot_data["protocol"], 4)
+        self.assertEqual(slot_data["protocol"], 5)
 
     def test_default_enabled_progression(self) -> None:
         self.world_setup()
@@ -290,6 +290,19 @@ class TestSlotData(SR2TestBase):
         self.assertTrue(features["exclusive_respect"])
         self.assertTrue(features["block_vanilla_unlockables"])
         self.assertIsInstance(features["notoriety_traps"], bool)
+
+    def test_death_link_is_off_by_default(self) -> None:
+        self.world_setup()
+        features = self.world.fill_slot_data()["features"]
+
+        self.assertIs(features["death_link"], False)
+
+    def test_death_link_feature_follows_option(self) -> None:
+        self.options = {"death_link": 1}
+        self.world_setup()
+        features = self.world.fill_slot_data()["features"]
+
+        self.assertIs(features["death_link"], True)
 
     def test_notoriety_trap_feature_matches_pool(self) -> None:
         self.world_setup()

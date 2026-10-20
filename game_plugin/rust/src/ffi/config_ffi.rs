@@ -15,6 +15,7 @@ pub(crate) mod bridge {
         enable_hotkeys: bool,
         module_report_hotkey: u32,
         snapshot_hotkey: u32,
+        death_link_hotkey: u32,
     }
 
     struct ConfigLoadResult {
@@ -41,6 +42,7 @@ impl From<config::Config> for bridge::Config {
             enable_hotkeys: config.enable_hotkeys,
             module_report_hotkey: config.module_report_hotkey,
             snapshot_hotkey: config.snapshot_hotkey,
+            death_link_hotkey: config.death_link_hotkey,
         }
     }
 }
