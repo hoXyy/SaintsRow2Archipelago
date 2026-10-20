@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import copy
 import json
 import os
@@ -164,8 +165,6 @@ class RevisionStore:
                 os.fsync(file.fileno())
             os.replace(temporary, self.path)
         except OSError:
-            try:
+            with contextlib.suppress(OSError):
                 temporary.unlink(missing_ok=True)
-            except OSError:
-                pass
             raise

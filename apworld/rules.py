@@ -299,7 +299,7 @@ def set_style_level_rules(world: SR2World):
     location_cache = world.multiworld.regions.location_cache[world.player]
 
     # Too much money is needed to do these, so I'm not allowing putting progression items on these (unless the player wants it)
-    if bool(world.options.allow_progression_items_on_high_style_level.value) == False:
+    if not bool(world.options.allow_progression_items_on_high_style_level.value):
         for location in [
             "Style Level - Level 8",
             "Style Level - Level 9",

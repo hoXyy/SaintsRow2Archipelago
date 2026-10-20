@@ -266,7 +266,7 @@ class TestItemClassification(SR2TestBase):
                 self.assertEqual(item.filler, True)
 
     def test_useful_is_useful(self) -> None:
-        for item in USEFUL_UNLOCKABLES + [BONUS_RESPECT_ITEM_NAME]:
+        for item in [*USEFUL_UNLOCKABLES, BONUS_RESPECT_ITEM_NAME]:
             with self.subTest(item=item):
                 item = self.world.create_item(item)
                 self.assertEqual(item.useful, True)

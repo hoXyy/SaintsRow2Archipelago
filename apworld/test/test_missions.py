@@ -43,7 +43,7 @@ class TestMissionLogic(SR2TestBase):
                 mission = get_mission_by_key(mission_key)
                 mission_location = self.world.get_location(mission.name)
 
-                for i in range(respect_requirement_table[mission_key]):
+                for _i in range(respect_requirement_table[mission_key]):
                     state.collect(respect_item)
 
                 self.assertFalse(mission_location.can_reach(state))

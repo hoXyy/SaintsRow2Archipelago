@@ -12,9 +12,6 @@ ignore = [
     "SIM108",
 ]
 
-[lint.per-file-ignores]
-"test/**" = ["B011", "PERF"]
-
 [lint.isort]
 section-order = ["future", "standard-library", "third-party", "archipelago", "first-party", "local-folder"]
 
