@@ -1,29 +1,29 @@
 from collections import Counter
 
-from .bases import SR2TestBase
 from ..items import (
-    RESPECT_ITEM_NAME,
     BONUS_RESPECT_ITEM_NAME,
     EM01_UNLOCK_ITEM,
-    TSS_SH_CAVERNS_UNLOCK_ITEM,
     PERSISTENT_ACTIVITY_UNLOCK_ITEMS,
+    RESPECT_ITEM_NAME,
+    TSS_SH_CAVERNS_UNLOCK_ITEM,
     get_enabled_unlock_items_list,
 )
 from ..items_list import (
-    TRAP_ITEMS,
-    FILLER_UNLOCKABLES,
-    WEAPON_ITEM_NAMES,
     CHEAT_ITEMS,
+    FILLER_UNLOCKABLES,
     MONEY_ITEM_NAMES,
+    TRAP_ITEMS,
     USEFUL_UNLOCKABLES,
+    WEAPON_ITEM_NAMES,
 )
 from ..missions import get_mission_by_key, get_required_respect_count
 from ..options import (
-    RONIN_ARC_NAME,
     BROTHERHOOD_ARC_NAME,
+    RONIN_ARC_NAME,
     SAMEDI_ARC_NAME,
     ULTOR_EPILOGUE_ARC_NAME,
 )
+from .bases import SR2TestBase
 
 
 class TestFullGameItemPool(SR2TestBase):
@@ -266,7 +266,7 @@ class TestItemClassification(SR2TestBase):
                 self.assertEqual(item.filler, True)
 
     def test_useful_is_useful(self) -> None:
-        for item in USEFUL_UNLOCKABLES + [BONUS_RESPECT_ITEM_NAME]:
+        for item in [*USEFUL_UNLOCKABLES, BONUS_RESPECT_ITEM_NAME]:
             with self.subTest(item=item):
                 item = self.world.create_item(item)
                 self.assertEqual(item.useful, True)

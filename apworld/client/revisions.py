@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import copy
 import json
 import os
@@ -88,14 +89,14 @@ class RevisionStore:
         # well-formed entries are kept.
         remote: dict[str, int] = {}
         if isinstance(value, dict):
-            for key, cursor in value.items():
-                if (
-                    isinstance(key, str)
-                    and re.fullmatch(r"[0-9A-F]{8}", key)
-                    and type(cursor) is int
-                    and cursor >= 0
-                ):
-                    remote[key] = cursor
+            remote = {
+                key: cursor
+                for key, cursor in value.items()
+                if isinstance(key, str)
+                and re.fullmatch(r"[0-9A-F]{8}", key)
+                and type(cursor) is int
+                and cursor >= 0
+            }
         self._remote = remote
 
         local = {key: int(cursor) for key, cursor in self._session_revisions().items()}
@@ -164,8 +165,6 @@ class RevisionStore:
                 os.fsync(file.fileno())
             os.replace(temporary, self.path)
         except OSError:
-            try:
+            with contextlib.suppress(OSError):
                 temporary.unlink(missing_ok=True)
-            except OSError:
-                pass
             raise

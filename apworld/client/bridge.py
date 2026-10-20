@@ -202,7 +202,7 @@ class PluginBridge:
                 ack_index, accepted = await asyncio.wait_for(
                     self.pending_ack, timeout=ACK_TIMEOUT_SECONDS
                 )
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 await asyncio.sleep(RETRY_SECONDS)
                 continue
             if generation != self.context_generation:
@@ -319,8 +319,7 @@ class PluginBridge:
             revisions.persist(checksum, next_index)
         except OSError as error:
             logger.error(
-                f"Could not store client save revision checksum={checksum:08X}: "
-                f"{error}"
+                f"Could not store client save revision checksum={checksum:08X}: {error}"
             )
             return False
         return True
@@ -348,7 +347,7 @@ class PluginBridge:
             persistent_names=frozenset(ctx.slot_data["persistent_items"]),
         )
 
-    async def _on_death(self, message: dict[str, Any]) -> None:
+    async def _on_death(self, _message: dict[str, Any]) -> None:
         await self.ctx.send_death(
             f"{self.ctx.player_names[self.ctx.slot]} got smoked on the streets of Stilwater."
         )

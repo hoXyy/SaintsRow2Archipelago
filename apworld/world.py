@@ -1,20 +1,23 @@
+from typing import Any, ClassVar
+
 from Options import OptionError
 from worlds.AutoWorld import WebWorld, World
-from . import rules, regions, locations, items, options as sr2_options
+
+from . import items, locations, regions, rules
+from . import options as sr2_options
 from .items_list import (
     CHEAT_ITEMS,
     FILLER_UNLOCKABLES,
+    TRAP_CHEATS,
     TRAP_ITEMS,
     USEFUL_UNLOCKABLES,
-    TRAP_CHEATS,
 )
 from .missions import (
+    STILWATER_CAVERNS_STRONGHOLD,
     ULTOR_SECRET_MISSION,
     get_mission_by_key,
-    STILWATER_CAVERNS_STRONGHOLD,
 )
 from .patch import generate_patched_game_files
-from typing import Any, ClassVar
 
 
 class SR2Web(WebWorld):

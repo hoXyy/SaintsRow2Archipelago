@@ -1,10 +1,9 @@
 from __future__ import annotations
 
-from BaseClasses import Item, ItemClassification
-from Options import OptionError
-
 from typing import TYPE_CHECKING
 
+from BaseClasses import Item, ItemClassification
+from Options import OptionError
 
 from .missions import get_mission_by_key
 from .options import StartingActivity
@@ -13,16 +12,16 @@ if TYPE_CHECKING:
     from .world import SR2World
 
 from .items_list import (
+    CHEAT_ITEMS,
     FILLER_UNLOCKABLES,
     MISC_CHEAT_ITEMS,
+    MONEY_ITEM_NAMES,
+    TRAP_CHEATS,
+    TRAP_ITEMS,
+    TRAP_NOTORIETY_ITEMS,
     USEFUL_UNLOCKABLES,
-    CHEAT_ITEMS,
     VEHICLE_CHEAT_ITEMS,
     WEAPON_ITEM_NAMES,
-    TRAP_ITEMS,
-    TRAP_CHEATS,
-    TRAP_NOTORIETY_ITEMS,
-    MONEY_ITEM_NAMES,
 )
 
 RESPECT_ITEM_NAME = "+1 Respect"
@@ -130,16 +129,16 @@ DEFAULT_ITEM_CLASSIFICATION = {
     BONUS_RESPECT_ITEM_NAME: ItemClassification.useful,
     EM01_UNLOCK_ITEM: ItemClassification.progression,
     TSS_SH_CAVERNS_UNLOCK_ITEM: ItemClassification.progression,
-    **{name: ItemClassification.filler for name in MONEY_ITEM_NAMES},
-    **{name: ItemClassification.filler for name in WEAPON_ITEM_NAMES},
-    **{name: ItemClassification.useful for name in USEFUL_UNLOCKABLES},
-    **{name: ItemClassification.filler for name in FILLER_UNLOCKABLES},
-    **{name: ItemClassification.trap for name in TRAP_ITEMS},
-    **{name: ItemClassification.filler for name in CHEAT_ITEMS},
-    **{
-        name: ItemClassification.progression
-        for name in LEVEL_ACTIVITY_UNLOCK_ITEMS + PERSISTENT_ACTIVITY_UNLOCK_ITEMS
-    },
+    **dict.fromkeys(MONEY_ITEM_NAMES, ItemClassification.filler),
+    **dict.fromkeys(WEAPON_ITEM_NAMES, ItemClassification.filler),
+    **dict.fromkeys(USEFUL_UNLOCKABLES, ItemClassification.useful),
+    **dict.fromkeys(FILLER_UNLOCKABLES, ItemClassification.filler),
+    **dict.fromkeys(TRAP_ITEMS, ItemClassification.trap),
+    **dict.fromkeys(CHEAT_ITEMS, ItemClassification.filler),
+    **dict.fromkeys(
+        LEVEL_ACTIVITY_UNLOCK_ITEMS + PERSISTENT_ACTIVITY_UNLOCK_ITEMS,
+        ItemClassification.progression,
+    ),
 }
 
 

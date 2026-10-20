@@ -1,6 +1,6 @@
-from .bases import SR2TestBase
 from ..collectibles import CD_MAPPING
 from ..items import CD_UNLOCK_ITEM
+from .bases import SR2TestBase
 
 
 class TestCDsEnabled(SR2TestBase):

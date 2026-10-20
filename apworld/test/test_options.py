@@ -1,11 +1,12 @@
-from .bases import SR2TestBase
+from Options import OptionError
+
 from ..options import (
-    RONIN_ARC_NAME,
     BROTHERHOOD_ARC_NAME,
+    RONIN_ARC_NAME,
     SAMEDI_ARC_NAME,
     ULTOR_EPILOGUE_ARC_NAME,
 )
-from Options import OptionError
+from .bases import SR2TestBase
 
 
 class TestRoninOnly(SR2TestBase):

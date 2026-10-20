@@ -8,6 +8,8 @@ from typing import Any
 try:
     from worlds.tracker.TrackerClient import (
         TrackerCommandProcessor as SuperCommandProcessor,
+    )
+    from worlds.tracker.TrackerClient import (
         TrackerGameContext as SuperContext,
     )
 
@@ -15,15 +17,16 @@ try:
 except ModuleNotFoundError:
     from CommonClient import (
         ClientCommandProcessor as SuperCommandProcessor,
+    )
+    from CommonClient import (
         CommonContext as SuperContext,
     )
 
     tracker_loaded = False
 
-from NetUtils import ClientStatus
-from Utils import user_path
-
 from CommonClient import logger
+from NetUtils import ClientStatus
+from Utils import async_start, user_path
 
 from ..items import BONUS_RESPECT_ITEM_NAME, ITEM_NAME_TO_ID, RESPECT_ITEM_NAME
 from ..missions import ALL_MISSIONS
@@ -103,7 +106,7 @@ class SR2Context(SuperContext):
         """Queue messages to the AP server without waiting; False when offline."""
         if not (self.server and self.server.socket):
             return False
-        asyncio.create_task(self.send_msgs(msgs))
+        async_start(self.send_msgs(msgs), name="SR2 send msgs")
         return True
 
     # AP server events
@@ -111,14 +114,15 @@ class SR2Context(SuperContext):
     def on_deathlink(self, data: dict) -> None:
         super().on_deathlink(data)
 
-        asyncio.create_task(
+        async_start(
             self.bridge.send(
                 {
                     "type": "death_link",
                     "source": data.get("source", ""),
                     "cause": data.get("cause", ""),
                 }
-            )
+            ),
+            name="SR2 death link",
         )
 
     def on_package(self, cmd: str, args: dict[str, Any]) -> None:
@@ -129,8 +133,9 @@ class SR2Context(SuperContext):
         elif cmd == "Connected":
             self.slot_data = args.get("slot_data")
             features = (self.slot_data or {}).get("features", {})
-            asyncio.create_task(
-                self.update_death_link(features.get("death_link", False))
+            async_start(
+                self.update_death_link(features.get("death_link", False)),
+                name="SR2 update death link",
             )
             self.inventory_synced = True
             self.revisions.start_session(self.seed_name, self.team, self.slot)
@@ -155,7 +160,7 @@ class SR2Context(SuperContext):
         receiving = args["receiving"]
         if item.player != self.slot or receiving == self.slot:
             return
-        asyncio.create_task(
+        async_start(
             self.bridge.send(
                 {
                     "type": "item_sent",
@@ -163,7 +168,8 @@ class SR2Context(SuperContext):
                     "receiver": self.player_names[receiving],
                     "flags": item.flags,
                 }
-            )
+            ),
+            name="SR2 item sent",
         )
 
     async def server_auth(self, password_requested: bool = False) -> None:

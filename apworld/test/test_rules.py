@@ -1,11 +1,10 @@
-from .bases import SR2TestBase
 from ..items import EM01_UNLOCK_ITEM, TSS_SH_CAVERNS_UNLOCK_ITEM
 from ..missions import (
+    STILWATER_CAVERNS_STRONGHOLD,
     ULTOR_SECRET_MISSION,
     get_mission_by_key,
     get_mission_complete_event_name,
     get_mission_complete_item_name,
-    STILWATER_CAVERNS_STRONGHOLD,
 )
 from ..options import (
     BROTHERHOOD_ARC_NAME,
@@ -13,6 +12,7 @@ from ..options import (
     SAMEDI_ARC_NAME,
     ULTOR_EPILOGUE_ARC_NAME,
 )
+from .bases import SR2TestBase
 
 arc_finales = {
     RONIN_ARC_NAME: "rn11",

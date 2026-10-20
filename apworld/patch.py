@@ -1,22 +1,23 @@
 from __future__ import annotations
 
-from datetime import datetime, UTC
 import os
-from typing import Set, TYPE_CHECKING
 import xml.etree.ElementTree as XmlTree
 import zipfile
+from datetime import UTC, datetime
 from importlib.resources import files
+from typing import TYPE_CHECKING
+
 import bsdiff4
 
-from worlds.Files import APPlayerContainer
 import Utils
+from worlds.Files import APPlayerContainer
 
 if TYPE_CHECKING:
     from .world import SR2World
 
 from .options import (
-    RONIN_ARC_NAME,
     BROTHERHOOD_ARC_NAME,
+    RONIN_ARC_NAME,
     SAMEDI_ARC_NAME,
     ULTOR_EPILOGUE_ARC_NAME,
 )
@@ -90,7 +91,7 @@ class SR2PatchContainer(APPlayerContainer):
         super().write_contents(opened_zipfile)
 
 
-def generate_patched_game_files(world: "SR2World", output_directory: str) -> None:
+def generate_patched_game_files(world: SR2World, output_directory: str) -> None:
     enabled_arcs = world.options.required_gang_arcs.value
     curr_timestamp = datetime.strftime(datetime.now(UTC), "%d%b%Y-%H%M%S")
 
@@ -118,7 +119,7 @@ def generate_patched_game_files(world: "SR2World", output_directory: str) -> Non
         ),
         MISSION_GLOBALS_LUA_FILE_NAME: (
             patched_missions_global_file_content
-            if not BROTHERHOOD_ARC_NAME in enabled_arcs
+            if BROTHERHOOD_ARC_NAME not in enabled_arcs
             else missions_global_file_content
         ),  # this file needs to be included even if it's unmodified in case someone has a modified version installed already
     }
@@ -142,7 +143,7 @@ def generate_patched_game_files(world: "SR2World", output_directory: str) -> Non
 
 
 def generate_patched_mission_chains_file(
-    enabled_arcs: Set[str], revelation_enabled: bool, stilwater_caverns_enabled: bool
+    enabled_arcs: set[str], revelation_enabled: bool, stilwater_caverns_enabled: bool
 ) -> str:
     root = XmlTree.fromstring(MISSIONS_TABLE_FILE.read_bytes())
 

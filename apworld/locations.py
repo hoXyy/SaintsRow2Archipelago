@@ -1,54 +1,53 @@
 from __future__ import annotations
 
-from BaseClasses import Location, Region, ItemClassification
-
 from typing import TYPE_CHECKING
+
+from BaseClasses import ItemClassification, Location, Region
 
 if TYPE_CHECKING:
     from .world import SR2World
 
-from .missions import (
-    RONIN_CHAIN,
-    BROTHERHOOD_CHAIN,
-    SAMEDI_CHAIN,
-    TSS_INTRO_CHAIN,
-    ULTOR_EPILOGUE_CHAIN,
-    ULTOR_SECRET_MISSION,
-    MISSION_CHAINS,
-    get_mission_complete_event_name,
-    get_mission_complete_item_name,
-    Mission,
-    STILWATER_CAVERNS_STRONGHOLD,
-)
 from .activities import (
     ACTIVITIES_LEVEL_BASED,
+    ACTIVITY_LEVEL_IDS,
     BIKE_RACES,
     BOAT_RACES,
     CAR_RACES,
     CHOP_SHOP_LISTS,
     HELI_RACES,
     HITMAN_LISTS,
-    ACTIVITY_LEVEL_IDS,
-    PLANE_RACES,
     MEDAL_STRINGS,
+    PLANE_RACES,
     is_activity_enabled_in_options,
 )
-from .options import (
-    RONIN_ARC_NAME,
-    SAMEDI_ARC_NAME,
-    BROTHERHOOD_ARC_NAME,
-    ULTOR_EPILOGUE_ARC_NAME,
-)
 from .collectibles import (
-    CD_MAPPING,
     CD_IDS,
+    CD_MAPPING,
     STYLE_LEVEL_IDS,
     STYLE_LEVEL_LOCATIONS,
-    TAGS_MAPPING,
     TAGS_IDS,
+    TAGS_MAPPING,
 )
-
 from .items import SR2Item
+from .missions import (
+    BROTHERHOOD_CHAIN,
+    MISSION_CHAINS,
+    RONIN_CHAIN,
+    SAMEDI_CHAIN,
+    STILWATER_CAVERNS_STRONGHOLD,
+    TSS_INTRO_CHAIN,
+    ULTOR_EPILOGUE_CHAIN,
+    ULTOR_SECRET_MISSION,
+    Mission,
+    get_mission_complete_event_name,
+    get_mission_complete_item_name,
+)
+from .options import (
+    BROTHERHOOD_ARC_NAME,
+    RONIN_ARC_NAME,
+    SAMEDI_ARC_NAME,
+    ULTOR_EPILOGUE_ARC_NAME,
+)
 
 
 class SR2Location(Location):

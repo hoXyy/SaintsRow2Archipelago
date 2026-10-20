@@ -7,6 +7,23 @@ on:
         branches: [main]
 
 jobs:
+    lint-apworld:
+        name: Lint APWorld
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout repo
+              uses: actions/checkout@v7
+
+            - name: Run Ruff linter
+              uses: astral-sh/ruff-action@v4.1.0
+              with:
+                  version: "0.17.1"
+                  src: apworld
+
+            - name: Check formatting
+              run: ruff format --check --diff apworld
+
     test-apworld:
         name: Test APWorld
         runs-on: ubuntu-latest

@@ -4,8 +4,8 @@ from types import SimpleNamespace
 
 from ..options import RONIN_ARC_NAME, ULTOR_EPILOGUE_ARC_NAME
 from ..patch import (
-    generate_patched_mission_chains_file,
     generate_main_menu_info_strings,
+    generate_patched_mission_chains_file,
 )
 
 
@@ -47,9 +47,7 @@ class TestMissionPatch(unittest.TestCase):
             ["ep00"],
             [
                 prereq.text
-                for prereq in ep01.findall(
-                    "./MissionStronghold/Prerequisites/Prereq"
-                )
+                for prereq in ep01.findall("./MissionStronghold/Prerequisites/Prereq")
             ],
         )
 
@@ -61,9 +59,7 @@ class TestMissionPatch(unittest.TestCase):
         flags = [flag.text for flag in ep00.findall("./Flags/Flag")]
         ep00_prerequisites = [
             prereq.text
-            for prereq in ep00.findall(
-                "./MissionStronghold/Prerequisites/Prereq"
-            )
+            for prereq in ep00.findall("./MissionStronghold/Prerequisites/Prereq")
         ]
         ep01_prerequisites = [
             prereq.text
