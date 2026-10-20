@@ -33,7 +33,7 @@ constexpr std::array<std::uint8_t, 7> kCurrentDiversionTypeEntry{
 constexpr float kDetonationRadius{100.0f};
 constexpr std::int32_t kDetonationDamage{0x7FFFFFFF};
 constexpr std::int32_t kDetonationDamageType{1};
-// Negative damage removes all hit points, like Lua character_kill.
+// Negative damage kills, like Lua's character_kill.
 constexpr float kKillDamage{-1.0f};
 // A kill finishes inside the damage call; an explosion may hurt the player a
 // little later.
@@ -159,6 +159,20 @@ Result KillOnFoot(const Functions& functions, DeathSuppression& suppression,
     return died ? Result{Outcome::Applied, detail}
                 : Result{Outcome::Deferred, "the kill did not land"};
 }
+
+// The explosion is for show: it does not always kill the people inside, and
+// some cars cannot blow up, so the kill follows unless the explosion did it.
+Result DetonateAndKill(const ModuleInfo& game, const Functions& functions,
+                       DeathSuppression& suppression,
+                       const std::uintptr_t player,
+                       const std::uint32_t vehicle) {
+    Detonate(game, functions, suppression, vehicle);
+    if (IsDead(functions, player)) {
+        suppression.End();
+        return {Outcome::Applied, "blew up the player's vehicle"};
+    }
+    return KillOnFoot(functions, suppression, player);
+}
 }  // namespace
 
 std::optional<Functions> ResolveFunctions(const ModuleInfo& game) {
@@ -245,14 +259,16 @@ Result KillPlayer(const ModuleInfo& game, const Functions& functions,
                 return Detonate(game, functions, suppression,
                                 handle ? *handle : 0);
             }
-            // The race is over; nothing left to fail.
         } else if (activity == addresses::kActivityTypeRacing) {
             return {Outcome::Deferred, "race has not started"};
         }
-        // Only the racing diversion is known to have type 0, so any other one
-        // without a race gets the normal kill instead of waiting forever.
     }
 
+    const auto vehicle = ReadMemory<std::uint32_t>(
+        player + addresses::kHumanVehicleHandleOffset);
+    if (vehicle && *vehicle != 0) {
+        return DetonateAndKill(game, functions, suppression, player, *vehicle);
+    }
     return KillOnFoot(functions, suppression, player);
 }
 }  // namespace sr2ap::death
