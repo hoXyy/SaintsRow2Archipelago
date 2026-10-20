@@ -4,7 +4,6 @@ from unittest.mock import patch
 
 from BaseClasses import CollectionState, MultiWorld
 
-from .bases import SR2TestBase
 from ..client.context import calculate_ut_respect
 from ..items import (
     BONUS_RESPECT_ITEM_NAME,
@@ -28,6 +27,7 @@ from ..options import (
     SR2Options,
     StartingActivity,
 )
+from .bases import SR2TestBase
 
 
 class SR2UTTestBase(SR2TestBase):

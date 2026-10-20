@@ -1,6 +1,6 @@
 import unittest
 
-from ..items import ITEM_NAME_TO_ID, DEFAULT_ITEM_CLASSIFICATION
+from ..items import DEFAULT_ITEM_CLASSIFICATION, ITEM_NAME_TO_ID
 from ..locations import LOCATION_NAME_TO_ID
 from ..missions import MISSION_CHAINS, get_mission_by_key
 

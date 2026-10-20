@@ -202,7 +202,7 @@ class PluginBridge:
                 ack_index, accepted = await asyncio.wait_for(
                     self.pending_ack, timeout=ACK_TIMEOUT_SECONDS
                 )
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 await asyncio.sleep(RETRY_SECONDS)
                 continue
             if generation != self.context_generation:
@@ -319,8 +319,7 @@ class PluginBridge:
             revisions.persist(checksum, next_index)
         except OSError as error:
             logger.error(
-                f"Could not store client save revision checksum={checksum:08X}: "
-                f"{error}"
+                f"Could not store client save revision checksum={checksum:08X}: {error}"
             )
             return False
         return True

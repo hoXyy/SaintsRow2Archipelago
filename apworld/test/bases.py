@@ -1,5 +1,6 @@
 from BaseClasses import CollectionState
 from test.bases import WorldTestBase
+
 from ..world import SR2World
 
 

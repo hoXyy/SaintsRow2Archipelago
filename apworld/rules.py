@@ -2,52 +2,52 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-
-from worlds.generic.Rules import add_rule, add_item_rule, forbid_items
 from BaseClasses import Location, LocationProgressType
+from worlds.generic.Rules import add_item_rule, add_rule, forbid_items
+
 from .collectibles import CD_MAPPING, STYLE_LEVEL_LOCATIONS, TAGS_MAPPING
 
 if TYPE_CHECKING:
     from .world import SR2World
 
+from .activities import (
+    ACTIVITIES_LEVEL_BASED,
+    ACTIVITY_STARTING_ACTIVITY_ITEM_MAPPING,
+    CHOP_SHOP_LISTS,
+    HITMAN_LISTS,
+    MEDAL_STRINGS,
+    RACES,
+)
+from .items import (
+    CD_UNLOCK_ITEM,
+    CHOP_SHOP_UNLOCK_ITEM,
+    EM01_UNLOCK_ITEM,
+    HITMAN_UNLOCK_ITEM,
+    LEVEL_ACTIVITY_UNLOCK_ITEMS,
+    PERSISTENT_ACTIVITY_UNLOCK_ITEMS,
+    RESPECT_ITEM_NAME,
+    TAGS_UNLOCK_ITEM,
+    TSS_SH_CAVERNS_UNLOCK_ITEM,
+    get_race_unlock_item,
+)
 from .missions import (
-    ULTOR_SECRET_MISSION,
+    BROTHERHOOD_CHAIN,
     MISSION_CHAINS,
     RONIN_CHAIN,
     SAMEDI_CHAIN,
-    BROTHERHOOD_CHAIN,
-    ULTOR_EPILOGUE_CHAIN,
     STILWATER_CAVERNS_STRONGHOLD,
+    ULTOR_EPILOGUE_CHAIN,
+    ULTOR_SECRET_MISSION,
+    Mission,
+    create_minimum_respect_table,
     get_mission_by_key,
     get_mission_complete_event_name,
     get_mission_complete_item_name,
-    create_minimum_respect_table,
-    Mission,
-)
-from .activities import (
-    ACTIVITIES_LEVEL_BASED,
-    CHOP_SHOP_LISTS,
-    HITMAN_LISTS,
-    RACES,
-    MEDAL_STRINGS,
-    ACTIVITY_STARTING_ACTIVITY_ITEM_MAPPING,
-)
-from .items import (
-    EM01_UNLOCK_ITEM,
-    RESPECT_ITEM_NAME,
-    HITMAN_UNLOCK_ITEM,
-    TSS_SH_CAVERNS_UNLOCK_ITEM,
-    get_race_unlock_item,
-    CHOP_SHOP_UNLOCK_ITEM,
-    LEVEL_ACTIVITY_UNLOCK_ITEMS,
-    PERSISTENT_ACTIVITY_UNLOCK_ITEMS,
-    CD_UNLOCK_ITEM,
-    TAGS_UNLOCK_ITEM,
 )
 from .options import (
+    BROTHERHOOD_ARC_NAME,
     RONIN_ARC_NAME,
     SAMEDI_ARC_NAME,
-    BROTHERHOOD_ARC_NAME,
     ULTOR_EPILOGUE_ARC_NAME,
 )
 
@@ -156,10 +156,10 @@ def set_activity_rules(world: SR2World) -> None:
 
                     add_rule(
                         curr_location,
-                        lambda state, tss02_item=tss02_complete_item, activity_unlock_item=unlock_item: state.has(
-                            tss02_item, world.player
-                        )
-                        and state.has(activity_unlock_item, world.player),
+                        lambda state, tss02_item=tss02_complete_item, activity_unlock_item=unlock_item: (
+                            state.has(tss02_item, world.player)
+                            and state.has(activity_unlock_item, world.player)
+                        ),
                     )
                 else:
                     prev_key = f"{activity} ({district}) - Level {level - 1}"
@@ -167,10 +167,10 @@ def set_activity_rules(world: SR2World) -> None:
 
                 add_rule(
                     curr_location,
-                    lambda state, tss02_item=tss02_complete_item, level_unlock_item=prerequisite_item: state.has(
-                        level_unlock_item, world.player
-                    )
-                    and state.has(tss02_item, world.player),
+                    lambda state, tss02_item=tss02_complete_item, level_unlock_item=prerequisite_item: (
+                        state.has(level_unlock_item, world.player)
+                        and state.has(tss02_item, world.player)
+                    ),
                 )
 
                 if level < 6:
@@ -192,10 +192,10 @@ def set_activity_rules(world: SR2World) -> None:
             if curr_key in location_cache:
                 add_rule(
                     world.get_location(curr_key),
-                    lambda state, tss02_item=tss02_complete_item, chop_shop_unlock_item=CHOP_SHOP_UNLOCK_ITEM: state.has(
-                        tss02_item, world.player
-                    )
-                    and state.has(chop_shop_unlock_item, world.player),
+                    lambda state, tss02_item=tss02_complete_item, chop_shop_unlock_item=CHOP_SHOP_UNLOCK_ITEM: (
+                        state.has(tss02_item, world.player)
+                        and state.has(chop_shop_unlock_item, world.player)
+                    ),
                 )
 
     for location in HITMAN_LISTS:
@@ -206,10 +206,10 @@ def set_activity_rules(world: SR2World) -> None:
             if curr_key in location_cache:
                 add_rule(
                     world.get_location(curr_key),
-                    lambda state, tss02_item=tss02_complete_item, hitman_unlock_item=HITMAN_UNLOCK_ITEM: state.has(
-                        tss02_item, world.player
-                    )
-                    and state.has(hitman_unlock_item, world.player),
+                    lambda state, tss02_item=tss02_complete_item, hitman_unlock_item=HITMAN_UNLOCK_ITEM: (
+                        state.has(tss02_item, world.player)
+                        and state.has(hitman_unlock_item, world.player)
+                    ),
                 )
 
     for [race_key, race_name] in RACES.items():
@@ -219,10 +219,10 @@ def set_activity_rules(world: SR2World) -> None:
             if curr_key in location_cache:
                 add_rule(
                     world.get_location(curr_key),
-                    lambda state, tss02_item=tss02_complete_item, race_activity_unlock_item=race_unlock_item: state.has(
-                        tss02_item, world.player
-                    )
-                    and state.has(race_activity_unlock_item, world.player),
+                    lambda state, tss02_item=tss02_complete_item, race_activity_unlock_item=race_unlock_item: (
+                        state.has(tss02_item, world.player)
+                        and state.has(race_activity_unlock_item, world.player)
+                    ),
                 )
 
     # This target needs tags to be unlocked

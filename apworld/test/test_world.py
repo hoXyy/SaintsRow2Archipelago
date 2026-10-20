@@ -1,21 +1,20 @@
-from .bases import SR2TestBase
+from ..items import PERSISTENT_ACTIVITY_UNLOCK_ITEMS
 from ..items_list import (
-    USEFUL_UNLOCKABLES,
-    FILLER_UNLOCKABLES,
     CHEAT_ITEMS,
-    WEAPON_ITEM_NAMES,
+    FILLER_UNLOCKABLES,
     TRAP_CHEATS,
     TRAP_ITEMS,
+    USEFUL_UNLOCKABLES,
 )
-from ..missions import get_mission_by_key, ULTOR_SECRET_MISSION
-from ..items import PERSISTENT_ACTIVITY_UNLOCK_ITEMS
+from ..missions import ULTOR_SECRET_MISSION, get_mission_by_key
 from ..options import (
-    RONIN_ARC_NAME,
     BROTHERHOOD_ARC_NAME,
+    RONIN_ARC_NAME,
     SAMEDI_ARC_NAME,
     ULTOR_EPILOGUE_ARC_NAME,
     StartingActivity,
 )
+from .bases import SR2TestBase
 
 
 class TestSlotData(SR2TestBase):

@@ -1,6 +1,6 @@
-from .bases import SR2TestBase
 from ..collectibles import TAGS_MAPPING
 from ..items import TAGS_UNLOCK_ITEM
+from .bases import SR2TestBase
 
 
 class TestTagsEnabled(SR2TestBase):

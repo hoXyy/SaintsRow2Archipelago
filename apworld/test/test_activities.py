@@ -1,6 +1,5 @@
 from typing import TYPE_CHECKING
 
-from .bases import SR2TestBase
 from ..activities import (
     ACTIVITIES_LEVEL_BASED,
     ACTIVITY_STARTING_ACTIVITY_ITEM_MAPPING,
@@ -10,16 +9,17 @@ from ..activities import (
     CHOP_SHOP_LISTS,
     HELI_RACES,
     HITMAN_LISTS,
+    MEDAL_STRINGS,
     PLANE_RACES,
     RACES,
-    MEDAL_STRINGS,
 )
-from ..missions import get_mission_complete_item_name, get_mission_by_key
 from ..items import (
     CHOP_SHOP_UNLOCK_ITEM,
     HITMAN_UNLOCK_ITEM,
     get_race_unlock_item,
 )
+from ..missions import get_mission_by_key, get_mission_complete_item_name
+from .bases import SR2TestBase
 
 
 class TestActivityLocations(SR2TestBase):

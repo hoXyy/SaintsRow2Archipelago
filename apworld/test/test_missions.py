@@ -1,26 +1,26 @@
 import unittest
 from collections import Counter
 
-from .bases import SR2TestBase
 from ..items import RESPECT_ITEM_NAME
 from ..missions import (
-    get_mission_by_key,
-    get_mission_complete_item_name,
-    create_minimum_respect_table,
-    RONIN_CHAIN,
-    SAMEDI_CHAIN,
     BROTHERHOOD_CHAIN,
     MISSION_CHAINS,
-    ULTOR_SECRET_MISSION,
+    RONIN_CHAIN,
+    SAMEDI_CHAIN,
     STILWATER_CAVERNS_STRONGHOLD,
+    ULTOR_SECRET_MISSION,
+    create_minimum_respect_table,
+    get_mission_by_key,
     get_mission_complete_event_name,
+    get_mission_complete_item_name,
 )
 from ..options import (
-    RONIN_ARC_NAME,
     BROTHERHOOD_ARC_NAME,
+    RONIN_ARC_NAME,
     SAMEDI_ARC_NAME,
     ULTOR_EPILOGUE_ARC_NAME,
 )
+from .bases import SR2TestBase
 
 
 class TestMissionLogic(SR2TestBase):

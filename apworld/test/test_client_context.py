@@ -4,6 +4,7 @@ from types import SimpleNamespace
 from unittest.mock import AsyncMock, Mock
 
 from NetUtils import ClientStatus
+
 from ..client.context import SR2Context
 
 

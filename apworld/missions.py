@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import TYPE_CHECKING, TypedDict
 
-from typing import TypedDict, TYPE_CHECKING
 from .options import (
-    RONIN_ARC_NAME,
     BROTHERHOOD_ARC_NAME,
+    RONIN_ARC_NAME,
     SAMEDI_ARC_NAME,
     ULTOR_EPILOGUE_ARC_NAME,
 )

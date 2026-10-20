@@ -3,6 +3,8 @@ from worlds.LauncherComponents import (
     Type,
     components,
     icon_paths,
+)
+from worlds.LauncherComponents import (
     launch as launch_component,
 )
 

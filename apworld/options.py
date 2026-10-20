@@ -1,13 +1,13 @@
 from dataclasses import dataclass
 
 from Options import (
+    Choice,
     DeathLink,
     OptionGroup,
-    PerGameCommonOptions,
-    Toggle,
     OptionSet,
+    PerGameCommonOptions,
     Range,
-    Choice,
+    Toggle,
 )
 
 RONIN_ARC_NAME = "Ronin Arc"

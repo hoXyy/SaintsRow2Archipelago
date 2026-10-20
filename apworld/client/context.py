@@ -8,6 +8,8 @@ from typing import Any
 try:
     from worlds.tracker.TrackerClient import (
         TrackerCommandProcessor as SuperCommandProcessor,
+    )
+    from worlds.tracker.TrackerClient import (
         TrackerGameContext as SuperContext,
     )
 
@@ -15,15 +17,16 @@ try:
 except ModuleNotFoundError:
     from CommonClient import (
         ClientCommandProcessor as SuperCommandProcessor,
+    )
+    from CommonClient import (
         CommonContext as SuperContext,
     )
 
     tracker_loaded = False
 
+from CommonClient import logger
 from NetUtils import ClientStatus
 from Utils import user_path
-
-from CommonClient import logger
 
 from ..items import BONUS_RESPECT_ITEM_NAME, ITEM_NAME_TO_ID, RESPECT_ITEM_NAME
 from ..missions import ALL_MISSIONS
