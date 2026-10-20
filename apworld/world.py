@@ -162,7 +162,7 @@ class SR2World(World):
             goal_locations.append(STILWATER_CAVERNS_STRONGHOLD.id)
 
         return {
-            "protocol": 4,
+            "protocol": 5,
             "goal_locations": goal_locations,
             "managed_unlockables": sorted(selected_names & unlockable_names),
             "managed_cheats": sorted(selected_names & cheat_names),
@@ -176,6 +176,7 @@ class SR2World(World):
                 ),
                 "block_vanilla_unlockables": True,
                 "notoriety_traps": bool(selected_names & set(TRAP_ITEMS)),
+                "death_link": bool(self.options.death_link),
             },
             "enabled_progression": {
                 "missions": True,

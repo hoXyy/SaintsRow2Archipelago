@@ -1,5 +1,7 @@
+import asyncio
 import unittest
-from unittest.mock import AsyncMock
+from types import SimpleNamespace
+from unittest.mock import AsyncMock, Mock
 
 from NetUtils import ClientStatus
 from ..client.context import SR2Context
@@ -132,3 +134,65 @@ class TestGoal(unittest.IsolatedAsyncioTestCase):
         await ctx.submit_observed_locations()
 
         self.assertTrue(ctx.finished_game)
+
+
+class TestDeathLink(unittest.IsolatedAsyncioTestCase):
+    async def test_received_death_is_forwarded_to_the_plugin(self) -> None:
+        ctx = make_context(
+            last_death_link=0.0, bridge=SimpleNamespace(send=AsyncMock())
+        )
+
+        ctx.on_deathlink(
+            {"time": 5.0, "source": "Other", "cause": "Other fell into lava"}
+        )
+        await asyncio.sleep(0)
+
+        self.assertEqual(5.0, ctx.last_death_link)
+        ctx.bridge.send.assert_awaited_once_with(
+            {
+                "type": "death_link",
+                "source": "Other",
+                "cause": "Other fell into lava",
+            }
+        )
+
+    async def test_received_death_without_cause_forwards_empty_cause(self) -> None:
+        ctx = make_context(
+            last_death_link=0.0, bridge=SimpleNamespace(send=AsyncMock())
+        )
+
+        ctx.on_deathlink({"time": 5.0, "source": "Other"})
+        await asyncio.sleep(0)
+
+        message = ctx.bridge.send.await_args.args[0]
+        self.assertEqual("Other", message["source"])
+        self.assertEqual("", message["cause"])
+
+    async def connect(self, slot_data: dict | None) -> SR2Context:
+        ctx = make_context(
+            seed_name="Test Seed",
+            team=0,
+            slot=1,
+            revisions=Mock(),
+            request_sync=Mock(),
+            update_death_link=AsyncMock(),
+        )
+
+        ctx.on_package("Connected", {"slot_data": slot_data})
+        await asyncio.sleep(0)
+        return ctx
+
+    async def test_connecting_with_death_link_enables_the_tag(self) -> None:
+        ctx = await self.connect({"features": {"death_link": True}})
+
+        ctx.update_death_link.assert_awaited_once_with(True)
+
+    async def test_connecting_without_death_link_disables_the_tag(self) -> None:
+        ctx = await self.connect({"features": {"death_link": False}})
+
+        ctx.update_death_link.assert_awaited_once_with(False)
+
+    async def test_connecting_without_slot_data_disables_the_tag(self) -> None:
+        ctx = await self.connect(None)
+
+        ctx.update_death_link.assert_awaited_once_with(False)

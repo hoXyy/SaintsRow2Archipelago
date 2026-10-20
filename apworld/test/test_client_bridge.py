@@ -297,3 +297,14 @@ class TestProgression(unittest.IsolatedAsyncioTestCase):
 
         self.assertEqual({mission.id}, bridge.ctx.observed_locations)
         bridge.ctx.submit_observed_locations.assert_awaited_once()
+
+
+class TestDeath(unittest.IsolatedAsyncioTestCase):
+    async def test_plugin_death_is_sent_as_death_link(self) -> None:
+        bridge = make_bridge(player_names={1: "Player"}, send_death=AsyncMock())
+
+        await bridge.handle_message({"type": "death"})
+
+        bridge.ctx.send_death.assert_awaited_once()
+        cause = bridge.ctx.send_death.await_args.args[0]
+        self.assertTrue(cause.startswith("Player "))

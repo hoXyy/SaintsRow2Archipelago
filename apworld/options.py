@@ -1,6 +1,14 @@
 from dataclasses import dataclass
 
-from Options import OptionGroup, PerGameCommonOptions, Toggle, OptionSet, Range, Choice
+from Options import (
+    DeathLink,
+    OptionGroup,
+    PerGameCommonOptions,
+    Toggle,
+    OptionSet,
+    Range,
+    Choice,
+)
 
 RONIN_ARC_NAME = "Ronin Arc"
 SAMEDI_ARC_NAME = "Sons of Samedi Arc"
@@ -438,6 +446,7 @@ class IncludeNotorietyTrapItems(Toggle):
 
 @dataclass
 class SR2Options(PerGameCommonOptions):
+    death_link: DeathLink
     required_gang_arcs: RequiredGangArcs
     starting_activity: StartingActivity
     include_secret_mission: IncludeSecretMission
