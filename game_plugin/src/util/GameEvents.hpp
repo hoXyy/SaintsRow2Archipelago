@@ -11,7 +11,8 @@ namespace sr2ap {
 enum class GameEventKind {
     SaveLoaded,
     SaveWritten,
-    RequestCompleted
+    RequestCompleted,
+    PlayerDied
 };
 
 struct GameEvent {
@@ -31,6 +32,7 @@ class GameEventQueue {
     void PushSaveLoaded(std::uint32_t checksum);
     void PushSaveWritten(std::uint32_t checksum);
     void PushRequestCompleted(std::uint64_t requestId, bool applied);
+    void PushPlayerDied();
 
     // Plugin thread.
     [[nodiscard]] std::vector<GameEvent> Drain();

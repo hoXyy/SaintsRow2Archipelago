@@ -4,6 +4,7 @@
 
 #include <atomic>
 
+#include "game/DeathMonitor.hpp"
 #include "game/GameState.hpp"
 #include "game/GameThreadDispatcher.hpp"
 #include "game/HudNotifications.hpp"
@@ -122,6 +123,13 @@ DWORD WINAPI PluginThread(void* parameter) {
                 "Checksum monitoring unavailable; AP item delivery disabled");
         }
 
+        DeathMonitor deathMonitor;
+        if (session.InstallDeathMonitoring(deathMonitor, config.enabled)) {
+            LogInfo("DeathLink", "Player death monitoring installed");
+        } else if (config.enabled && gameSupported) {
+            LogWarning("DeathLink", "Player death monitoring unavailable");
+        }
+
         if (config.enabled) {
             if (config.debugLogging) {
                 LogDebug("Progression",
@@ -139,7 +147,7 @@ DWORD WINAPI PluginThread(void* parameter) {
                     "remain available");
         }
 
-        bool moduleDown = false, snapshotDown = false;
+        bool moduleDown = false, snapshotDown = false, deathLinkDown = false;
         ULONGLONG nextPoll = GetTickCount64();
         const auto statusPath = pluginDirectory / L"SR2ArchipelagoStatus.txt";
         ProgressionMonitor progression(
@@ -155,6 +163,7 @@ DWORD WINAPI PluginThread(void* parameter) {
             if (saveRevisionInstalled) {
                 saveRevisions.Poll();
             }
+            deathMonitor.Poll(gameContext);
             session.ProcessGameEvents();
 
             session.UpdateReadiness(gameContext.readiness);
@@ -166,6 +175,9 @@ DWORD WINAPI PluginThread(void* parameter) {
                 if (Pressed(config.snapshotHotkey, snapshotDown)) {
                     progression.CaptureManualSnapshot(gameContext);
                 }
+                if (Pressed(config.deathLinkHotkey, deathLinkDown)) {
+                    session.QueueTestDeathLink();
+                }
             }
             const auto now = GetTickCount64();
             if (config.enabled &&
@@ -176,6 +188,10 @@ DWORD WINAPI PluginThread(void* parameter) {
             }
 
             session.PollNetwork(gameContext);
+            if (const auto death = session.UpdateDeathLink(gameContext)) {
+                notifications.Post(
+                    FormatDeathLinkNotification(death->source, death->cause));
+            }
             while (const auto notification = session.NextNotification()) {
                 if (const auto text = FormatItemNotification(*notification)) {
                     notifications.Post(*text);
@@ -193,6 +209,7 @@ DWORD WINAPI PluginThread(void* parameter) {
 
         LogInfo("Plugin", "SR2Archipelago shutting down");
         session.Shutdown();
+        deathMonitor.Remove();
         saveRevisions.Remove();
         notifications.Remove();
         menuOverlay.Remove();

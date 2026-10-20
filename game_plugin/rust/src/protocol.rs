@@ -19,6 +19,7 @@ pub enum IncomingKind {
     SaveRevisionAcknowledgement,
     SessionReady,
     SessionEnd,
+    DeathLink,
 }
 
 #[derive(Debug, Default, PartialEq, Eq)]
@@ -28,8 +29,11 @@ pub struct IncomingMessage {
     pub index: u64,
     pub name: String,
     /// Item: the player whose world the item was found in, empty when found
-    /// in this player's own world. ItemSent: the receiving player.
+    /// in this player's own world. ItemSent: the receiving player. DeathLink:
+    /// the player who died.
     pub player: String,
+    /// DeathLink: why the other player died, empty when not given.
+    pub cause: String,
     /// Archipelago item flags (progression, useful, trap).
     pub flags: u32,
     pub checksum: u32,
@@ -46,6 +50,7 @@ pub struct IncomingMessage {
     pub exclusive_respect: bool,
     pub block_vanilla_unlockables: bool,
     pub notoriety_traps: bool,
+    pub death_link: bool,
     pub missions: bool,
     pub activities: bool,
     pub hitman: bool,
@@ -104,10 +109,21 @@ struct SaveRevisionAcknowledgementMessage {
 }
 
 #[derive(Deserialize)]
+struct DeathLinkMessage {
+    #[serde(rename = "type")]
+    _message_type: String,
+    #[serde(default)]
+    source: String,
+    #[serde(default)]
+    cause: String,
+}
+
+#[derive(Deserialize)]
 struct Features {
     exclusive_respect: bool,
     block_vanilla_unlockables: bool,
     notoriety_traps: bool,
+    death_link: bool,
 }
 
 #[derive(Deserialize)]
@@ -273,6 +289,7 @@ pub fn parse_incoming(input: &[u8]) -> IncomingMessage {
                     exclusive_respect: session.features.exclusive_respect,
                     block_vanilla_unlockables: session.features.block_vanilla_unlockables,
                     notoriety_traps: session.features.notoriety_traps,
+                    death_link: session.features.death_link,
                     missions: session.enabled_progression.missions,
                     activities: session.enabled_progression.activities,
                     hitman: session.enabled_progression.hitman,
@@ -289,6 +306,15 @@ pub fn parse_incoming(input: &[u8]) -> IncomingMessage {
         "session_end" => IncomingMessage {
             kind: IncomingKind::SessionEnd,
             ..IncomingMessage::default()
+        },
+        "death_link" => match decode::<DeathLinkMessage>(input) {
+            Ok(death) => IncomingMessage {
+                kind: IncomingKind::DeathLink,
+                player: display_text(death.source),
+                cause: display_text(death.cause),
+                ..IncomingMessage::default()
+            },
+            Err(error) => *error,
         },
         _ => IncomingMessage {
             kind: IncomingKind::Unknown,
@@ -336,6 +362,21 @@ pub fn serialize_item_acknowledgement(index: u64, accepted: bool) -> String {
         accepted,
         index,
         message_type: "item_ack",
+    })
+    .unwrap_or_default()
+}
+
+#[derive(Serialize)]
+struct Death {
+    #[serde(rename = "type")]
+    message_type: &'static str,
+}
+
+/// The local player died. The client turns this into the Archipelago
+/// DeathLink bounce.
+pub fn serialize_death() -> String {
+    serde_json::to_string(&Death {
+        message_type: "death",
     })
     .unwrap_or_default()
 }
@@ -508,15 +549,54 @@ mod tests {
     #[test]
     fn session_should_deduplicate_names_in_first_seen_order() {
         let message = parse_incoming(br#"{
-          "type":"session_ready","protocol":6,"seed_name":"seed","team":1,"slot":2,
+          "type":"session_ready","protocol":7,"seed_name":"seed","team":1,"slot":2,
           "managed_unlockables":["Taxi","Taxi","Boat"],"managed_cheats":[],
           "persistent_items":["Tag Pass","Tag Pass"],
-          "features":{"exclusive_respect":true,"block_vanilla_unlockables":false,"notoriety_traps":true},
+          "features":{"exclusive_respect":true,"block_vanilla_unlockables":false,"notoriety_traps":true,"death_link":true},
           "enabled_progression":{"missions":true,"activities":false,"hitman":true,"chop_shop":false,"cds":true,"races":true,"tags":true}}
         "#);
         assert_eq!(message.kind, IncomingKind::SessionReady);
         assert_eq!(message.managed_unlockables, ["Taxi", "Boat"]);
         assert_eq!(message.persistent_items, ["Tag Pass"]);
+        assert!(message.death_link);
+    }
+
+    #[test]
+    fn session_ready_should_require_death_link_feature() {
+        let message = parse_incoming(br#"{
+          "type":"session_ready","protocol":7,"seed_name":"seed","team":1,"slot":2,
+          "managed_unlockables":[],"managed_cheats":[],"persistent_items":[],
+          "features":{"exclusive_respect":true,"block_vanilla_unlockables":false,"notoriety_traps":true},
+          "enabled_progression":{"missions":true,"activities":false,"hitman":true,"chop_shop":false,"cds":true,"races":true,"tags":true}}
+        "#);
+        assert_eq!(message.kind, IncomingKind::Invalid);
+    }
+
+    #[test]
+    fn parser_should_read_death_link_with_defaults_and_truncate_text() {
+        let death = parse_incoming(
+            br#"{"type":"death_link","source":"Player2","cause":"Player2 fell off a cliff"}"#,
+        );
+        assert_eq!(death.kind, IncomingKind::DeathLink);
+        assert_eq!(death.player, "Player2");
+        assert_eq!(death.cause, "Player2 fell off a cliff");
+
+        let bare = parse_incoming(br#"{"type":"death_link"}"#);
+        assert_eq!(bare.kind, IncomingKind::DeathLink);
+        assert!(bare.player.is_empty());
+        assert!(bare.cause.is_empty());
+
+        let long_cause = "x".repeat(MAXIMUM_DISPLAY_SIZE * 2);
+        let input = format!(r#"{{"type":"death_link","source":"P","cause":"{long_cause}"}}"#);
+        assert_eq!(
+            parse_incoming(input.as_bytes()).cause.len(),
+            MAXIMUM_DISPLAY_SIZE
+        );
+
+        assert_eq!(
+            parse_incoming(br#"{"type":"death_link","source":7}"#).kind,
+            IncomingKind::Invalid
+        );
     }
 
     #[test]
@@ -540,5 +620,8 @@ mod tests {
             serde_json::from_str(&serialize_session_rejection("reason", "message")).unwrap();
         assert_eq!(rejection["type"], "session_rejected");
         assert_eq!(rejection["reason"], "reason");
+
+        let death: serde_json::Value = serde_json::from_str(&serialize_death()).unwrap();
+        assert_eq!(death, serde_json::json!({"type": "death"}));
     }
 }

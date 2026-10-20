@@ -14,7 +14,8 @@ use tokio::{
 };
 use tokio_util::codec::{Framed, LinesCodec};
 
-const HELLO_MESSAGE: &str = r#"{"game":"Saints Row 2","protocol":6,"type":"hello"}"#;
+/// Its protocol must match `session::SESSION_PROTOCOL`; the client checks both.
+const HELLO_MESSAGE: &str = r#"{"game":"Saints Row 2","protocol":7,"type":"hello"}"#;
 const MAX_LINE_LENGTH: usize = 64 * 1024;
 const OUTGOING_QUEUE_CAPACITY: usize = 128;
 const RECONNECT_DELAY: Duration = Duration::from_secs(2);
@@ -267,6 +268,13 @@ mod tests {
     use super::*;
 
     const TEST_TIMEOUT: Duration = Duration::from_secs(3);
+
+    #[test]
+    fn hello_should_announce_the_session_protocol() {
+        let hello: serde_json::Value = serde_json::from_str(HELLO_MESSAGE).unwrap();
+        assert_eq!(hello["type"], "hello");
+        assert_eq!(hello["protocol"], crate::session::SESSION_PROTOCOL);
+    }
 
     fn configure_test_stream(stream: &TcpStream) {
         stream

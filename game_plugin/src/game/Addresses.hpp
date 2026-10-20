@@ -158,4 +158,53 @@ inline constexpr std::size_t kTagSpotNextOffset = 0x10;
 inline constexpr std::size_t kTagIdentityHashOffset = 0x00;
 inline constexpr std::size_t kExpectedTagCount = 50;
 
+// Human death (DeathLink).
+// Runs once per real death, cdecl with the human as the only stack argument.
+// The HP-depleted handler and the bleed-out finisher both call it, and in
+// Demolition Derby and races it instantly resets the human instead.
+inline constexpr std::ptrdiff_t kHumanDieRva = 0x00560E40;
+// bool __cdecl(human*): HP at or below zero, or the bleed-out timer running.
+inline constexpr std::ptrdiff_t kHumanIsDeadRva = 0x00585630;
+// ECX attacker, EDX damage info, stack human, damage, two ints; the caller
+// pops the stack and an x87 value. Negative damage removes all HP. Lua
+// character_kill calls it with -1.
+inline constexpr std::ptrdiff_t kHumanDamageRva = 0x005847A0;
+// __thiscall(human*, const float* hitPoints); ignores invulnerability.
+inline constexpr std::ptrdiff_t kHumanSetHitPointsRva = 0x00569C90;
+inline constexpr std::size_t kHumanVehicleHandleOffset = 0xD74;
+inline constexpr std::size_t kHumanBleedOutTimerOffset = 0xF8C;
+inline constexpr std::size_t kHumanHitPointsOffset = 0x1124;
+
+// Object handles: entry (handle & 0xFFF) holds the object pointer first.
+inline constexpr std::ptrdiff_t kObjectHandleTableRva = 0x01D49C64;
+inline constexpr std::size_t kObjectHandleEntryStride = 0x10;
+inline constexpr std::uint32_t kObjectHandleIndexMask = 0xFFF;
+inline constexpr std::size_t kObjectHandleOffset = 0x44;
+inline constexpr std::size_t kObjectTypeOffset = 0x4C;
+inline constexpr std::uint32_t kObjectTypeVehicle = 5;
+
+// Vehicles. The damage function is what Lua vehicle_detonate calls: cdecl,
+// 14 arguments.
+inline constexpr std::ptrdiff_t kVehicleDamageRva = 0x006AD3D0;
+inline constexpr std::size_t kVehiclePositionOffset = 0x14;
+// 1 while the vehicle is fully loaded, 0 for a streamed-out "lite" vehicle.
+inline constexpr std::size_t kVehicleActiveOffset = 0x84D8;
+inline constexpr std::size_t kVehicleHitPointsOffset = 0x8C28;
+inline constexpr std::size_t kVehicleStateFlagsOffset = 0x8F50;
+inline constexpr std::uint32_t kVehicleWreckedFlag = 0x1;
+
+// Activities. Returns -1 outside activities, otherwise the activity type.
+inline constexpr std::ptrdiff_t kCurrentActivityTypeRva = 0x0013C4D0;
+inline constexpr std::int32_t kActivityTypeDemolitionDerby = 0;
+inline constexpr std::int32_t kActivityTypeRacing = 0x0E;
+// Null outside races.
+inline constexpr std::ptrdiff_t kRaceManagerRva = 0x02127B14;
+inline constexpr std::size_t kRaceManagerStateOffset = 0x00;
+inline constexpr std::size_t kRaceManagerPlayerVehicleOffset = 0x17C;
+inline constexpr std::uint32_t kRaceStateCountdown = 3;
+inline constexpr std::uint32_t kRaceStateRacing = 4;
+inline constexpr std::ptrdiff_t kDerbyStateRva = 0x0100A644;
+inline constexpr std::ptrdiff_t kDerbyPlayerVehicleRva = 0x02127754;
+inline constexpr std::uint32_t kDerbyStateMatch = 7;
+
 }  // namespace sr2ap::addresses

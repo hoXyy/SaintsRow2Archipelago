@@ -16,6 +16,7 @@ struct Config {
     bool enableHotkeys{false};
     std::uint32_t moduleReportHotkey{0x76};
     std::uint32_t snapshotHotkey{0x77};
+    std::uint32_t deathLinkHotkey{0x78};
 };
 
 struct ConfigLoadResult {

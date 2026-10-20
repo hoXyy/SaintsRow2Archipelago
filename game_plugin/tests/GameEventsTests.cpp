@@ -21,6 +21,18 @@ TEST(GameEventsTest, PreservesGameThreadOrder) {
     EXPECT_TRUE(queue.Drain().empty());
 }
 
+TEST(GameEventsTest, PlayerDeathKeepsGameThreadOrder) {
+    GameEventQueue queue;
+    queue.PushSaveWritten(0x11);
+    queue.PushPlayerDied();
+    queue.PushRequestCompleted(4, true);
+
+    const auto events = queue.Drain();
+    ASSERT_EQ(events.size(), 3U);
+    EXPECT_EQ(events[1].kind, GameEventKind::PlayerDied);
+    EXPECT_EQ(events[2].kind, GameEventKind::RequestCompleted);
+}
+
 TEST(GameEventsTest, DroppedCompletionReportsNotApplied) {
     auto queue = std::make_shared<GameEventQueue>();
     {

@@ -194,6 +194,8 @@ if (WIN32)
             src/progression/ProgressionMonitor.cpp
             src/progression/ReaderRegistry.cpp
             src/game/SaveRevisionMonitor.cpp
+            src/game/DeathMonitor.cpp
+            src/game/DeathLinkActions.cpp
             src/game/Lua.hpp
             src/game/Lua.cpp
             ${SR2AP_READER_SOURCES}

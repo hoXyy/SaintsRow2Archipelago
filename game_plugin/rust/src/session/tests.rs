@@ -646,3 +646,108 @@ fn notification_queue_drops_the_oldest_when_full() {
         })
     );
 }
+
+fn activate_with_death_link(runtime: &mut SessionRuntime) {
+    let mut message = session("seed");
+    message.death_link = true;
+    let Some(GameplayRequest::InstallPolicies(_)) = runtime.handle_message(message, true) else {
+        panic!("expected policies")
+    };
+    runtime.report_result(true).unwrap();
+    runtime.update_readiness(false, true);
+    runtime.outgoing.clear();
+}
+
+fn death_link(source: &str) -> IncomingMessage {
+    IncomingMessage {
+        kind: IncomingKind::DeathLink,
+        player: source.into(),
+        cause: format!("{source} died"),
+        ..IncomingMessage::default()
+    }
+}
+
+#[test]
+fn player_death_is_sent_only_while_death_link_is_enabled_and_active() {
+    let mut fixture = Fixture::new();
+    let runtime = &mut fixture.runtime;
+    runtime.player_died();
+    assert!(runtime.outgoing.is_empty());
+
+    activate(runtime);
+    runtime.player_died();
+    assert!(runtime.outgoing.is_empty());
+
+    let mut fixture = Fixture::new();
+    let runtime = &mut fixture.runtime;
+    activate_with_death_link(runtime);
+    runtime.player_died();
+    assert_eq!(last_message(runtime)["type"], "death");
+
+    runtime.outgoing.clear();
+    runtime.handle_message(
+        IncomingMessage {
+            kind: IncomingKind::SessionEnd,
+            ..IncomingMessage::default()
+        },
+        true,
+    );
+    runtime.player_died();
+    assert!(runtime.outgoing.is_empty());
+}
+
+#[test]
+fn death_links_queue_only_while_enabled_and_in_gameplay() {
+    let mut fixture = Fixture::new();
+    let runtime = &mut fixture.runtime;
+    activate(runtime);
+    assert!(runtime
+        .handle_message(death_link("Player2"), true)
+        .is_none());
+    assert_eq!(runtime.next_death_link(), None);
+
+    let mut fixture = Fixture::new();
+    let runtime = &mut fixture.runtime;
+    activate_with_death_link(runtime);
+    assert!(runtime
+        .handle_message(death_link("Player2"), true)
+        .is_none());
+    assert_eq!(
+        runtime.next_death_link(),
+        Some(DeathLink {
+            source: "Player2".into(),
+            cause: "Player2 died".into(),
+        })
+    );
+    assert_eq!(runtime.next_death_link(), None);
+
+    runtime.update_readiness(true, false);
+    runtime.handle_message(death_link("Player3"), true);
+    assert_eq!(runtime.next_death_link(), None);
+}
+
+#[test]
+fn death_links_are_dropped_when_the_world_changes() {
+    let mut fixture = Fixture::new();
+    let runtime = &mut fixture.runtime;
+    activate_with_death_link(runtime);
+    runtime.handle_message(death_link("Player2"), true);
+    runtime.save_loaded(42);
+    assert_eq!(runtime.next_death_link(), None);
+
+    runtime.update_readiness(false, true);
+    runtime.handle_message(death_link("Player2"), true);
+    runtime.update_readiness(true, false);
+    assert_eq!(runtime.next_death_link(), None);
+}
+
+#[test]
+fn death_link_queue_drops_the_oldest_when_full() {
+    let mut fixture = Fixture::new();
+    let runtime = &mut fixture.runtime;
+    activate_with_death_link(runtime);
+    for index in 0..=MAXIMUM_PENDING_DEATH_LINKS {
+        runtime.handle_message(death_link(&index.to_string()), true);
+    }
+    assert_eq!(runtime.next_death_link().unwrap().source, "1");
+}
