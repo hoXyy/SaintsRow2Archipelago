@@ -226,14 +226,15 @@ def set_activity_rules(world: SR2World) -> None:
                 )
 
     # This target needs tags to be unlocked
-    if "Hitman (Barrio) - Brad" in location_cache:
-        if bool(world.options.include_tags.value):
-            add_rule(
-                world.get_location("Hitman (Barrio) - Brad"),
-                lambda state, tag_unlock_item=TAGS_UNLOCK_ITEM: state.has(
-                    tag_unlock_item, world.player
-                ),
-            )
+    if "Hitman (Barrio) - Brad" in location_cache and bool(
+        world.options.include_tags.value
+    ):
+        add_rule(
+            world.get_location("Hitman (Barrio) - Brad"),
+            lambda state, tag_unlock_item=TAGS_UNLOCK_ITEM: state.has(
+                tag_unlock_item, world.player
+            ),
+        )
 
 
 def set_completion_rules(world: SR2World) -> None:
@@ -313,7 +314,7 @@ def set_style_level_rules(world: SR2World):
     if world.random.random() < 0.5:
         candidates = [
             name
-            for name in STYLE_LEVEL_LOCATIONS[3:6]  # Levels 4–6
+            for name in STYLE_LEVEL_LOCATIONS[3:6]  # Levels 4-6
             if name in location_cache
         ]
 

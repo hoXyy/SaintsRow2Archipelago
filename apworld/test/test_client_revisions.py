@@ -57,9 +57,11 @@ class TestLocalLedger(RevisionStoreTestCase):
     def test_failed_replace_does_not_mutate_in_memory_ledger(self) -> None:
         store = self.make_store()
 
-        with patch.object(os, "replace", side_effect=OSError("failed")):
-            with self.assertRaises(OSError):
-                store.persist(42, 3)
+        with (
+            patch.object(os, "replace", side_effect=OSError("failed")),
+            self.assertRaises(OSError),
+        ):
+            store.persist(42, 3)
 
         self.assertIsNone(store.local_cursor(42))
 

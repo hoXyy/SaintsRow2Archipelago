@@ -347,7 +347,7 @@ class PluginBridge:
             persistent_names=frozenset(ctx.slot_data["persistent_items"]),
         )
 
-    async def _on_death(self, message: dict[str, Any]) -> None:
+    async def _on_death(self, _message: dict[str, Any]) -> None:
         await self.ctx.send_death(
             f"{self.ctx.player_names[self.ctx.slot]} got smoked on the streets of Stilwater."
         )
