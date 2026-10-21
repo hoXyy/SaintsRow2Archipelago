@@ -189,6 +189,7 @@ if (WIN32)
             src/game/MenuVersionOverlay.cpp
             src/game/TextRenderer.cpp
             src/game/HudNotifications.cpp
+            src/game/MapReveal.cpp
             src/game/ItemHandlerManager.cpp
             src/game/ItemHandlerRegistry.cpp
             src/progression/ProgressionMonitor.cpp

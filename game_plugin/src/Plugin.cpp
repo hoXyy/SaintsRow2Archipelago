@@ -8,6 +8,7 @@
 #include "game/GameState.hpp"
 #include "game/GameThreadDispatcher.hpp"
 #include "game/HudNotifications.hpp"
+#include "game/MapReveal.hpp"
 #include "game/MenuVersionOverlay.hpp"
 #include "game/ModuleInfo.hpp"
 #include "game/SaveRevisionMonitor.hpp"
@@ -102,6 +103,10 @@ DWORD WINAPI PluginThread(void* parameter) {
         HudNotifications notifications{dispatcher};
         if (gameSupported && !notifications.Install()) {
             LogWarning("Notifications", "HUD notifications unavailable");
+        }
+        MapReveal mapReveal{dispatcher};
+        if (gameSupported && config.enabled && !mapReveal.Install()) {
+            LogWarning("MapReveal", "Map reveal unavailable");
         }
         const bool showConnection = config.enabled && config.networkEnabled;
         if (!showConnection) {
@@ -198,6 +203,7 @@ DWORD WINAPI PluginThread(void* parameter) {
                 }
             }
             notifications.Update();
+            mapReveal.Update(gameContext);
             if (showConnection) {
                 menuOverlay.SetConnectionStatus(
                     ToConnectionStatus(session.ClientConnectionState()));
@@ -211,6 +217,7 @@ DWORD WINAPI PluginThread(void* parameter) {
         session.Shutdown();
         deathMonitor.Remove();
         saveRevisions.Remove();
+        mapReveal.Remove();
         notifications.Remove();
         menuOverlay.Remove();
         textRenderer.Remove();
