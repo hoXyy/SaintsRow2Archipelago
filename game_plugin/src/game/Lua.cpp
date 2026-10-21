@@ -90,6 +90,47 @@ void CallAddAmmo(const std::uintptr_t functionAddress, void* player,
         add esp, 8
     }
 }
+
+// character kill / dead stuff
+constexpr std::array<std::uint8_t, 7> kHumanDamageEntry{
+    0x81, 0xEC, 0x4C, 0x05, 0x00, 0x00, 0xA1,
+};
+constexpr std::array<std::uint8_t, 6> kHumanIsDeadEntry{
+    0x8B, 0x54, 0x24, 0x04, 0x85, 0xD2,
+};
+// Negative damage removes all hit points.
+constexpr float kKillDamage{-1.0f};
+
+using IsDeadFunction = bool(__cdecl*)(std::uintptr_t human);
+
+void CallHumanDamage(const std::uintptr_t functionAddress,
+                     const std::uintptr_t human, const float damage) {
+    __asm {
+        push 0
+        push 0
+        push damage
+        push human
+        xor ecx, ecx
+        xor edx, edx
+        call functionAddress
+        fstp st(0)
+        add esp, 0x10
+    }
+}
+
+// vehicle detonate stuff
+constexpr std::array<std::uint8_t, 12> kVehicleDamageEntry{
+    0x55, 0x8B, 0xEC, 0x83, 0xE4, 0xF8, 0x81, 0xEC, 0x54, 0x07, 0x00, 0x00,
+};
+constexpr float kDetonationRadius{100.0f};
+constexpr std::int32_t kDetonationDamage{0x7FFFFFFF};
+constexpr std::int32_t kDetonationDamageType{1};
+
+using VehicleDamageFunction = void(__cdecl*)(
+    std::uintptr_t vehicle, std::uintptr_t attacker, std::int32_t, std::int32_t,
+    const float* position, const float* direction, float radius,
+    std::int32_t damage, std::int32_t damageType, const float* impulse, float,
+    std::int32_t, std::int32_t, std::int32_t);
 }  // namespace
 
 namespace Lua {
@@ -248,6 +289,48 @@ bool AddWeaponAmmo(const char* weaponName, std::int32_t amount) {
         reinterpret_cast<void*>(static_cast<std::uintptr_t>(*playerAddress)),
         *category, amount);
 
+    return true;
+}
+
+bool CanKillCharacter(const ModuleInfo& game) {
+    return ValidateHookTarget(game, game.base + addresses::kHumanDamageRva,
+                              kHumanDamageEntry);
+}
+
+void KillCharacter(const ModuleInfo& game, const std::uintptr_t human) {
+    CallHumanDamage(game.base + addresses::kHumanDamageRva, human, kKillDamage);
+}
+
+bool CanQueryCharacterDead(const ModuleInfo& game) {
+    return ValidateHookTarget(game, game.base + addresses::kHumanIsDeadRva,
+                              kHumanIsDeadEntry);
+}
+
+bool IsCharacterDead(const ModuleInfo& game, const std::uintptr_t human) {
+    const auto isDead = reinterpret_cast<IsDeadFunction>(
+        game.base + addresses::kHumanIsDeadRva);
+    return isDead(human);
+}
+
+bool CanDetonateVehicle(const ModuleInfo& game) {
+    return ValidateHookTarget(game, game.base + addresses::kVehicleDamageRva,
+                              kVehicleDamageEntry);
+}
+
+bool DetonateVehicle(const ModuleInfo& game, const std::uintptr_t vehicle) {
+    const auto position = ReadMemoryIntoArray<float, 3>(
+        vehicle + addresses::kVehiclePositionOffset);
+    if (!position) {
+        return false;
+    }
+
+    // The same arguments Lua vehicle_detonate passes.
+    constexpr std::array<float, 3> kNoImpulse{};
+    const auto vehicleDamage = reinterpret_cast<VehicleDamageFunction>(
+        game.base + addresses::kVehicleDamageRva);
+    vehicleDamage(vehicle, 0, 0, 0, position->data(), nullptr,
+                  kDetonationRadius, kDetonationDamage, kDetonationDamageType,
+                  kNoImpulse.data(), 0.0f, 0, 0, 0);
     return true;
 }
 }  // namespace Lua
