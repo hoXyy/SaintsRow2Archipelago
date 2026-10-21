@@ -212,4 +212,29 @@ inline constexpr std::ptrdiff_t kDerbyStateRva = 0x0100A644;
 inline constexpr std::ptrdiff_t kDerbyPlayerVehicleRva = 0x02127754;
 inline constexpr std::uint32_t kDerbyStateMatch = 7;
 
+// Map reveal. Neighborhood records come from neighborhoods.xtbl; the pause
+// map fogs every hood without the explored flag.
+inline constexpr std::ptrdiff_t kNeighborhoodCountRva = 0x02126C90;
+inline constexpr std::ptrdiff_t kNeighborhoodTableRva = 0x02126C94;
+inline constexpr std::size_t kNeighborhoodStride = 0xA8;
+inline constexpr std::size_t kNeighborhoodFlagsOffset = 0x58;
+inline constexpr std::uint8_t kNeighborhoodExploredFlag = 0x40;
+inline constexpr std::uint8_t kNeighborhoodUnexplorableFlag = 0x20;
+// Active triggers: circular list, next at +0x188. A trigger with a map icon
+// shows the real icon (and is a taxi destination) only once discovered;
+// icons created later copy the trigger's discovered flag.
+inline constexpr std::ptrdiff_t kActiveTriggerHeadRva = 0x02B8E88C;
+inline constexpr std::size_t kTriggerNextOffset = 0x188;
+inline constexpr std::size_t kTriggerTypeOffset = 0x13C;
+inline constexpr std::size_t kTriggerFlagsOffset = 0x110;
+inline constexpr std::size_t kTriggerMapIconTypeOffset = 0x174;
+inline constexpr std::size_t kTriggerMapIconOffset = 0x17C;
+inline constexpr std::size_t kTriggerMapIconListOffset = 0x180;
+inline constexpr std::uint8_t kTriggerDiscoveredFlag = 0x10;
+// Unique jumps use the discovered flag to mean completed.
+inline constexpr std::uint32_t kTriggerTypeUniqueJump = 0x2F;
+inline constexpr std::int32_t kMapIconListCount = 8;
+// Sets the revealed flag on a map icon: list index in EAX, icon in EDI.
+inline constexpr std::ptrdiff_t kMapIconRevealRva = 0x003A4DC0;
+
 }  // namespace sr2ap::addresses
