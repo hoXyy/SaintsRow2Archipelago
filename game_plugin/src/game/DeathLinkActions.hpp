@@ -7,11 +7,10 @@
 #include "game/ModuleInfo.hpp"
 
 namespace sr2ap::death {
+// The DeathLink-only targets. Killing, the death check and detonation come
+// from game/Lua.hpp.
 struct Functions {
-    std::uintptr_t isDead{};
-    std::uintptr_t damage{};
     std::uintptr_t setHitPoints{};
-    std::uintptr_t vehicleDamage{};
     std::uintptr_t currentActivityType{};
     std::uintptr_t currentDiversionType{};
 };
