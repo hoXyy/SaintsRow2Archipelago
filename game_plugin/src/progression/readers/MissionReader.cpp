@@ -207,6 +207,10 @@ class MissionReader final : public ProgressionReader {
         return SerializeStatus(ReadSnapshot(context));
     }
 
+    void Reset() override {
+        baseline_.Invalidate();
+    }
+
    private:
     BaselineTracker<std::string, bool> baseline_;
     ReaderResult previousResult_{ReaderResult::ReaderUnavailable};

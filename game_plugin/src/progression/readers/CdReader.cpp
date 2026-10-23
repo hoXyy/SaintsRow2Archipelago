@@ -287,6 +287,11 @@ class CdReader final : public ProgressionReader {
         return SerializeStatus(ReadSnapshot(context));
     }
 
+    void Reset() override {
+        baseline_.clear();
+        baselineValid_ = false;
+    }
+
    private:
     std::unordered_set<std::uint32_t> baseline_;
     bool baselineValid_{};

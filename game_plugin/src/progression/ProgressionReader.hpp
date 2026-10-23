@@ -31,6 +31,9 @@ class ProgressionReader {
     // Reads memory and updates the global progression event.
     [[nodiscard]] virtual ReaderUpdate Poll(const GameContext& context) = 0;
 
+    // Drops the baseline so the next poll reports everything already complete.
+    virtual void Reset() = 0;
+
     // Reads memory and formats diagnostics without updating anything.
     [[nodiscard]] virtual std::string CaptureStatus(
         const GameContext& context) const = 0;

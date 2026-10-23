@@ -153,6 +153,10 @@ class StyleLevelReader final : public ProgressionReader {
         return SerializeStatus(ReadSnapshot(context));
     };
 
+    void Reset() override {
+        baseline_.Invalidate();
+    }
+
    private:
     BaselineTracker<std::string, std::uint32_t> baseline_;
     ReaderResult previousResult_{ReaderResult::ReaderUnavailable};

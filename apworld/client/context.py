@@ -83,6 +83,8 @@ class SR2Context(SuperContext):
         self.slot_data: dict[str, Any] | None = None
         self.inventory_synced = False
         self.observed_locations: set[int] = set()
+        # (seed, team, slot) of the last Connected, to spot a slot switch.
+        self.session_identity: tuple[str | None, int | None, int | None] | None = None
         self.sync_event = asyncio.Event()
         self.revisions = RevisionStore(
             Path(user_path("saints_row_2", "item_ledger.json")), self.send_msgs_soon
@@ -99,7 +101,6 @@ class SR2Context(SuperContext):
             self.sync_event.clear()
             await self.bridge.send_session_ready()
             await self.submit_observed_locations()
-            await self.send_goal_if_complete()
             await self.bridge.deliver_items()
 
     def send_msgs_soon(self, msgs: list[dict[str, Any]]) -> bool:
@@ -131,6 +132,10 @@ class SR2Context(SuperContext):
         if cmd == "RoomInfo":
             self.seed_name = args["seed_name"]
         elif cmd == "Connected":
+            identity = (self.seed_name, self.team, self.slot)
+            if identity != self.session_identity:
+                self.observed_locations.clear()
+                self.session_identity = identity
             self.slot_data = args.get("slot_data")
             features = (self.slot_data or {}).get("features", {})
             async_start(
@@ -183,6 +188,10 @@ class SR2Context(SuperContext):
         self.inventory_synced = False
         self.slot_data = None
         self.revisions.end_session()
+        # Recreating fix added in 0.6.8 since I still want to support 0.6.7 (PR #6231)
+        self.locations_checked = set()
+        self.missing_locations = set()
+        self.finished_game = False
         await super().connection_closed()
 
     # Locations and goal
@@ -191,11 +200,13 @@ class SR2Context(SuperContext):
         new_locations = sorted(
             (self.observed_locations & self.missing_locations) - self.locations_checked
         )
-        if not new_locations:
-            return
-
-        self.locations_checked.update(new_locations)
-        await self.send_msgs([{"cmd": "LocationChecks", "locations": new_locations}])
+        if new_locations:
+            self.locations_checked.update(new_locations)
+            await self.send_msgs(
+                [{"cmd": "LocationChecks", "locations": new_locations}]
+            )
+        # Even with nothing new to submit, an observed goal location the server
+        # already had checked still completes the goal.
         await self.send_goal_if_complete()
 
     async def send_goal_if_complete(self) -> None:
@@ -212,8 +223,9 @@ class SR2Context(SuperContext):
             logger.error("Ignored invalid SR2 goal location data")
             return
 
-        completed_locations = self.checked_locations | self.locations_checked
-        if not goal_locations.issubset(completed_locations):
+        # Only trust what the game reported: the server also marks locations
+        # checked when another player collects or this slot is released.
+        if not goal_locations.issubset(self.observed_locations):
             return
 
         self.finished_game = True
