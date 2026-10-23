@@ -247,6 +247,10 @@ class RacingReader final : public ProgressionReader {
         return SerializeStatus(ReadSnapshot(context));
     }
 
+    void Reset() override {
+        baseline_.Invalidate();
+    }
+
    private:
     BaselineTracker<std::string_view, RacingMedal> baseline_;
     ReaderResult previousResult_{ReaderResult::ReaderUnavailable};

@@ -50,6 +50,12 @@ std::string ProgressionMonitor::CaptureStatus(
     return status;
 }
 
+void ProgressionMonitor::Reset() {
+    for (auto& reader : readers_) {
+        reader->Reset();
+    }
+}
+
 void ProgressionMonitor::Poll(const GameContext& context) {
     bool changed = false;
     std::string status;

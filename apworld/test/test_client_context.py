@@ -14,6 +14,7 @@ def make_context(**fields) -> SR2Context:
     ctx.__dict__.update(
         {
             "observed_locations": set(),
+            "session_identity": None,
             "missing_locations": set(),
             "checked_locations": set(),
             "locations_checked": set(),
@@ -73,7 +74,7 @@ class TestGoal(unittest.IsolatedAsyncioTestCase):
 
     async def test_goal_sent_after_every_goal_location(self) -> None:
         ctx = make_context(
-            slot_data={"goal_locations": [16, 31]}, locations_checked={16, 31}
+            slot_data={"goal_locations": [16, 31]}, observed_locations={16, 31}
         )
 
         await ctx.send_goal_if_complete()
@@ -83,7 +84,7 @@ class TestGoal(unittest.IsolatedAsyncioTestCase):
 
     async def test_partial_goal_does_not_finish(self) -> None:
         ctx = make_context(
-            slot_data={"goal_locations": [16, 31]}, locations_checked={16}
+            slot_data={"goal_locations": [16, 31]}, observed_locations={16}
         )
 
         await ctx.send_goal_if_complete()
@@ -95,35 +96,40 @@ class TestGoal(unittest.IsolatedAsyncioTestCase):
         ctx = make_context(
             finished_game=True,
             slot_data={"goal_locations": [16]},
-            locations_checked={16},
+            observed_locations={16},
         )
 
         await ctx.send_goal_if_complete()
 
         ctx.send_msgs.assert_not_awaited()
 
-    async def test_goal_uses_server_and_locally_checked_locations(self) -> None:
-        ctx = make_context(
-            slot_data={"goal_locations": [16, 31, 46, 54]},
-            checked_locations={16, 31, 46, 100, 101},
-            locations_checked={54, 102},
-        )
-
-        await ctx.send_goal_if_complete()
-
-        self.assertTrue(ctx.finished_game)
-        ctx.send_msgs.assert_awaited_once_with(self.GOAL_MESSAGE)
-
-    async def test_goal_sent_when_every_goal_was_already_server_checked(self) -> None:
+    async def test_server_checked_goal_locations_do_not_finish(self) -> None:
+        # Another player's collect, or a release of this slot, marks goal
+        # locations checked on the server without the player finishing them.
         ctx = make_context(
             slot_data={"goal_locations": [16, 31, 46, 54]},
             checked_locations={16, 31, 46, 54},
+            locations_checked={16, 31, 46, 54},
         )
 
         await ctx.send_goal_if_complete()
 
+        self.assertFalse(ctx.finished_game)
+        ctx.send_msgs.assert_not_awaited()
+
+    async def test_goal_observed_after_server_check_finishes(self) -> None:
+        # The location is no longer missing, so it is never submitted, but the
+        # game reporting it still counts towards the goal.
+        ctx = make_context(
+            slot_data={"goal_locations": [16]},
+            checked_locations={16},
+            observed_locations={16},
+        )
+
+        await ctx.submit_observed_locations()
+
         self.assertTrue(ctx.finished_game)
-        ctx.send_msgs.assert_awaited_once()
+        ctx.send_msgs.assert_awaited_once_with(self.GOAL_MESSAGE)
 
     async def test_submitting_the_last_goal_location_finishes(self) -> None:
         ctx = make_context(
@@ -135,6 +141,77 @@ class TestGoal(unittest.IsolatedAsyncioTestCase):
         await ctx.submit_observed_locations()
 
         self.assertTrue(ctx.finished_game)
+
+
+class TestSessionSwitch(unittest.IsolatedAsyncioTestCase):
+    async def connect(self, ctx: SR2Context, seed_name: str, slot: int) -> None:
+        ctx.seed_name = seed_name
+        ctx.slot = slot
+        ctx.on_package("Connected", {"slot_data": None})
+        await asyncio.sleep(0)
+
+    async def make_connected_context(self) -> SR2Context:
+        ctx = make_context(
+            team=0,
+            revisions=Mock(),
+            request_sync=Mock(),
+            update_death_link=AsyncMock(),
+        )
+        await self.connect(ctx, "Seed A", 1)
+        ctx.observed_locations.update({16, 31})
+        return ctx
+
+    async def test_same_slot_reconnect_keeps_observed_locations(self) -> None:
+        ctx = await self.make_connected_context()
+
+        await self.connect(ctx, "Seed A", 1)
+
+        self.assertEqual({16, 31}, ctx.observed_locations)
+
+    async def test_switching_slot_clears_observed_locations(self) -> None:
+        # Location ids are shared between seeds, so another slot's progress
+        # must not be submitted to the new one.
+        ctx = await self.make_connected_context()
+
+        await self.connect(ctx, "Seed A", 2)
+
+        self.assertEqual(set(), ctx.observed_locations)
+
+    async def test_switching_seed_clears_observed_locations(self) -> None:
+        ctx = await self.make_connected_context()
+
+        await self.connect(ctx, "Seed B", 1)
+
+        self.assertEqual(set(), ctx.observed_locations)
+
+    async def close_connection(self, ctx: SR2Context) -> None:
+        ctx.bridge = SimpleNamespace(end_session=AsyncMock())
+        ctx.server = None
+        await ctx.connection_closed()
+
+    async def test_disconnect_clears_state_replayed_on_connect(self) -> None:
+        # AP before 0.6.8 replays these on the next Connected, even to
+        # another slot.
+        ctx = await self.make_connected_context()
+        ctx.locations_checked = {16, 31}
+        ctx.missing_locations = {46}
+        ctx.finished_game = True
+
+        await self.close_connection(ctx)
+
+        self.assertEqual(set(), ctx.locations_checked)
+        self.assertEqual(set(), ctx.missing_locations)
+        self.assertFalse(ctx.finished_game)
+        self.assertEqual({16, 31}, ctx.observed_locations)
+
+    async def test_offline_submit_does_not_refill_locations_checked(self) -> None:
+        ctx = await self.make_connected_context()
+        ctx.missing_locations = {16, 31}
+
+        await self.close_connection(ctx)
+        await ctx.submit_observed_locations()
+
+        self.assertEqual(set(), ctx.locations_checked)
 
 
 class TestDeathLink(unittest.IsolatedAsyncioTestCase):

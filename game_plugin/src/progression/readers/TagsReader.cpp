@@ -262,6 +262,10 @@ class TagsReader final : public ProgressionReader {
         return SerializeStatus(ReadTagSnapshot(context));
     }
 
+    void Reset() override {
+        baseline_.Invalidate();
+    }
+
    private:
     BaselineTracker<std::string_view, bool> baseline_;
     ReaderResult previousResult_{ReaderResult::ReaderUnavailable};

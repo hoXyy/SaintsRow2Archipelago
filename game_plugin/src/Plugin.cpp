@@ -153,6 +153,7 @@ DWORD WINAPI PluginThread(void* parameter) {
         }
 
         bool moduleDown = false, snapshotDown = false, deathLinkDown = false;
+        bool communicationsWereActive = false;
         ULONGLONG nextPoll = GetTickCount64();
         const auto statusPath = pluginDirectory / L"SR2ArchipelagoStatus.txt";
         ProgressionMonitor progression(
@@ -184,9 +185,17 @@ DWORD WINAPI PluginThread(void* parameter) {
                     session.QueueTestDeathLink();
                 }
             }
+            // A new AP session has no record of earlier progress, so the
+            // next poll re-reports everything the loaded save has.
+            const bool communicationsActive = session.CommunicationsActive();
+            if (communicationsActive && !communicationsWereActive) {
+                progression.Reset();
+            }
+            communicationsWereActive = communicationsActive;
+
             const auto now = GetTickCount64();
             if (config.enabled &&
-                (session.CommunicationsActive() || config.writeStatusFile) &&
+                (communicationsActive || config.writeStatusFile) &&
                 now >= nextPoll) {
                 nextPoll = now + config.pollingIntervalMs;
                 progression.Poll(gameContext);

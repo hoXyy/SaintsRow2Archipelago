@@ -20,6 +20,8 @@ class ProgressionMonitor {
 
     void CaptureManualSnapshot(const GameContext& context) const;
     void Poll(const GameContext& context);
+    // Makes the next poll report all current progress.
+    void Reset();
 
    private:
     [[nodiscard]] std::string CaptureStatus(const GameContext& context) const;
