@@ -2,7 +2,13 @@ import unittest
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, Mock
 
-from ..client.bridge import PROTOCOL_VERSION, SLOT_DATA_PROTOCOL_VERSION, PluginBridge
+from ..activities import ACTIVITY_LEVEL_IDS
+from ..client.bridge import (
+    LIST_LOCATION_IDS,
+    PROTOCOL_VERSION,
+    SLOT_DATA_PROTOCOL_VERSION,
+    PluginBridge,
+)
 from ..client.revisions import RevisionStore
 from ..missions import get_mission_by_key
 
@@ -308,3 +314,46 @@ class TestDeath(unittest.IsolatedAsyncioTestCase):
         bridge.ctx.send_death.assert_awaited_once()
         cause = bridge.ctx.send_death.await_args.args[0]
         self.assertTrue(cause.startswith("Player "))
+
+
+class TestListOpened(unittest.IsolatedAsyncioTestCase):
+    def test_lists_map_to_their_locations(self) -> None:
+        self.assertEqual([1, 2, 3, 4, 5], sorted(LIST_LOCATION_IDS["chop_shop"]))
+        self.assertEqual([1, 2, 3, 4, 5], sorted(LIST_LOCATION_IDS["hitman"]))
+        self.assertTrue(
+            all(len(ids) == 8 for ids in LIST_LOCATION_IDS["chop_shop"].values())
+        )
+        self.assertTrue(
+            all(len(ids) == 6 for ids in LIST_LOCATION_IDS["hitman"].values())
+        )
+        self.assertIn(
+            ACTIVITY_LEVEL_IDS["Chop Shop (Suburbs) - Mockingbird"],
+            LIST_LOCATION_IDS["chop_shop"][1],
+        )
+        self.assertIn(
+            ACTIVITY_LEVEL_IDS["Hitman (Saint's Row) - Russell"],
+            LIST_LOCATION_IDS["hitman"][5],
+        )
+
+    async def test_missing_locations_of_opened_list_are_hinted(self) -> None:
+        checked, *missing = LIST_LOCATION_IDS["hitman"][2]
+        bridge = make_bridge(missing_locations=set(missing), send_hints=AsyncMock())
+
+        await bridge.handle_message(
+            {"type": "list_opened", "category": "hitman", "list": 2}
+        )
+
+        bridge.ctx.send_hints.assert_awaited_once_with(missing)
+        self.assertNotIn(checked, bridge.ctx.send_hints.await_args.args[0])
+
+    async def test_unknown_or_fully_checked_lists_are_not_hinted(self) -> None:
+        bridge = make_bridge(missing_locations=set(), send_hints=AsyncMock())
+
+        for message in (
+            {"category": "chop_shop", "list": 1},
+            {"category": "chop_shop", "list": 6},
+            {"category": "mission", "list": 1},
+        ):
+            await bridge.handle_message({"type": "list_opened"} | message)
+
+        bridge.ctx.send_hints.assert_not_awaited()

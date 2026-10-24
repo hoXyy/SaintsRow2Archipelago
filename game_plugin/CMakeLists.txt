@@ -196,6 +196,7 @@ if (WIN32)
             src/progression/ReaderRegistry.cpp
             src/game/SaveRevisionMonitor.cpp
             src/game/DeathMonitor.cpp
+            src/game/ActivityListMonitor.cpp
             src/game/DeathLinkActions.cpp
             src/game/Lua.hpp
             src/game/Lua.cpp

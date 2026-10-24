@@ -16,6 +16,7 @@
 #include "util/GameEvents.hpp"
 
 namespace sr2ap {
+class ActivityListMonitor;
 class DeathMonitor;
 class SaveRevisionMonitor;
 
@@ -27,6 +28,7 @@ class SessionRuntime {
 
     bool InstallSaveMonitoring(SaveRevisionMonitor& monitor, bool enabled);
     bool InstallDeathMonitoring(DeathMonitor& monitor, bool enabled);
+    bool InstallListMonitoring(ActivityListMonitor& monitor, bool enabled);
     void Connect(std::uint16_t port);
     void ProcessGameEvents();
     void PollNetwork(const GameContext& context);

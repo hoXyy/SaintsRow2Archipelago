@@ -4,6 +4,7 @@
 
 #include <atomic>
 
+#include "game/ActivityListMonitor.hpp"
 #include "game/DeathMonitor.hpp"
 #include "game/GameState.hpp"
 #include "game/GameThreadDispatcher.hpp"
@@ -135,6 +136,13 @@ DWORD WINAPI PluginThread(void* parameter) {
             LogWarning("DeathLink", "Player death monitoring unavailable");
         }
 
+        ActivityListMonitor listMonitor;
+        if (session.InstallListMonitoring(listMonitor, config.enabled)) {
+            LogInfo("Lists", "Hitman/Chop Shop list monitoring installed");
+        } else if (config.enabled && gameSupported) {
+            LogWarning("Lists", "List monitoring unavailable; no list hints");
+        }
+
         if (config.enabled) {
             if (config.debugLogging) {
                 LogDebug("Progression",
@@ -170,6 +178,7 @@ DWORD WINAPI PluginThread(void* parameter) {
                 saveRevisions.Poll();
             }
             deathMonitor.Poll(gameContext);
+            listMonitor.Poll();
             session.ProcessGameEvents();
 
             session.UpdateReadiness(gameContext.readiness);
@@ -224,6 +233,7 @@ DWORD WINAPI PluginThread(void* parameter) {
 
         LogInfo("Plugin", "SR2Archipelago shutting down");
         session.Shutdown();
+        listMonitor.Remove();
         deathMonitor.Remove();
         saveRevisions.Remove();
         mapReveal.Remove();

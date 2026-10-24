@@ -350,6 +350,26 @@ pub fn serialize_progression_event(
 }
 
 #[derive(Serialize)]
+struct ListOpened<'a> {
+    #[serde(rename = "type")]
+    message_type: &'static str,
+    category: &'a str,
+    list: u32,
+}
+
+/// A started Hitman or Chop Shop list was shown in game. `list` is one-based,
+/// matching the `<list>` in `HITMAN_LOC_<list>_<n>` and
+/// `CHOP_SHOP_TARGET_<list>_<n>`. The client hints that list's locations.
+pub fn serialize_list_opened(category: &str, list: u32) -> String {
+    serde_json::to_string(&ListOpened {
+        message_type: "list_opened",
+        category,
+        list,
+    })
+    .unwrap_or_default()
+}
+
+#[derive(Serialize)]
 struct ItemAcknowledgement {
     accepted: bool,
     index: u64,
@@ -549,7 +569,7 @@ mod tests {
     #[test]
     fn session_should_deduplicate_names_in_first_seen_order() {
         let message = parse_incoming(br#"{
-          "type":"session_ready","protocol":7,"seed_name":"seed","team":1,"slot":2,
+          "type":"session_ready","protocol":8,"seed_name":"seed","team":1,"slot":2,
           "managed_unlockables":["Taxi","Taxi","Boat"],"managed_cheats":[],
           "persistent_items":["Tag Pass","Tag Pass"],
           "features":{"exclusive_respect":true,"block_vanilla_unlockables":false,"notoriety_traps":true,"death_link":true},
@@ -564,7 +584,7 @@ mod tests {
     #[test]
     fn session_ready_should_require_death_link_feature() {
         let message = parse_incoming(br#"{
-          "type":"session_ready","protocol":7,"seed_name":"seed","team":1,"slot":2,
+          "type":"session_ready","protocol":8,"seed_name":"seed","team":1,"slot":2,
           "managed_unlockables":[],"managed_cheats":[],"persistent_items":[],
           "features":{"exclusive_respect":true,"block_vanilla_unlockables":false,"notoriety_traps":true},
           "enabled_progression":{"missions":true,"activities":false,"hitman":true,"chop_shop":false,"cds":true,"races":true,"tags":true}}
@@ -623,5 +643,12 @@ mod tests {
 
         let death: serde_json::Value = serde_json::from_str(&serialize_death()).unwrap();
         assert_eq!(death, serde_json::json!({"type": "death"}));
+
+        let list: serde_json::Value =
+            serde_json::from_str(&serialize_list_opened("chop_shop", 3)).unwrap();
+        assert_eq!(
+            list,
+            serde_json::json!({"type": "list_opened", "category": "chop_shop", "list": 3})
+        );
     }
 }

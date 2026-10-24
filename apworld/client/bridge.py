@@ -7,13 +7,14 @@ from typing import TYPE_CHECKING, Any
 
 from CommonClient import logger
 
+from ..activities import ACTIVITY_LEVEL_IDS, CHOP_SHOP_LISTS, HITMAN_LISTS
 from .progression import locations_for_progress
 from .save_sync import Inventory, accept_save_revision, resolve_save_context
 
 if TYPE_CHECKING:
     from .context import SR2Context
 
-PROTOCOL_VERSION = 7
+PROTOCOL_VERSION = 8
 SLOT_DATA_PROTOCOL_VERSION = 5
 ACK_TIMEOUT_SECONDS = 5.0
 RETRY_SECONDS = 1.0
@@ -25,6 +26,25 @@ REQUIRED_SLOT_DATA = {
     "persistent_items",
     "features",
     "enabled_progression",
+}
+
+
+def _list_location_ids(activity: str, lists: dict) -> dict[int, list[int]]:
+    """Location ids per one-based list number, from the `_<list>_<n>` key suffix."""
+    result: dict[int, list[int]] = {}
+    for district, entries in lists.items():
+        for entry in entries:
+            for key, name in entry.items():
+                list_number = int(key.rsplit("_", 2)[1])
+                result.setdefault(list_number, []).append(
+                    ACTIVITY_LEVEL_IDS[f"{activity} ({district}) - {name}"]
+                )
+    return result
+
+
+LIST_LOCATION_IDS = {
+    "chop_shop": _list_location_ids("Chop Shop", CHOP_SHOP_LISTS),
+    "hitman": _list_location_ids("Hitman", HITMAN_LISTS),
 }
 
 
@@ -55,6 +75,7 @@ class PluginBridge:
             "progression": self._on_progression,
             "session_reject": self._on_session_reject,
             "death": self._on_death,
+            "list_opened": self._on_list_opened,
         }
 
     @property
@@ -351,3 +372,13 @@ class PluginBridge:
         await self.ctx.send_death(
             f"{self.ctx.player_names[self.ctx.slot]} got smoked on the streets of Stilwater."
         )
+
+    async def _on_list_opened(self, message: dict[str, Any]) -> None:
+        lists = LIST_LOCATION_IDS.get(message["category"], {})
+        location_ids = [
+            location_id
+            for location_id in lists.get(message["list"], [])
+            if location_id in self.ctx.missing_locations
+        ]
+        if location_ids:
+            await self.ctx.send_hints(location_ids)

@@ -308,6 +308,64 @@ fn progression_is_filtered_by_latched_session_and_communications() {
     assert_eq!(runtime.outgoing.len(), 1);
 }
 
+fn activate_with_hitman(runtime: &mut SessionRuntime) {
+    let mut message = session("seed");
+    message.hitman = true;
+    let Some(GameplayRequest::InstallPolicies(_)) = runtime.handle_message(message, true) else {
+        panic!("expected policies")
+    };
+    runtime.report_result(true).unwrap();
+    runtime.update_readiness(false, true);
+    runtime.outgoing.clear();
+}
+
+#[test]
+fn opened_lists_are_filtered_by_session_category_and_communications() {
+    let mut fixture = Fixture::new();
+    let runtime = &mut fixture.runtime;
+    runtime.list_opened("hitman", 2);
+    assert!(runtime.outgoing.is_empty());
+
+    activate_with_hitman(runtime);
+    runtime.list_opened("chop_shop", 1);
+    runtime.list_opened("mission", 1);
+    assert!(runtime.outgoing.is_empty());
+
+    runtime.list_opened("hitman", 2);
+    assert_eq!(
+        last_message(runtime),
+        serde_json::json!({"type": "list_opened", "category": "hitman", "list": 2})
+    );
+
+    runtime.outgoing.clear();
+    runtime.active = false;
+    runtime.list_opened("hitman", 3);
+    assert!(runtime.outgoing.is_empty());
+}
+
+#[test]
+fn opened_lists_are_reported_once_per_session() {
+    let mut fixture = Fixture::new();
+    let runtime = &mut fixture.runtime;
+    activate_with_hitman(runtime);
+    runtime.list_opened("hitman", 2);
+    runtime.list_opened("hitman", 2);
+    runtime.list_opened("hitman", 4);
+    assert_eq!(runtime.outgoing.len(), 2);
+
+    runtime.handle_message(
+        IncomingMessage {
+            kind: IncomingKind::SessionEnd,
+            ..IncomingMessage::default()
+        },
+        true,
+    );
+    runtime.handle_message(session("seed"), true);
+    runtime.outgoing.clear();
+    runtime.list_opened("hitman", 2);
+    assert_eq!(last_message(runtime)["list"], 2);
+}
+
 #[test]
 fn invalid_journal_and_unsupported_executable_reject_policy_installation() {
     let mut fixture = Fixture::new();
