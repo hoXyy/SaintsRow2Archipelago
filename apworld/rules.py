@@ -5,7 +5,13 @@ from typing import TYPE_CHECKING
 from BaseClasses import Location, LocationProgressType
 from worlds.generic.Rules import add_item_rule, add_rule, forbid_items
 
-from .collectibles import CD_MAPPING, STYLE_LEVEL_LOCATIONS, TAGS_MAPPING
+from .collectibles import (
+    CD_MAPPING,
+    MISSABLE_STUNT_JUMP_MAPPING,
+    STUNT_JUMP_MAPPING,
+    STYLE_LEVEL_LOCATIONS,
+    TAGS_MAPPING,
+)
 
 if TYPE_CHECKING:
     from .world import SR2World
@@ -26,6 +32,7 @@ from .items import (
     LEVEL_ACTIVITY_UNLOCK_ITEMS,
     PERSISTENT_ACTIVITY_UNLOCK_ITEMS,
     RESPECT_ITEM_NAME,
+    STUNT_JUMPS_UNLOCK_ITEM,
     TAGS_UNLOCK_ITEM,
     TSS_SH_CAVERNS_UNLOCK_ITEM,
     get_race_unlock_item,
@@ -294,6 +301,31 @@ def set_collectible_rules(world: SR2World):
                 world.get_location(location),
                 lambda state: state.has(TAGS_UNLOCK_ITEM, world.player),
             )
+
+    for location in (STUNT_JUMP_MAPPING | MISSABLE_STUNT_JUMP_MAPPING).values():
+        if location in location_cache:
+            add_rule(
+                world.get_location(location),
+                lambda state: state.has(STUNT_JUMPS_UNLOCK_ITEM, world.player),
+            )
+
+    # I can't think of a better way to handle this other than just doing this honestly
+    for location in MISSABLE_STUNT_JUMP_MAPPING.values():
+        if location in location_cache:
+            world_location = world.get_location(location)
+            world_location.progress_type = LocationProgressType.EXCLUDED
+
+    if any(jump in location_cache for jump in MISSABLE_STUNT_JUMP_MAPPING.values()):
+        pyramid_scheme = get_mission_by_key("ep02")
+
+        def has_stunt_jumps(state) -> bool:
+            return state.has(STUNT_JUMPS_UNLOCK_ITEM, world.player)
+
+        add_rule(world.get_location(pyramid_scheme.name), has_stunt_jumps)
+        add_rule(
+            world.get_location(get_mission_complete_event_name(pyramid_scheme)),
+            has_stunt_jumps,
+        )
 
 
 def set_style_level_rules(world: SR2World):

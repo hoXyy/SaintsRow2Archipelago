@@ -212,7 +212,8 @@ class SR2World(World):
                     )
                 ),
                 "tags": bool(self.options.include_tags.value),
-                "style_level": self.options.style_level_location_count > 0,
+                "style_level": self.options.style_level_location_count.value > 0,
+                "stunt_jumps": bool(self.options.include_stunt_jumps.value),
             },
             "options": self.options.as_dict(
                 *sr2_options.SR2Options.__annotations__.keys()

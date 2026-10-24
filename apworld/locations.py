@@ -23,6 +23,9 @@ from .activities import (
 from .collectibles import (
     CD_IDS,
     CD_MAPPING,
+    MISSABLE_STUNT_JUMP_MAPPING,
+    STUNT_JUMP_IDS,
+    STUNT_JUMP_MAPPING,
     STYLE_LEVEL_IDS,
     STYLE_LEVEL_LOCATIONS,
     TAGS_IDS,
@@ -279,6 +282,27 @@ def create_collectible_locations(world: SR2World) -> None:
                 SR2Location(world.player, tag, TAGS_IDS[tag], region, respect_safe=True)
             )
 
+    if world.options.include_stunt_jumps.value == 1:
+        for jump in STUNT_JUMP_MAPPING.values():
+            region.locations.append(
+                SR2Location(
+                    world.player, jump, STUNT_JUMP_IDS[jump], region, respect_safe=True
+                )
+            )
+
+        # This jump is missable if the player doesn't do Pyramid Scheme, so only include it if the Ultor Arc is enabled
+        if ULTOR_EPILOGUE_ARC_NAME in world.options.required_gang_arcs:
+            for jump in MISSABLE_STUNT_JUMP_MAPPING.values():
+                region.locations.append(
+                    SR2Location(
+                        world.player,
+                        jump,
+                        STUNT_JUMP_IDS[jump],
+                        region,
+                        respect_safe=True,
+                    )
+                )
+
 
 def create_style_level_locations(world: SR2World) -> None:
     region = world.get_region("Stilwater")
@@ -350,6 +374,7 @@ def generate_location_name_to_id() -> dict[str, int]:
         **CD_IDS,
         **STYLE_LEVEL_IDS,
         **TAGS_IDS,
+        **STUNT_JUMP_IDS,
     }
 
 

@@ -44,6 +44,7 @@ HITMAN_UNLOCK_ITEM = "Hitman Activity Unlock Pass"
 CHOP_SHOP_UNLOCK_ITEM = "Chop Shop Activity Unlock Pass"
 CD_UNLOCK_ITEM = "CD Collectible Unlock Pass"
 TAGS_UNLOCK_ITEM = "Tags Collectible Unlock Pass"
+STUNT_JUMPS_UNLOCK_ITEM = "Stunt Jumps Unlock Pass"
 
 CAR_RACES_UNLOCK_ITEM = "Car Races Activity Unlock Pass"
 BIKE_RACES_UNLOCK_ITEM = "Bike Races Activity Unlock Pass"
@@ -79,6 +80,7 @@ PERSISTENT_ACTIVITY_UNLOCK_ITEMS = [
     PLANE_RACES_UNLOCK_ITEM,
     HELICOPTER_RACES_UNLOCK_ITEM,
     BOAT_RACES_UNLOCK_ITEM,
+    STUNT_JUMPS_UNLOCK_ITEM,
 ]
 
 ACTIVITY_UNLOCK_ITEMS_SETTINGS_MAPPING = {
@@ -103,6 +105,7 @@ ACTIVITY_UNLOCK_ITEMS_SETTINGS_MAPPING = {
     StartingActivity.option_car_races: CAR_RACES_UNLOCK_ITEM,
     StartingActivity.option_boat_races: BOAT_RACES_UNLOCK_ITEM,
     StartingActivity.option_helicopter_races: HELICOPTER_RACES_UNLOCK_ITEM,
+    StartingActivity.option_stunt_jumps: STUNT_JUMPS_UNLOCK_ITEM,
 }
 
 ITEM_NAME_TO_ID = {

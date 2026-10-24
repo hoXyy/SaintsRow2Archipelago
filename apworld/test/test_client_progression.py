@@ -6,7 +6,15 @@ from ..client.progression import (
     HITMAN_LOCATIONS,
     locations_for_progress,
 )
-from ..collectibles import CD_IDS, CD_MAPPING, STYLE_LEVEL_IDS, STYLE_LEVEL_LOCATIONS
+from ..collectibles import (
+    CD_IDS,
+    CD_MAPPING,
+    MISSABLE_STUNT_JUMP_MAPPING,
+    STUNT_JUMP_IDS,
+    STUNT_JUMP_MAPPING,
+    STYLE_LEVEL_IDS,
+    STYLE_LEVEL_LOCATIONS,
+)
 from ..missions import get_mission_by_key
 
 
@@ -59,6 +67,20 @@ class TestLocationsForProgress(unittest.TestCase):
         key, name = next(iter(CD_MAPPING.items()))
 
         self.assertEqual([CD_IDS[name]], locations_for_progress("cd", key, 0, 1))
+
+    def test_stunt_jump(self) -> None:
+        key, name = next(iter(STUNT_JUMP_MAPPING.items()))
+
+        self.assertEqual(
+            [STUNT_JUMP_IDS[name]], locations_for_progress("stunt_jumps", key, 0, 1)
+        )
+
+    def test_missable_stunt_jump(self) -> None:
+        key, name = next(iter(MISSABLE_STUNT_JUMP_MAPPING.items()))
+
+        self.assertEqual(
+            [STUNT_JUMP_IDS[name]], locations_for_progress("stunt_jumps", key, 0, 1)
+        )
 
     def test_hitman(self) -> None:
         key, location_id = next(iter(HITMAN_LOCATIONS.items()))
