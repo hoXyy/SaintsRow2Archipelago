@@ -33,6 +33,22 @@ TEST(GameEventsTest, PlayerDeathKeepsGameThreadOrder) {
     EXPECT_EQ(events[2].kind, GameEventKind::RequestCompleted);
 }
 
+TEST(GameEventsTest, ListOpenedCarriesListAndKeepsOrder) {
+    GameEventQueue queue;
+    queue.PushListOpened(ActivityList::ChopShop, 3);
+    queue.PushPlayerDied();
+    queue.PushListOpened(ActivityList::Hitman, 5);
+
+    const auto events = queue.Drain();
+    ASSERT_EQ(events.size(), 3U);
+    EXPECT_EQ(events[0].kind, GameEventKind::ListOpened);
+    EXPECT_EQ(events[0].activityList, ActivityList::ChopShop);
+    EXPECT_EQ(events[0].list, 3U);
+    EXPECT_EQ(events[1].kind, GameEventKind::PlayerDied);
+    EXPECT_EQ(events[2].activityList, ActivityList::Hitman);
+    EXPECT_EQ(events[2].list, 5U);
+}
+
 TEST(GameEventsTest, DroppedCompletionReportsNotApplied) {
     auto queue = std::make_shared<GameEventQueue>();
     {

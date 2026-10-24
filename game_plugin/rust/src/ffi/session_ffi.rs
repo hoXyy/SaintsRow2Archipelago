@@ -66,6 +66,11 @@ pub(crate) mod bridge {
             previous: u32,
             current: u32,
         ) -> Result<()>;
+        fn session_list_opened(
+            session: &mut SessionRuntime,
+            category: &[u8],
+            list: u32,
+        ) -> Result<()>;
         fn session_active(session: &SessionRuntime) -> bool;
         fn session_connection_state(session: &SessionRuntime) -> ConnectionState;
         fn session_next_notification(session: &mut SessionRuntime) -> SessionNotification;
@@ -156,6 +161,14 @@ fn session_progression(
         previous,
         current,
     );
+    Ok(())
+}
+fn session_list_opened(
+    session: &mut SessionRuntime,
+    category: &[u8],
+    list: u32,
+) -> Result<(), std::str::Utf8Error> {
+    session.list_opened(std::str::from_utf8(category)?, list);
     Ok(())
 }
 fn session_active(session: &SessionRuntime) -> bool {

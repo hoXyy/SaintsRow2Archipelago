@@ -29,6 +29,13 @@ void GameEventQueue::PushPlayerDied() {
     events_.push_back({GameEventKind::PlayerDied, 0, 0, false});
 }
 
+void GameEventQueue::PushListOpened(const ActivityList activityList,
+                                    const std::uint32_t list) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    events_.push_back(
+        {GameEventKind::ListOpened, 0, 0, false, activityList, list});
+}
+
 std::vector<GameEvent> GameEventQueue::Drain() {
     std::vector<GameEvent> events;
     std::lock_guard<std::mutex> lock(mutex_);

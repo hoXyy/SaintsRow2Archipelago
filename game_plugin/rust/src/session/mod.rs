@@ -14,7 +14,7 @@ use std::{
     path::PathBuf,
 };
 
-pub(crate) const SESSION_PROTOCOL: u32 = 7;
+pub(crate) const SESSION_PROTOCOL: u32 = 8;
 /// Oldest notifications are dropped past this so a plugin that never actually shows
 /// them can't grow the queue infinitely.
 const MAXIMUM_PENDING_NOTIFICATIONS: usize = 256;
@@ -103,6 +103,9 @@ pub(crate) struct SessionRuntime {
     pending: Option<Pending>,
     notifications: VecDeque<Notification>,
     death_links: VecDeque<DeathLink>,
+    /// Lists already reported this AP session. Lists show again whenever the
+    /// pause menu opens them, and the client only needs one report per list.
+    opened_lists: BTreeSet<(String, u32)>,
     request_id: u64,
     #[cfg(test)]
     outgoing: Vec<String>,
@@ -129,6 +132,7 @@ impl SessionRuntime {
             pending: None,
             notifications: VecDeque::new(),
             death_links: VecDeque::new(),
+            opened_lists: BTreeSet::new(),
             request_id: 0,
             #[cfg(test)]
             outgoing: Vec::new(),
@@ -272,6 +276,9 @@ impl SessionRuntime {
         let Some(session) = &self.session else {
             return;
         };
+        // A new AP session (or a reconnected client) has no record of
+        // earlier reports.
+        self.opened_lists.clear();
         let count = self.revisions.revisions(session).len();
         self.revisions.pending = count != 0;
         if self.revisions.pending {
@@ -385,6 +392,24 @@ impl SessionRuntime {
             self.send(protocol::serialize_progression_event(
                 category, key, previous, current,
             ));
+        }
+    }
+
+    /// A started Hitman or Chop Shop list was shown in game.
+    pub fn list_opened(&mut self, category: &str, list: u32) {
+        let Some(session) = &self.session else {
+            return;
+        };
+
+        let enabled = match category {
+            "hitman" => session.hitman,
+            "chop_shop" => session.chop_shop,
+            _ => false,
+        };
+
+        if self.active && enabled && self.opened_lists.insert((category.to_owned(), list)) {
+            log::info!(target: "Lists", "Reporting opened list category={category} list={list}");
+            self.send(protocol::serialize_list_opened(category, list));
         }
     }
 

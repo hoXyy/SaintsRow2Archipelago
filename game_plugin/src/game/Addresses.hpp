@@ -25,6 +25,15 @@ inline constexpr std::size_t kChopShopDossierOffset = 0x44;
 inline constexpr std::size_t kChopShopCashOffset = 0x64;
 inline constexpr std::size_t kChopShopRespectOffset = 0x68;
 
+// List menu population, just after the list to show is picked: EDI holds the
+// Hitman descriptor (may be null), ESI the Chop Shop one. Reached from the
+// list menu that opens after starting a list and from the pause menu.
+inline constexpr std::ptrdiff_t kHitmanListSelectedRva = 0x0037E5D0;
+inline constexpr std::ptrdiff_t kChopShopListSelectedRva = 0x0037E9D3;
+// Hitman: nonzero once the list is started. Chop Shop: bit 0.
+inline constexpr std::size_t kHitmanListActiveOffset = 0x04;
+inline constexpr std::size_t kChopShopListAcceptedOffset = 0x04;
+
 inline constexpr std::ptrdiff_t kActivityComponentCountRva = 0x01050384;
 inline constexpr std::ptrdiff_t kActivityComponentTableRva = 0x023AC860;
 inline constexpr std::size_t kActivityComponentStride = 0xE8;

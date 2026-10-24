@@ -2,9 +2,11 @@
 
 #include <exception>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
+#include "game/ActivityListMonitor.hpp"
 #include "game/DeathMonitor.hpp"
 #include "game/GameState.hpp"
 #include "game/SaveRevisionMonitor.hpp"
@@ -20,6 +22,17 @@ std::vector<std::string> Strings(const ::rust::Vec<::rust::String>& values) {
         result.emplace_back(value.data(), value.size());
     }
     return result;
+}
+
+// Same names as the progression categories.
+std::string_view CategoryName(const ActivityList activityList) {
+    switch (activityList) {
+        case ActivityList::Hitman:
+            return "hitman";
+        case ActivityList::ChopShop:
+            return "chop_shop";
+    }
+    return {};
 }
 }  // namespace
 
@@ -98,6 +111,15 @@ bool SessionRuntime::InstallDeathMonitoring(DeathMonitor& monitor,
     return true;
 }
 
+bool SessionRuntime::InstallListMonitoring(ActivityListMonitor& monitor,
+                                           bool enabled) {
+    return enabled && gameSupported_ &&
+           monitor.Install([events = events_](ActivityList activityList,
+                                              std::uint32_t list) {
+               events->PushListOpened(activityList, list);
+           });
+}
+
 void SessionRuntime::Connect(std::uint16_t port) {
     rust::session_connect(*session_, port);
 }
@@ -120,6 +142,15 @@ void SessionRuntime::ProcessGameEvents() {
                 case GameEventKind::PlayerDied:
                     rust::session_player_died(*session_);
                     break;
+                case GameEventKind::ListOpened: {
+                    const auto category = CategoryName(event.activityList);
+                    rust::session_list_opened(
+                        *session_,
+                        {reinterpret_cast<const std::uint8_t*>(category.data()),
+                         category.size()},
+                        event.list);
+                    break;
+                }
             }
         } catch (const ::rust::Error& error) {
             LogError("Session", std::string{"Could not process game event: "} +

@@ -12,7 +12,13 @@ enum class GameEventKind {
     SaveLoaded,
     SaveWritten,
     RequestCompleted,
-    PlayerDied
+    PlayerDied,
+    ListOpened
+};
+
+enum class ActivityList {
+    Hitman,
+    ChopShop
 };
 
 struct GameEvent {
@@ -20,6 +26,9 @@ struct GameEvent {
     std::uint32_t checksum{};
     std::uint64_t requestId{};
     bool applied{};
+    ActivityList activityList{};
+    // One-based list number.
+    std::uint32_t list{};
 };
 
 class GameEventQueue {
@@ -33,6 +42,7 @@ class GameEventQueue {
     void PushSaveWritten(std::uint32_t checksum);
     void PushRequestCompleted(std::uint64_t requestId, bool applied);
     void PushPlayerDied();
+    void PushListOpened(ActivityList activityList, std::uint32_t list);
 
     // Plugin thread.
     [[nodiscard]] std::vector<GameEvent> Drain();
