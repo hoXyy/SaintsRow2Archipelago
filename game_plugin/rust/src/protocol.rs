@@ -59,6 +59,7 @@ pub struct IncomingMessage {
     pub races: bool,
     pub style_level: bool,
     pub tags: bool,
+    pub stunt_jumps: bool,
 }
 
 #[derive(Deserialize)]
@@ -137,6 +138,8 @@ struct EnabledProgression {
     #[serde(default)]
     style_level: bool,
     tags: bool,
+    #[serde(default)]
+    stunt_jumps: bool,
 }
 
 #[derive(Deserialize)]
@@ -298,6 +301,7 @@ pub fn parse_incoming(input: &[u8]) -> IncomingMessage {
                     races: session.enabled_progression.races,
                     style_level: session.enabled_progression.style_level,
                     tags: session.enabled_progression.tags,
+                    stunt_jumps: session.enabled_progression.stunt_jumps,
                     ..IncomingMessage::default()
                 }
             }

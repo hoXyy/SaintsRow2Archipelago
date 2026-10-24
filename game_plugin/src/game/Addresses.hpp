@@ -122,6 +122,13 @@ inline constexpr std::ptrdiff_t kHitmanManagerRva = 0x00AA11F8;
 inline constexpr std::ptrdiff_t kCdSetAllPickupsEnabledRva = 0x00534060;
 inline constexpr std::ptrdiff_t kTagSetAllSpotsEnabledRva = 0x00226B00;
 
+// Stunt jump admission: arms a jump once the player drives through its trigger.
+// The gate sits after the prologue saves EBX/ESI/EDI; the exit restores them
+// and returns, leaving the jump unarmed.
+inline constexpr std::ptrdiff_t kUniqueJumpTryArmRva = 0x0020B4B0;
+inline constexpr std::size_t kUniqueJumpTryArmGateOffset = 0x19;
+inline constexpr std::size_t kUniqueJumpTryArmExitOffset = 0x212;
+
 // Race visibility.
 inline constexpr std::ptrdiff_t kRaceToggleAllRva = 0x00280C80;
 inline constexpr std::ptrdiff_t kTriggerEnableRva = 0x0066BCE0;
