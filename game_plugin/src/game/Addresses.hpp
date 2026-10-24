@@ -60,6 +60,8 @@ inline constexpr std::size_t kCollectedCdIdsOffset = 0x13C0;
 inline constexpr std::size_t kCollectedCdCountOffset = 0x14B0;
 inline constexpr std::size_t kCollectedCdTargetOffset = 0x14B4;
 inline constexpr std::uint32_t kCollectedCdCapacity = 60;
+inline constexpr std::size_t kStuntJumpsCompletedOffset = 0x14C0;
+inline constexpr std::size_t kStuntJumpsTotalOffset = 0x14C4;
 
 inline constexpr std::ptrdiff_t kUnlockableProcessorRva = 0x002BBEB0;
 inline constexpr std::ptrdiff_t kUnlockableEnqueueRva = 0x002BBD50;
@@ -242,6 +244,9 @@ inline constexpr std::size_t kTriggerMapIconListOffset = 0x180;
 inline constexpr std::uint8_t kTriggerDiscoveredFlag = 0x10;
 // Unique jumps use the discovered flag to mean completed.
 inline constexpr std::uint32_t kTriggerTypeUniqueJump = 0x2F;
+// CRC-32 of the trigger name, same hash as CDs and tags.
+inline constexpr std::size_t kTriggerIdentityHashOffset = 0xC0;
+inline constexpr std::size_t kExpectedStuntJumpCount = 80;
 inline constexpr std::int32_t kMapIconListCount = 8;
 // Sets the revealed flag on a map icon: list index in EAX, icon in EDI.
 inline constexpr std::ptrdiff_t kMapIconRevealRva = 0x003A4DC0;
