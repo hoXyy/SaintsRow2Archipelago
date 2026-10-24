@@ -194,7 +194,7 @@ class SR2Context(SuperContext):
         self.finished_game = False
         await super().connection_closed()
 
-    # Locations and goal
+    # Locations, goal and hints
 
     async def submit_observed_locations(self) -> None:
         new_locations = sorted(
@@ -231,6 +231,11 @@ class SR2Context(SuperContext):
         self.finished_game = True
         await self.send_msgs(
             [{"cmd": "StatusUpdate", "status": ClientStatus.CLIENT_GOAL}]
+        )
+
+    async def send_hints(self, location_ids: list[int]) -> None:
+        await self.send_msgs(
+            [{"cmd": "LocationScouts", "locations": location_ids, "create_as_hint": 2}]
         )
 
     # GUI and Universal Tracker
