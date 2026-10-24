@@ -36,7 +36,7 @@ jobs:
               uses: actions/checkout@v7
               with:
                   repository: ArchipelagoMW/Archipelago
-                  ref: 0.6.7
+                  ref: 0.6.8
                   path: Archipelago
 
             - name: Set up Python
