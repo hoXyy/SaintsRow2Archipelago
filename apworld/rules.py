@@ -6,9 +6,8 @@ from typing import TYPE_CHECKING, ClassVar, cast
 from typing_extensions import override
 
 from BaseClasses import CollectionState, Location, LocationProgressType
-from worlds.generic.Rules import add_item_rule, forbid_items
-
 from rule_builder.rules import Has, HasAll, Rule
+from worlds.generic.Rules import add_item_rule, forbid_items
 
 from .collectibles import (
     CD_MAPPING,
