@@ -309,12 +309,6 @@ def set_collectible_rules(world: SR2World):
                 lambda state: state.has(STUNT_JUMPS_UNLOCK_ITEM, world.player),
             )
 
-    # I can't think of a better way to handle this other than just doing this honestly
-    for location in MISSABLE_STUNT_JUMP_MAPPING.values():
-        if location in location_cache:
-            world_location = world.get_location(location)
-            world_location.progress_type = LocationProgressType.EXCLUDED
-
     if any(jump in location_cache for jump in MISSABLE_STUNT_JUMP_MAPPING.values()):
         pyramid_scheme = get_mission_by_key("ep02")
 
@@ -330,17 +324,6 @@ def set_collectible_rules(world: SR2World):
 
 def set_style_level_rules(world: SR2World):
     location_cache = world.multiworld.regions.location_cache[world.player]
-
-    # Too much money is needed to do these, so I'm not allowing putting progression items on these (unless the player wants it)
-    if not bool(world.options.allow_progression_items_on_high_style_level.value):
-        for location in [
-            "Style Level - Level 8",
-            "Style Level - Level 9",
-            "Style Level - Level 10",
-        ]:
-            if location in location_cache:
-                world_location = world.get_location(location)
-                world_location.progress_type = LocationProgressType.EXCLUDED
 
     # Have a chance of a progression item to exist in the middle of the style level chain in addition to right at the end
     if world.random.random() < 0.5:

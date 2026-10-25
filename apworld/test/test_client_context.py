@@ -3,7 +3,7 @@ import unittest
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, Mock
 
-from NetUtils import ClientStatus
+from NetUtils import ClientStatus, NetworkItem
 
 from ..client.context import SR2Context
 
@@ -142,6 +142,22 @@ class TestGoal(unittest.IsolatedAsyncioTestCase):
 
         self.assertTrue(ctx.finished_game)
 
+    async def test_invalid_goal_data_does_not_finish(self) -> None:
+        for slot_data in (
+            {},
+            {"goal_locations": []},
+            {"goal_locations": "16"},
+            {"goal_locations": ["not a location"]},
+            {"goal_locations": [None]},
+        ):
+            with self.subTest(slot_data=slot_data):
+                ctx = make_context(slot_data=slot_data, observed_locations={16})
+
+                await ctx.send_goal_if_complete()
+
+                self.assertFalse(ctx.finished_game)
+                ctx.send_msgs.assert_not_awaited()
+
 
 class TestSessionSwitch(unittest.IsolatedAsyncioTestCase):
     async def connect(self, ctx: SR2Context, seed_name: str, slot: int) -> None:
@@ -274,3 +290,103 @@ class TestDeathLink(unittest.IsolatedAsyncioTestCase):
         ctx = await self.connect(None)
 
         ctx.update_death_link.assert_awaited_once_with(False)
+
+
+class TestReceivedItems(unittest.TestCase):
+    def receive(self, already_received: int, index: int, count: int) -> SR2Context:
+        # CommonContext has already applied the package by the time on_package
+        # runs, so items_received holds the result.
+        ctx = make_context(
+            items_received=[NetworkItem(0, 0, 1, 0)] * already_received,
+            inventory_synced=False,
+            request_sync=Mock(),
+        )
+        ctx.on_package(
+            "ReceivedItems",
+            {"index": index, "items": [NetworkItem(0, 0, 1, 0)] * count},
+        )
+        return ctx
+
+    def test_full_resync_is_synced(self) -> None:
+        ctx = self.receive(already_received=3, index=0, count=3)
+
+        self.assertTrue(ctx.inventory_synced)
+        ctx.request_sync.assert_called_once()
+
+    def test_contiguous_items_are_synced(self) -> None:
+        ctx = self.receive(already_received=3, index=2, count=1)
+
+        self.assertTrue(ctx.inventory_synced)
+
+    def test_gap_in_items_is_not_synced(self) -> None:
+        # CommonContext skips a package that doesn't continue the list and
+        # asks the server for a full Sync instead.
+        ctx = self.receive(already_received=2, index=5, count=1)
+
+        self.assertFalse(ctx.inventory_synced)
+        ctx.request_sync.assert_called_once()
+
+
+class TestRetrieved(unittest.TestCase):
+    def retrieve(self, keys: dict) -> SR2Context:
+        ctx = make_context(
+            revisions=Mock(remote_key="sr2_revisions"), request_sync=Mock()
+        )
+        ctx.on_package("Retrieved", {"keys": keys})
+        return ctx
+
+    def test_own_key_loads_the_server_revisions(self) -> None:
+        ctx = self.retrieve({"sr2_revisions": {"1": 2}, "other": None})
+
+        ctx.revisions.load_remote.assert_called_once_with({"1": 2})
+        ctx.request_sync.assert_called_once()
+
+    def test_other_keys_are_ignored(self) -> None:
+        ctx = self.retrieve({"other": {"1": 2}})
+
+        ctx.revisions.load_remote.assert_not_called()
+        ctx.request_sync.assert_not_called()
+
+
+class TestItemSentNotification(unittest.IsolatedAsyncioTestCase):
+    async def print_item_send(self, sender: int, receiving: int) -> SR2Context:
+        ctx = make_context(
+            slot=1,
+            player_names={1: "Self", 2: "Other"},
+            item_names=SimpleNamespace(
+                lookup_in_slot=lambda item, slot: f"Item {item} for {slot}"
+            ),
+            bridge=SimpleNamespace(send=AsyncMock()),
+        )
+        ctx.on_package(
+            "PrintJSON",
+            {
+                "type": "ItemSend",
+                "item": NetworkItem(7, 100, sender, 1),
+                "receiving": receiving,
+            },
+        )
+        await asyncio.sleep(0)
+        return ctx
+
+    async def test_own_item_for_another_player_is_shown(self) -> None:
+        ctx = await self.print_item_send(sender=1, receiving=2)
+
+        ctx.bridge.send.assert_awaited_once_with(
+            {
+                "type": "item_sent",
+                "item": "Item 7 for 2",
+                "receiver": "Other",
+                "flags": 1,
+            }
+        )
+
+    async def test_item_for_self_is_not_shown(self) -> None:
+        ctx = await self.print_item_send(sender=1, receiving=1)
+
+        ctx.bridge.send.assert_not_awaited()
+
+    async def test_other_players_items_are_not_shown(self) -> None:
+        ctx = await self.print_item_send(sender=2, receiving=1)
+
+        ctx.bridge.send.assert_not_awaited()

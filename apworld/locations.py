@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from BaseClasses import ItemClassification, Location, Region
+from BaseClasses import ItemClassification, Location, LocationProgressType, Region
 
 if TYPE_CHECKING:
     from .world import SR2World
@@ -293,32 +293,45 @@ def create_collectible_locations(world: SR2World) -> None:
         # This jump is missable if the player doesn't do Pyramid Scheme, so only include it if the Ultor Arc is enabled
         if ULTOR_EPILOGUE_ARC_NAME in world.options.required_gang_arcs:
             for jump in MISSABLE_STUNT_JUMP_MAPPING.values():
-                region.locations.append(
-                    SR2Location(
-                        world.player,
-                        jump,
-                        STUNT_JUMP_IDS[jump],
-                        region,
-                        respect_safe=True,
-                    )
+                missable_jump = SR2Location(
+                    world.player,
+                    jump,
+                    STUNT_JUMP_IDS[jump],
+                    region,
+                    respect_safe=True,
                 )
+
+                # I can't think of a better way to handle this other than just doing this honestly.
+                # Excluded here rather than in set_rules so the Respect-safe location count in create_items can see it.
+                missable_jump.progress_type = LocationProgressType.EXCLUDED
+
+                region.locations.append(missable_jump)
 
 
 def create_style_level_locations(world: SR2World) -> None:
     region = world.get_region("Stilwater")
+    allow_progression_on_high_levels = bool(
+        world.options.allow_progression_items_on_high_style_level.value
+    )
 
-    for location in STYLE_LEVEL_LOCATIONS[
-        : world.options.style_level_location_count.value
-    ]:
-        region.locations.append(
-            SR2Location(
-                world.player,
-                location,
-                STYLE_LEVEL_IDS[location],
-                region,
-                respect_safe=True,
-            )
+    for level, location in enumerate(
+        STYLE_LEVEL_LOCATIONS[: world.options.style_level_location_count.value],
+        start=1,
+    ):
+        style_location = SR2Location(
+            world.player,
+            location,
+            STYLE_LEVEL_IDS[location],
+            region,
+            respect_safe=True,
         )
+
+        # Too much money is needed to do these, so I'm not allowing putting progression items on these (unless the player wants it).
+        # Excluded here rather than in set_rules so the Respect-safe location count in create_items can see it.
+        if level >= 8 and not allow_progression_on_high_levels:
+            style_location.progress_type = LocationProgressType.EXCLUDED
+
+        region.locations.append(style_location)
 
 
 def add_check_with_completion_event(
