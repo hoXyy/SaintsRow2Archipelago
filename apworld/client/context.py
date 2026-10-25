@@ -5,7 +5,10 @@ import pkgutil
 from pathlib import Path
 from typing import Any
 
+from worlds.AutoWorld import AutoWorldRegister
+
 try:
+    from worlds.tracker.TrackerClient import UT_VERSION
     from worlds.tracker.TrackerClient import (
         TrackerCommandProcessor as SuperCommandProcessor,
     )
@@ -23,6 +26,7 @@ except ModuleNotFoundError:
     )
 
     tracker_loaded = False
+    UT_VERSION = "Not found"
 
 from CommonClient import logger
 from NetUtils import ClientStatus
@@ -32,6 +36,10 @@ from ..items import BONUS_RESPECT_ITEM_NAME, ITEM_NAME_TO_ID, RESPECT_ITEM_NAME
 from ..missions import ALL_MISSIONS
 from .bridge import PluginBridge
 from .revisions import RevisionStore
+
+APWORLD_VERSION = AutoWorldRegister.world_types[
+    "Saints Row 2"
+].world_version.as_simple_string()
 
 
 def calculate_ut_respect(
@@ -254,7 +262,11 @@ class SR2Context(SuperContext):
                 icon_path.write_bytes(icon_data)
 
         class SR2Manager(base_manager):
-            base_title = "Saints Row 2 Client"
+            base_title = (
+                f"Saints Row 2 Client {APWORLD_VERSION}"
+                + (f" | UT {UT_VERSION}" if tracker_loaded else "")
+                + " | Archipelago"
+            )
 
             def __init__(self, ctx):
                 super().__init__(ctx)
