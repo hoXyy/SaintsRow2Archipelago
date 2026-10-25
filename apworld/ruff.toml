@@ -18,5 +18,5 @@ section-order = ["future", "standard-library", "third-party", "archipelago", "fi
 [lint.isort.sections]
 archipelago = [
     "worlds", "BaseClasses", "Options", "CommonClient", "NetUtils", "Utils",
-    "Fill", "Generate", "settings", "MultiServer", "ModuleUpdate", "kvui", "test",
+    "Fill", "Generate", "settings", "MultiServer", "ModuleUpdate", "kvui", "test", "rule_builder",
 ]
