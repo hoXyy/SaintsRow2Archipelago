@@ -4,16 +4,24 @@ from ..activities import ACTIVITY_LEVEL_IDS, MEDAL_STRINGS, RACES
 from ..client.progression import (
     CHOP_SHOP_LOCATIONS,
     HITMAN_LOCATIONS,
+    CollectibleCounts,
     locations_for_progress,
 )
 from ..collectibles import (
     CD_IDS,
     CD_MAPPING,
     MISSABLE_STUNT_JUMP_MAPPING,
+    PROGRESSIVE_CD_IDS,
+    PROGRESSIVE_CD_LOCATIONS,
+    PROGRESSIVE_STUNT_JUMP_IDS,
+    PROGRESSIVE_STUNT_JUMP_LOCATIONS,
+    PROGRESSIVE_TAGS_IDS,
+    PROGRESSIVE_TAGS_LOCATIONS,
     STUNT_JUMP_IDS,
     STUNT_JUMP_MAPPING,
     STYLE_LEVEL_IDS,
     STYLE_LEVEL_LOCATIONS,
+    TAGS_MAPPING,
 )
 from ..missions import get_mission_by_key
 
@@ -102,3 +110,91 @@ class TestLocationsForProgress(unittest.TestCase):
         mission = get_mission_by_key("rn01")
 
         self.assertEqual([], locations_for_progress("mission", mission.key, 1, 1))
+
+
+def progressive_cds(count: int) -> list[int]:
+    return [PROGRESSIVE_CD_IDS[name] for name in PROGRESSIVE_CD_LOCATIONS[:count]]
+
+
+class TestCollectibleCounts(unittest.TestCase):
+    def test_each_new_cd_reaches_the_next_progressive_location(self) -> None:
+        counts = CollectibleCounts()
+        first, second = list(CD_MAPPING)[:2]
+
+        self.assertEqual(
+            progressive_cds(1), counts.locations_for_progress("cd", first, 1)
+        )
+        self.assertEqual(
+            progressive_cds(2), counts.locations_for_progress("cd", second, 1)
+        )
+
+    def test_re_reported_cd_is_not_counted_twice(self) -> None:
+        counts = CollectibleCounts()
+        key = next(iter(CD_MAPPING))
+
+        counts.locations_for_progress("cd", key, 1)
+
+        self.assertEqual(
+            progressive_cds(1), counts.locations_for_progress("cd", key, 1)
+        )
+
+    def test_lost_cd_is_still_counted(self) -> None:
+        counts = CollectibleCounts()
+        first, second = list(CD_MAPPING)[:2]
+
+        counts.locations_for_progress("cd", first, 1)
+
+        self.assertEqual([], counts.locations_for_progress("cd", first, 0))
+        self.assertEqual(
+            progressive_cds(2), counts.locations_for_progress("cd", second, 1)
+        )
+
+    def test_all_cds_reach_every_progressive_location(self) -> None:
+        counts = CollectibleCounts()
+
+        for key in CD_MAPPING:
+            locations = counts.locations_for_progress("cd", key, 1)
+
+        self.assertEqual(progressive_cds(len(PROGRESSIVE_CD_LOCATIONS)), locations)
+
+    def test_categories_are_counted_separately(self) -> None:
+        counts = CollectibleCounts()
+
+        counts.locations_for_progress("cd", next(iter(CD_MAPPING)), 1)
+
+        self.assertEqual(
+            [PROGRESSIVE_TAGS_IDS[PROGRESSIVE_TAGS_LOCATIONS[0]]],
+            counts.locations_for_progress("tags", next(iter(TAGS_MAPPING)), 1),
+        )
+
+    def test_every_stunt_jump_is_counted(self) -> None:
+        counts = CollectibleCounts()
+
+        for key in STUNT_JUMP_MAPPING | MISSABLE_STUNT_JUMP_MAPPING:
+            locations = counts.locations_for_progress("stunt_jumps", key, 1)
+
+        # Jump 80 counts too, but no progressive location needs all 80.
+        self.assertEqual(
+            [
+                PROGRESSIVE_STUNT_JUMP_IDS[name]
+                for name in PROGRESSIVE_STUNT_JUMP_LOCATIONS
+            ],
+            locations,
+        )
+
+    def test_clear_restarts_the_count(self) -> None:
+        counts = CollectibleCounts()
+        first, second = list(CD_MAPPING)[:2]
+
+        counts.locations_for_progress("cd", first, 1)
+        counts.clear()
+
+        self.assertEqual(
+            progressive_cds(1), counts.locations_for_progress("cd", second, 1)
+        )
+
+    def test_other_categories_are_ignored(self) -> None:
+        counts = CollectibleCounts()
+        mission = get_mission_by_key("rn01")
+
+        self.assertEqual([], counts.locations_for_progress("mission", mission.key, 1))

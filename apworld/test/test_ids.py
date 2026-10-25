@@ -1,7 +1,15 @@
 import unittest
 
 from ..activities import ACTIVITY_LEVEL_IDS
-from ..collectibles import CD_IDS, STUNT_JUMP_IDS, STYLE_LEVEL_IDS, TAGS_IDS
+from ..collectibles import (
+    CD_IDS,
+    PROGRESSIVE_CD_IDS,
+    PROGRESSIVE_STUNT_JUMP_IDS,
+    PROGRESSIVE_TAGS_IDS,
+    STUNT_JUMP_IDS,
+    STYLE_LEVEL_IDS,
+    TAGS_IDS,
+)
 from ..items import (
     DEFAULT_ITEM_CLASSIFICATION,
     ITEM_NAME_TO_ID,
@@ -43,6 +51,9 @@ LOCATION_ID_BLOCKS = (
     ("style levels", set(STYLE_LEVEL_IDS.values()), 600, 650),
     ("tags", set(TAGS_IDS.values()), 650, 700),
     ("stunt jumps", set(STUNT_JUMP_IDS.values()), 700, 800),
+    ("progressive tags", set(PROGRESSIVE_TAGS_IDS.values()), 800, 850),
+    ("progressive CDs", set(PROGRESSIVE_CD_IDS.values()), 850, 900),
+    ("progressive stunt jumps", set(PROGRESSIVE_STUNT_JUMP_IDS.values()), 900, 1000),
 )
 
 

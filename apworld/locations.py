@@ -24,6 +24,12 @@ from .collectibles import (
     CD_IDS,
     CD_MAPPING,
     MISSABLE_STUNT_JUMP_MAPPING,
+    PROGRESSIVE_TAGS_IDS,
+    PROGRESSIVE_CD_IDS,
+    PROGRESSIVE_CD_LOCATIONS,
+    PROGRESSIVE_STUNT_JUMP_IDS,
+    PROGRESSIVE_STUNT_JUMP_LOCATIONS,
+    PROGRESSIVE_TAGS_LOCATIONS,
     STUNT_JUMP_IDS,
     STUNT_JUMP_MAPPING,
     STYLE_LEVEL_IDS,
@@ -50,6 +56,9 @@ from .options import (
     RONIN_ARC_NAME,
     SAMEDI_ARC_NAME,
     ULTOR_EPILOGUE_ARC_NAME,
+    IncludeCDs,
+    IncludeStuntJumps,
+    IncludeTags,
 )
 
 
@@ -270,19 +279,41 @@ def create_activities_location(world: SR2World) -> None:
 def create_collectible_locations(world: SR2World) -> None:
     region = world.get_region("Stilwater")
 
-    if world.options.include_cds.value == 1:
+    if world.options.include_cds.value == IncludeCDs.option_individual:
         for cd in CD_MAPPING.values():
             region.locations.append(
                 SR2Location(world.player, cd, CD_IDS[cd], region, respect_safe=True)
             )
 
-    if world.options.include_tags.value == 1:
+    if world.options.include_cds.value == IncludeCDs.option_progressive:
+        for cd in PROGRESSIVE_CD_LOCATIONS[: world.options.progressive_cd_count.value]:
+            region.locations.append(
+                SR2Location(
+                    world.player, cd, PROGRESSIVE_CD_IDS[cd], region, respect_safe=True
+                )
+            )
+
+    if world.options.include_tags.value == IncludeTags.option_individual:
         for tag in TAGS_MAPPING.values():
             region.locations.append(
                 SR2Location(world.player, tag, TAGS_IDS[tag], region, respect_safe=True)
             )
 
-    if world.options.include_stunt_jumps.value == 1:
+    if world.options.include_tags.value == IncludeTags.option_progressive:
+        for tag in PROGRESSIVE_TAGS_LOCATIONS[
+            : world.options.progressive_tags_count.value
+        ]:
+            region.locations.append(
+                SR2Location(
+                    world.player,
+                    tag,
+                    PROGRESSIVE_TAGS_IDS[tag],
+                    region,
+                    respect_safe=True,
+                )
+            )
+
+    if world.options.include_stunt_jumps.value == IncludeStuntJumps.option_individual:
         for jump in STUNT_JUMP_MAPPING.values():
             region.locations.append(
                 SR2Location(
@@ -306,6 +337,20 @@ def create_collectible_locations(world: SR2World) -> None:
                 missable_jump.progress_type = LocationProgressType.EXCLUDED
 
                 region.locations.append(missable_jump)
+
+    if world.options.include_stunt_jumps.value == IncludeStuntJumps.option_progressive:
+        for jump in PROGRESSIVE_STUNT_JUMP_LOCATIONS[
+            : world.options.progressive_jumps_count.value
+        ]:
+            region.locations.append(
+                SR2Location(
+                    world.player,
+                    jump,
+                    PROGRESSIVE_STUNT_JUMP_IDS[jump],
+                    region,
+                    respect_safe=True,
+                )
+            )
 
 
 def create_style_level_locations(world: SR2World) -> None:
@@ -388,6 +433,9 @@ def generate_location_name_to_id() -> dict[str, int]:
         **STYLE_LEVEL_IDS,
         **TAGS_IDS,
         **STUNT_JUMP_IDS,
+        **PROGRESSIVE_TAGS_IDS,
+        **PROGRESSIVE_CD_IDS,
+        **PROGRESSIVE_STUNT_JUMP_IDS,
     }
 
 

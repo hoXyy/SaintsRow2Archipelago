@@ -315,18 +315,21 @@ def get_enabled_activity_list(world: SR2World) -> list[int]:
     enabled_activities = []
 
     for [option, activity] in ACTIVITY_STARTING_ACTIVITY_OPTION_MAPPING.items():
-        if option == StartingActivity.option_cd and bool(
-            world.options.include_cds.value
+        if (
+            option == StartingActivity.option_cd
+            and world.options.include_cds.value != 0
         ):
             enabled_activities.append(option)
 
-        if option == StartingActivity.option_tags and bool(
-            world.options.include_tags.value
+        if (
+            option == StartingActivity.option_tags
+            and world.options.include_tags.value != 0
         ):
             enabled_activities.append(option)
 
-        if option == StartingActivity.option_stunt_jumps and bool(
-            world.options.include_stunt_jumps.value
+        if (
+            option == StartingActivity.option_stunt_jumps
+            and world.options.include_stunt_jumps.value != 0
         ):
             enabled_activities.append(option)
 

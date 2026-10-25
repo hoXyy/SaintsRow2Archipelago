@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Any
 from CommonClient import logger
 
 from ..activities import ACTIVITY_LEVEL_IDS, CHOP_SHOP_LISTS, HITMAN_LISTS
-from .progression import locations_for_progress
+from .progression import CollectibleCounts, locations_for_progress
 from .save_sync import Inventory, accept_save_revision, resolve_save_context
 
 if TYPE_CHECKING:
@@ -62,6 +62,7 @@ class PluginBridge:
         self.session_sent = False
         # Index of the next received item to deliver; None until a save is loaded.
         self.live_cursor: int | None = None
+        self.collectible_counts = CollectibleCounts()
 
         # Bumped on every game_context, so an item delivery that was in flight
         # when the game loaded another save can tell it is stale.
@@ -107,6 +108,8 @@ class PluginBridge:
     def _reset_session(self) -> None:
         self.session_sent = False
         self.live_cursor = None
+        # The plugin re-reports every collectible when the next session starts.
+        self.collectible_counts.clear()
 
     def _reset_connection(self) -> None:
         self.hello = False
@@ -348,11 +351,16 @@ class PluginBridge:
         return True
 
     async def _on_progression(self, message: dict[str, Any]) -> None:
+        category = message.get("category")
+        key = message.get("key")
+        current = int(message.get("current", 0))
         locations = locations_for_progress(
-            message.get("category"),
-            message.get("key"),
-            int(message.get("previous", 0)),
-            int(message.get("current", 0)),
+            category, key, int(message.get("previous", 0)), current
+        )
+        # Only the locations the seed has are submitted, so the individual and
+        # progressive ids can both be observed.
+        locations += self.collectible_counts.locations_for_progress(
+            category, key, current
         )
         self.ctx.observed_locations.update(locations)
         await self.ctx.submit_observed_locations()

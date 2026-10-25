@@ -13,6 +13,12 @@ from ..client.bridge import (
     PluginBridge,
 )
 from ..client.revisions import RevisionStore
+from ..collectibles import (
+    CD_IDS,
+    CD_MAPPING,
+    PROGRESSIVE_CD_IDS,
+    PROGRESSIVE_CD_LOCATIONS,
+)
 from ..missions import get_mission_by_key
 
 
@@ -306,6 +312,39 @@ class TestProgression(unittest.IsolatedAsyncioTestCase):
 
         self.assertEqual({mission.id}, bridge.ctx.observed_locations)
         bridge.ctx.submit_observed_locations.assert_awaited_once()
+
+    async def test_collectible_observes_individual_and_progressive_locations(
+        self,
+    ) -> None:
+        bridge = make_bridge()
+        key, name = next(iter(CD_MAPPING.items()))
+
+        await bridge.handle_message(
+            {"type": "progression", "category": "cd", "key": key, "current": 1}
+        )
+
+        self.assertEqual(
+            {CD_IDS[name], PROGRESSIVE_CD_IDS[PROGRESSIVE_CD_LOCATIONS[0]]},
+            bridge.ctx.observed_locations,
+        )
+
+    async def test_session_end_clears_collectible_counts(self) -> None:
+        bridge = make_bridge()
+        first, second = list(CD_MAPPING)[:2]
+
+        await bridge.handle_message(
+            {"type": "progression", "category": "cd", "key": first, "current": 1}
+        )
+        await bridge.end_session()
+        bridge.ctx.observed_locations.clear()
+        await bridge.handle_message(
+            {"type": "progression", "category": "cd", "key": second, "current": 1}
+        )
+
+        self.assertNotIn(
+            PROGRESSIVE_CD_IDS[PROGRESSIVE_CD_LOCATIONS[1]],
+            bridge.ctx.observed_locations,
+        )
 
 
 class TestDeath(unittest.IsolatedAsyncioTestCase):
