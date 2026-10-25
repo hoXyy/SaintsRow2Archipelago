@@ -1,9 +1,13 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+import dataclasses
+from typing import TYPE_CHECKING, ClassVar, cast
 
-from BaseClasses import Location, LocationProgressType
-from worlds.generic.Rules import add_item_rule, add_rule, forbid_items
+from typing_extensions import override
+
+from BaseClasses import CollectionState, Location, LocationProgressType
+from rule_builder.rules import Has, HasAll, Rule
+from worlds.generic.Rules import add_item_rule, forbid_items
 
 from .collectibles import (
     CD_MAPPING,
@@ -58,18 +62,70 @@ from .options import (
     ULTOR_EPILOGUE_ARC_NAME,
 )
 
+# Access rules are collected per location name and combined, then set once at the end,
+# since world.set_rule replaces a location's rule rather than adding to it.
+AccessRules = dict[str, Rule["SR2World"]]
+
+
+@dataclasses.dataclass()
+class HasEnoughUTRespect(Rule["SR2World"], game="Saints Row 2"):
+    """Universal Tracker only: checks the player's unspent respect against what the mission's unchecked dependencies cost"""
+
+    dependencies: tuple[tuple[int, int], ...]
+    """(location id, required respect) for the mission and everything it depends on"""
+
+    @override
+    def _instantiate(self, world: SR2World) -> Rule.Resolved:
+        return self.Resolved(self.dependencies, player=world.player)
+
+    class Resolved(Rule.Resolved):
+        dependencies: tuple[tuple[int, int], ...]
+
+        # Depends on the tracker's checked locations and received respect, not on collected items
+        force_recalculate: ClassVar[bool] = True
+
+        @override
+        def _evaluate(self, state: CollectionState) -> bool:
+            world = cast("SR2World", state.multiworld.worlds[self.player])
+            required_respect = sum(
+                required
+                for location_id, required in self.dependencies
+                if location_id not in world.ut_checked_locations
+            )
+            return world.ut_available_respect >= required_respect
+
 
 def set_all_rules(world: SR2World) -> None:
-    set_mission_rules(world)
-    set_activity_rules(world)
+    access_rules: AccessRules = {}
+
+    set_mission_rules(world, access_rules)
+    set_activity_rules(world, access_rules)
+    set_collectible_rules(world, access_rules)
+
+    for location_name, rule in access_rules.items():
+        world.set_rule(world.get_location(location_name), rule)
+
     set_completion_rules(world)
     set_respect_placement_rules(world)
     set_item_rules(world)
-    set_collectible_rules(world)
     set_style_level_rules(world)
 
 
-def set_mission_rules(world: SR2World) -> None:
+def require(access_rules: AccessRules, location_name: str, rule: Rule) -> None:
+    existing = access_rules.get(location_name)
+    access_rules[location_name] = rule if existing is None else existing & rule
+
+
+def require_for_mission(
+    access_rules: AccessRules, mission: Mission, rule: Rule
+) -> None:
+    require(access_rules, mission.name, rule)
+
+    if mission.creates_unlock_item:
+        require(access_rules, get_mission_complete_event_name(mission), rule)
+
+
+def set_mission_rules(world: SR2World, access_rules: AccessRules) -> None:
     location_cache = world.multiworld.regions.location_cache[world.player]
     minimum_respect_needed_table = create_minimum_respect_table()
     is_ut = getattr(world.multiworld, "generation_is_fake", False)
@@ -77,10 +133,10 @@ def set_mission_rules(world: SR2World) -> None:
     # Generic respect requirement rules for both missions and strongholds
     for chain in MISSION_CHAINS:
         for mission in chain["missions"]:
-            add_mission_predecessor_rule(world, location_cache, mission)
+            add_mission_predecessor_rule(access_rules, location_cache, mission)
 
             add_mission_respect_rules(
-                world,
+                access_rules,
                 location_cache,
                 mission,
                 minimum_respect_needed_table[mission.key],
@@ -88,10 +144,10 @@ def set_mission_rules(world: SR2World) -> None:
             )
 
         for stronghold in chain["strongholds"]:
-            add_mission_predecessor_rule(world, location_cache, stronghold)
+            add_mission_predecessor_rule(access_rules, location_cache, stronghold)
 
             add_mission_respect_rules(
-                world,
+                access_rules,
                 location_cache,
                 stronghold,
                 minimum_respect_needed_table[stronghold.key],
@@ -107,16 +163,7 @@ def set_mission_rules(world: SR2World) -> None:
         if mission.name not in location_cache:
             continue
 
-        def has_unlock_item(state, unlock_item=unlock_item) -> bool:
-            return state.has(unlock_item, world.player)
-
-        add_rule(world.get_location(mission.name), has_unlock_item)
-
-        if mission.creates_unlock_item:
-            add_rule(
-                world.get_location(get_mission_complete_event_name(mission)),
-                has_unlock_item,
-            )
+        require_for_mission(access_rules, mission, Has(unlock_item))
 
     # Mark each arc finale as needing all strongholds done
     ronin_finale = get_mission_by_key("rn11")
@@ -125,20 +172,26 @@ def set_mission_rules(world: SR2World) -> None:
     ultor_finale = get_mission_by_key("ep04")
 
     mark_as_needing_all_strongholds(
-        world, location_cache, ronin_finale, RONIN_CHAIN["strongholds"]
+        access_rules, location_cache, ronin_finale, RONIN_CHAIN["strongholds"]
     )
     mark_as_needing_all_strongholds(
-        world, location_cache, samedi_finale, SAMEDI_CHAIN["strongholds"]
+        access_rules, location_cache, samedi_finale, SAMEDI_CHAIN["strongholds"]
     )
     mark_as_needing_all_strongholds(
-        world, location_cache, brotherhood_finale, BROTHERHOOD_CHAIN["strongholds"]
+        access_rules,
+        location_cache,
+        brotherhood_finale,
+        BROTHERHOOD_CHAIN["strongholds"],
     )
     mark_as_needing_all_strongholds(
-        world, location_cache, ultor_finale, ULTOR_EPILOGUE_CHAIN["strongholds"]
+        access_rules,
+        location_cache,
+        ultor_finale,
+        ULTOR_EPILOGUE_CHAIN["strongholds"],
     )
 
 
-def set_activity_rules(world: SR2World) -> None:
+def set_activity_rules(world: SR2World, access_rules: AccessRules) -> None:
     location_cache = world.multiworld.regions.location_cache[world.player]
     tss02_complete_item = get_mission_complete_item_name(get_mission_by_key("tss02"))
 
@@ -156,40 +209,17 @@ def set_activity_rules(world: SR2World) -> None:
                 if curr_key not in location_cache:
                     continue
 
-                curr_location = world.get_location(curr_key)
-
                 if level == 1:
                     prerequisite_item = unlock_item
-
-                    add_rule(
-                        curr_location,
-                        lambda state, tss02_item=tss02_complete_item, activity_unlock_item=unlock_item: (
-                            state.has(tss02_item, world.player)
-                            and state.has(activity_unlock_item, world.player)
-                        ),
-                    )
                 else:
                     prev_key = f"{activity} ({district}) - Level {level - 1}"
                     prerequisite_item = f"Item: {prev_key} Complete"
 
-                add_rule(
-                    curr_location,
-                    lambda state, tss02_item=tss02_complete_item, level_unlock_item=prerequisite_item: (
-                        state.has(level_unlock_item, world.player)
-                        and state.has(tss02_item, world.player)
-                    ),
-                )
+                level_rule = HasAll(tss02_complete_item, prerequisite_item)
+                require(access_rules, curr_key, level_rule)
 
                 if level < 6:
-                    completion_event = world.get_location(f"Event: {curr_key} Complete")
-
-                    add_rule(
-                        completion_event,
-                        lambda state, tss02_item=tss02_complete_item, level_unlock_item=prerequisite_item: (
-                            state.has(level_unlock_item, world.player)
-                            and state.has(tss02_item, world.player)
-                        ),
-                    )
+                    require(access_rules, f"Event: {curr_key} Complete", level_rule)
 
     for location in CHOP_SHOP_LISTS:
         vehicles = [value for d in CHOP_SHOP_LISTS[location] for value in d.values()]
@@ -197,12 +227,10 @@ def set_activity_rules(world: SR2World) -> None:
         for vehicle in vehicles:
             curr_key = f"Chop Shop ({location}) - {vehicle}"
             if curr_key in location_cache:
-                add_rule(
-                    world.get_location(curr_key),
-                    lambda state, tss02_item=tss02_complete_item, chop_shop_unlock_item=CHOP_SHOP_UNLOCK_ITEM: (
-                        state.has(tss02_item, world.player)
-                        and state.has(chop_shop_unlock_item, world.player)
-                    ),
+                require(
+                    access_rules,
+                    curr_key,
+                    HasAll(tss02_complete_item, CHOP_SHOP_UNLOCK_ITEM),
                 )
 
     for location in HITMAN_LISTS:
@@ -211,12 +239,10 @@ def set_activity_rules(world: SR2World) -> None:
         for target in targets:
             curr_key = f"Hitman ({location}) - {target}"
             if curr_key in location_cache:
-                add_rule(
-                    world.get_location(curr_key),
-                    lambda state, tss02_item=tss02_complete_item, hitman_unlock_item=HITMAN_UNLOCK_ITEM: (
-                        state.has(tss02_item, world.player)
-                        and state.has(hitman_unlock_item, world.player)
-                    ),
+                require(
+                    access_rules,
+                    curr_key,
+                    HasAll(tss02_complete_item, HITMAN_UNLOCK_ITEM),
                 )
 
     for [race_key, race_name] in RACES.items():
@@ -224,24 +250,17 @@ def set_activity_rules(world: SR2World) -> None:
         for medal in MEDAL_STRINGS.values():
             curr_key = f"{race_name} - {medal}"
             if curr_key in location_cache:
-                add_rule(
-                    world.get_location(curr_key),
-                    lambda state, tss02_item=tss02_complete_item, race_activity_unlock_item=race_unlock_item: (
-                        state.has(tss02_item, world.player)
-                        and state.has(race_activity_unlock_item, world.player)
-                    ),
+                require(
+                    access_rules,
+                    curr_key,
+                    HasAll(tss02_complete_item, race_unlock_item),
                 )
 
     # This target needs tags to be unlocked
     if "Hitman (Barrio) - Brad" in location_cache and bool(
         world.options.include_tags.value
     ):
-        add_rule(
-            world.get_location("Hitman (Barrio) - Brad"),
-            lambda state, tag_unlock_item=TAGS_UNLOCK_ITEM: state.has(
-                tag_unlock_item, world.player
-            ),
-        )
+        require(access_rules, "Hitman (Barrio) - Brad", Has(TAGS_UNLOCK_ITEM))
 
 
 def set_completion_rules(world: SR2World) -> None:
@@ -278,48 +297,27 @@ def set_completion_rules(world: SR2World) -> None:
             get_mission_complete_item_name(STILWATER_CAVERNS_STRONGHOLD)
         )
 
-    world.set_completion_rule(
-        lambda state: all(
-            state.has(item, world.player) for item in needed_completion_items
-        )
-    )
+    world.set_completion_rule(HasAll(*needed_completion_items))
 
 
-def set_collectible_rules(world: SR2World):
+def set_collectible_rules(world: SR2World, access_rules: AccessRules) -> None:
     location_cache = world.multiworld.regions.location_cache[world.player]
 
     for location in CD_MAPPING.values():
         if location in location_cache:
-            add_rule(
-                world.get_location(location),
-                lambda state: state.has(CD_UNLOCK_ITEM, world.player),
-            )
+            require(access_rules, location, Has(CD_UNLOCK_ITEM))
 
     for location in TAGS_MAPPING.values():
         if location in location_cache:
-            add_rule(
-                world.get_location(location),
-                lambda state: state.has(TAGS_UNLOCK_ITEM, world.player),
-            )
+            require(access_rules, location, Has(TAGS_UNLOCK_ITEM))
 
     for location in (STUNT_JUMP_MAPPING | MISSABLE_STUNT_JUMP_MAPPING).values():
         if location in location_cache:
-            add_rule(
-                world.get_location(location),
-                lambda state: state.has(STUNT_JUMPS_UNLOCK_ITEM, world.player),
-            )
+            require(access_rules, location, Has(STUNT_JUMPS_UNLOCK_ITEM))
 
     if any(jump in location_cache for jump in MISSABLE_STUNT_JUMP_MAPPING.values()):
         pyramid_scheme = get_mission_by_key("ep02")
-
-        def has_stunt_jumps(state) -> bool:
-            return state.has(STUNT_JUMPS_UNLOCK_ITEM, world.player)
-
-        add_rule(world.get_location(pyramid_scheme.name), has_stunt_jumps)
-        add_rule(
-            world.get_location(get_mission_complete_event_name(pyramid_scheme)),
-            has_stunt_jumps,
-        )
+        require_for_mission(access_rules, pyramid_scheme, Has(STUNT_JUMPS_UNLOCK_ITEM))
 
 
 def set_style_level_rules(world: SR2World):
@@ -354,28 +352,22 @@ def set_item_rules(world: SR2World):
 
 
 def mark_as_needing_all_strongholds(
-    world: SR2World,
+    access_rules: AccessRules,
     location_cache: dict[str, Location],
     mission: Mission,
     strongholds: list[Mission],
 ):
     if mission.name in location_cache:
-        add_rule(
-            world.get_location(mission.name),
-            lambda state: all(
-                state.has(get_mission_complete_item_name(stronghold), world.player)
-                for stronghold in strongholds
+        require_for_mission(
+            access_rules,
+            mission,
+            HasAll(
+                *(
+                    get_mission_complete_item_name(stronghold)
+                    for stronghold in strongholds
+                )
             ),
         )
-
-        if mission.creates_unlock_item:
-            add_rule(
-                world.get_location(get_mission_complete_event_name(mission)),
-                lambda state: all(
-                    state.has(get_mission_complete_item_name(stronghold), world.player)
-                    for stronghold in strongholds
-                ),
-            )
 
 
 def set_respect_placement_rules(world: SR2World) -> None:
@@ -390,7 +382,7 @@ def set_respect_placement_rules(world: SR2World) -> None:
 
 
 def add_mission_predecessor_rule(
-    world: SR2World,
+    access_rules: AccessRules,
     location_cache: dict[str, Location],
     mission: Mission,
 ) -> None:
@@ -398,28 +390,13 @@ def add_mission_predecessor_rule(
         return
 
     predecessor = get_mission_by_key(mission.unlocked_by)
-    predecessor_item = get_mission_complete_item_name(predecessor)
-
-    def predecessor_rule(
-        state,
-        required_item=predecessor_item,
-    ) -> bool:
-        return state.has(required_item, world.player)
-
-    add_rule(
-        world.get_location(mission.name),
-        predecessor_rule,
+    require_for_mission(
+        access_rules, mission, Has(get_mission_complete_item_name(predecessor))
     )
-
-    if mission.creates_unlock_item:
-        add_rule(
-            world.get_location(get_mission_complete_event_name(mission)),
-            predecessor_rule,
-        )
 
 
 def add_mission_respect_rules(
-    world: SR2World,
+    access_rules: AccessRules,
     location_cache: dict[str, Location],
     mission: Mission,
     minimum_respect: int,
@@ -429,46 +406,16 @@ def add_mission_respect_rules(
     if mission.name not in location_cache:
         return
 
-    location = world.get_location(mission.name)
-
     if is_ut:
-        dependencies = get_mission_respect_dependencies(mission)
-
-        def has_enough_respect(state, dependencies=dependencies) -> bool:
-            required_respect = sum(
-                dependency.required_respect
-                for dependency in dependencies
-                if dependency.id not in world.ut_checked_locations
-            )
-            return world.ut_available_respect >= required_respect
-
-        add_rule(location, has_enough_respect)
-
-        if mission.creates_unlock_item:
-            add_rule(
-                world.get_location(get_mission_complete_event_name(mission)),
-                has_enough_respect,
-            )
-    else:
-        if minimum_respect > 0:
-            add_rule(
-                location,
-                lambda state, minimum_respect=minimum_respect: state.has(
-                    RESPECT_ITEM_NAME,
-                    world.player,
-                    minimum_respect,
-                ),
-            )
-
-            if mission.creates_unlock_item:
-                add_rule(
-                    world.get_location(get_mission_complete_event_name(mission)),
-                    lambda state, minimum_respect=minimum_respect: state.has(
-                        RESPECT_ITEM_NAME,
-                        world.player,
-                        minimum_respect,
-                    ),
-                )
+        dependencies = tuple(
+            (dependency.id, dependency.required_respect)
+            for dependency in get_mission_respect_dependencies(mission)
+        )
+        require_for_mission(access_rules, mission, HasEnoughUTRespect(dependencies))
+    elif minimum_respect > 0:
+        require_for_mission(
+            access_rules, mission, Has(RESPECT_ITEM_NAME, count=minimum_respect)
+        )
 
 
 def get_mission_respect_dependencies(mission: Mission) -> tuple[Mission, ...]:
