@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from BaseClasses import Item, ItemClassification
+from BaseClasses import Item, ItemClassification, LocationProgressType
 from Options import OptionError
 
 from .missions import get_mission_by_key
@@ -215,10 +215,12 @@ def get_all_items(world: SR2World) -> None:
     if world.options.bonus_respect_percentage.value > 0:
         bonus_respect_count = max(1, bonus_respect_count)
 
+    # Respect is progression, so excluded locations can't hold it either.
     respect_safe_locations = [
         location
         for location in world.multiworld.get_unfilled_locations(world.player)
         if getattr(location, "respect_safe", False)
+        and location.progress_type != LocationProgressType.EXCLUDED
     ]
 
     if respect_count > len(respect_safe_locations):
@@ -229,13 +231,30 @@ def get_all_items(world: SR2World) -> None:
             "Respect-safe locations. Enable more activities."
         )
 
-    total_respect_count = respect_count + bonus_respect_count
+    enabled_activity_items = get_enabled_unlock_items_list(world)
+    enabled_activity_items.remove(starting_activity_item)
 
-    if total_respect_count > unfilled_locations_count:
+    optional_mission_unlock_items = []
+
+    if world.options.include_secret_mission.value == 1:
+        optional_mission_unlock_items.append(EM01_UNLOCK_ITEM)
+
+    if world.options.include_stilwater_caverns.value == 1:
+        optional_mission_unlock_items.append(TSS_SH_CAVERNS_UNLOCK_ITEM)
+
+    required_item_count = (
+        respect_count
+        + bonus_respect_count
+        + len(enabled_activity_items)
+        + len(optional_mission_unlock_items)
+    )
+
+    if required_item_count > unfilled_locations_count:
         raise OptionError(
             f"Saints Row 2 ({world.player_name}): requires "
-            f"{total_respect_count} total Respect items, but only has "
-            f"{unfilled_locations_count} available locations."
+            f"{required_item_count} Respect and unlock items, but only has "
+            f"{unfilled_locations_count} available locations. "
+            "Enable more activities or lower Bonus Respect Percentage."
         )
 
     item_pool: list[Item] = [
@@ -246,16 +265,11 @@ def get_all_items(world: SR2World) -> None:
         [world.create_item(BONUS_RESPECT_ITEM_NAME) for _ in range(bonus_respect_count)]
     )
 
-    enabled_activity_items = get_enabled_unlock_items_list(world)
-    enabled_activity_items.remove(starting_activity_item)
-
     item_pool.extend([world.create_item(name) for name in enabled_activity_items])
 
-    if world.options.include_secret_mission.value == 1:
-        item_pool.extend([world.create_item(EM01_UNLOCK_ITEM)])
-
-    if world.options.include_stilwater_caverns.value == 1:
-        item_pool.extend([world.create_item(TSS_SH_CAVERNS_UNLOCK_ITEM)])
+    item_pool.extend(
+        [world.create_item(name) for name in optional_mission_unlock_items]
+    )
 
     available_slots = unfilled_locations_count - len(item_pool)
 

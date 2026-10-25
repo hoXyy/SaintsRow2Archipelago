@@ -1,3 +1,6 @@
+import asyncio
+import contextlib
+import json
 import unittest
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, Mock
@@ -357,3 +360,70 @@ class TestListOpened(unittest.IsolatedAsyncioTestCase):
             await bridge.handle_message({"type": "list_opened"} | message)
 
         bridge.ctx.send_hints.assert_not_awaited()
+
+
+class TestPluginConnection(unittest.IsolatedAsyncioTestCase):
+    async def asyncSetUp(self) -> None:
+        self.bridge = make_bridge()
+        self.bridge.hello = False
+        await self.bridge.start()
+        self.addAsyncCleanup(self.bridge.stop)
+        self.port = self.bridge.server.sockets[0].getsockname()[1]
+
+    async def connect(self) -> tuple[asyncio.StreamReader, asyncio.StreamWriter]:
+        reader, writer = await asyncio.open_connection("127.0.0.1", self.port)
+        self.addAsyncCleanup(self.close, writer)
+        return reader, writer
+
+    async def close(self, writer: asyncio.StreamWriter) -> None:
+        writer.close()
+        with contextlib.suppress(ConnectionError):
+            await writer.wait_closed()
+
+    async def wait_until(self, condition) -> None:
+        async with asyncio.timeout(2):
+            while not condition():
+                await asyncio.sleep(0.01)
+
+    async def send_line(self, writer: asyncio.StreamWriter, line: bytes) -> None:
+        writer.write(line + b"\n")
+        await writer.drain()
+
+    async def say_hello(self, writer: asyncio.StreamWriter) -> None:
+        hello = {"type": "hello", "protocol": PROTOCOL_VERSION}
+        await self.send_line(writer, json.dumps(hello).encode())
+        await self.wait_until(lambda: self.bridge.hello)
+
+    async def test_second_plugin_is_refused(self) -> None:
+        _, first = await self.connect()
+        await self.wait_until(lambda: self.bridge.connected)
+        await self.say_hello(first)
+
+        second_reader, _ = await self.connect()
+
+        self.assertEqual(b"", await asyncio.wait_for(second_reader.read(), 2))
+        self.assertTrue(self.bridge.connected)
+        self.assertTrue(self.bridge.hello)
+
+    async def test_malformed_lines_are_skipped(self) -> None:
+        _, writer = await self.connect()
+
+        for line in (b"not json", b"[1, 2]", b'{"type": "game_context"}'):
+            await self.send_line(writer, line)
+        await self.say_hello(writer)
+
+        self.assertTrue(self.bridge.connected)
+
+    async def test_disconnect_resets_the_connection_state(self) -> None:
+        _, writer = await self.connect()
+        await self.say_hello(writer)
+        self.bridge.session_sent = True
+        self.bridge.live_cursor = 3
+
+        await self.close(writer)
+        await self.wait_until(lambda: not self.bridge.connected)
+
+        self.assertFalse(self.bridge.hello)
+        self.assertFalse(self.bridge.session_sent)
+        self.assertIsNone(self.bridge.live_cursor)
+        self.assertIsNone(self.bridge.pending_ack)

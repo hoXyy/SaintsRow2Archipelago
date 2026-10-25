@@ -1,4 +1,7 @@
+from collections import Counter
 from typing import TYPE_CHECKING
+
+from Options import OptionError
 
 from ..activities import (
     ACTIVITIES_LEVEL_BASED,
@@ -14,12 +17,14 @@ from ..activities import (
     RACES,
 )
 from ..items import (
+    ACTIVITY_UNLOCK_ITEMS_SETTINGS_MAPPING,
     CHOP_SHOP_UNLOCK_ITEM,
     HITMAN_UNLOCK_ITEM,
+    TAGS_UNLOCK_ITEM,
     get_race_unlock_item,
 )
 from ..missions import get_mission_by_key, get_mission_complete_item_name
-from .bases import SR2TestBase
+from .bases import STARTING_ACTIVITY_INCLUDE_OPTIONS, SR2TestBase
 
 
 class TestActivityLocations(SR2TestBase):
@@ -371,3 +376,81 @@ class TestLevelBasedActivityDisabled(SR2TestBase):
 
                 self.assertEqual(0, len(locations))
                 self.assertEqual(0, len(events))
+
+
+BRAD = "Hitman (Barrio) - Brad"
+
+
+class TestHitmanBradNeedsTags(SR2TestBase):
+    run_default_tests = False
+
+    def test_brad_needs_the_tags_pass(self) -> None:
+        location = self.world.get_location(BRAD)
+        state = self.get_fresh_state()
+        state.collect(
+            self.get_item_by_name(
+                get_mission_complete_item_name(get_mission_by_key("tss02"))
+            ),
+            prevent_sweep=True,
+        )
+        state.collect(self.get_item_by_name(HITMAN_UNLOCK_ITEM), prevent_sweep=True)
+
+        self.assertFalse(location.access_rule(state))
+        state.collect(self.get_item_by_name(TAGS_UNLOCK_ITEM), prevent_sweep=True)
+        self.assertTrue(location.access_rule(state))
+
+
+class TestHitmanBradWithoutTags(SR2TestBase):
+    options = {"include_tags": 0}
+
+    def test_brad_only_needs_hitman_when_tags_are_disabled(self) -> None:
+        location = self.world.get_location(BRAD)
+        state = self.get_fresh_state()
+        state.collect(
+            self.get_item_by_name(
+                get_mission_complete_item_name(get_mission_by_key("tss02"))
+            ),
+            prevent_sweep=True,
+        )
+        state.collect(self.get_item_by_name(HITMAN_UNLOCK_ITEM), prevent_sweep=True)
+
+        self.assertTrue(location.access_rule(state))
+
+
+class TestStartingActivity(SR2TestBase):
+    auto_construct = False
+    run_default_tests = False
+
+    def test_each_starting_activity_is_placed_on_appointed_defender(self) -> None:
+        for value, include_option in STARTING_ACTIVITY_INCLUDE_OPTIONS.items():
+            unlock_item = ACTIVITY_UNLOCK_ITEMS_SETTINGS_MAPPING[value]
+            with self.subTest(include_option=include_option):
+                self.options = {"starting_activity": value}
+                self.world_setup()
+                pool = Counter(
+                    item.name
+                    for item in self.multiworld.itempool
+                    if item.player == self.player
+                )
+                appointed_defender = self.world.get_location(
+                    get_mission_by_key("tss02").name
+                )
+
+                self.assertEqual(unlock_item, appointed_defender.item.name)
+                self.assertEqual(0, pool[unlock_item])
+
+    def test_disabled_starting_activity_is_rejected(self) -> None:
+        for value, include_option in STARTING_ACTIVITY_INCLUDE_OPTIONS.items():
+            with self.subTest(include_option=include_option):
+                self.options = {"starting_activity": value, include_option: 0}
+
+                with self.assertRaisesRegex(OptionError, "must also be enabled"):
+                    self.world_setup()
+
+    def test_random_starting_activity_needs_an_enabled_activity(self) -> None:
+        self.options = dict.fromkeys(STARTING_ACTIVITY_INCLUDE_OPTIONS.values(), 0) | {
+            "starting_activity": "random"
+        }
+
+        with self.assertRaisesRegex(OptionError, "At least one activity"):
+            self.world_setup()

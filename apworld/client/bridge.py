@@ -216,12 +216,14 @@ class PluginBridge:
             if item.player != ctx.slot:
                 message["sender"] = ctx.player_names[item.player]
 
-            self.pending_ack = asyncio.get_running_loop().create_future()
+            # A game context handled while sending replaces pending_ack, so
+            # wait on this message's own future.
+            ack = self.pending_ack = asyncio.get_running_loop().create_future()
             if not await self.send(message):
                 break
             try:
                 ack_index, accepted = await asyncio.wait_for(
-                    self.pending_ack, timeout=ACK_TIMEOUT_SECONDS
+                    ack, timeout=ACK_TIMEOUT_SECONDS
                 )
             except TimeoutError:
                 await asyncio.sleep(RETRY_SECONDS)

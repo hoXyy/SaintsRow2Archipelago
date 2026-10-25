@@ -110,10 +110,17 @@ class SR2World(World):
             )
         )
 
-        if filler_weight_total == 0 and self.options.trap_chance.value < 100:
+        traps_enabled = bool(
+            self.options.include_weather_trap_items.value
+            or self.options.include_notoriety_trap_items.value
+        )
+
+        if filler_weight_total == 0 and (
+            self.options.trap_chance.value < 100 or not traps_enabled
+        ):
             raise OptionError(
                 "At least one filler category weight must be greater than zero "
-                "unless Trap Chance is 100."
+                "unless Trap Chance is 100 and a trap type is enabled."
             )
 
         if len(enabled_gang_arcs) == 0:
