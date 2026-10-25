@@ -3682,5 +3682,1205 @@
                 "y": 957
             }
         ]
+    },
+    {
+        "name": "Stunt Jump #21 (Elysian Fields)",
+        "sections": [
+            {
+                "name": "Stunt Jump #21 (Elysian Fields)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1095,
+                "y": 565
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #25 (New Hennequet)",
+        "sections": [
+            {
+                "name": "Stunt Jump #25 (New Hennequet)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1239,
+                "y": 242
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #18 (New Hennequet)",
+        "sections": [
+            {
+                "name": "Stunt Jump #18 (New Hennequet)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1327,
+                "y": 123
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #16 (New Hennequet)",
+        "sections": [
+            {
+                "name": "Stunt Jump #16 (New Hennequet)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1263,
+                "y": 279
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #20 (New Hennequet)",
+        "sections": [
+            {
+                "name": "Stunt Jump #20 (New Hennequet)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1069,
+                "y": 101
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #13 (New Hennequet)",
+        "sections": [
+            {
+                "name": "Stunt Jump #13 (New Hennequet)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1092,
+                "y": 144
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #17 (New Hennequet)",
+        "sections": [
+            {
+                "name": "Stunt Jump #17 (New Hennequet)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1144,
+                "y": 306
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #14 (New Hennequet)",
+        "sections": [
+            {
+                "name": "Stunt Jump #14 (New Hennequet)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1001,
+                "y": 209
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #12 (New Hennequet)",
+        "sections": [
+            {
+                "name": "Stunt Jump #12 (New Hennequet)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1053,
+                "y": 231
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #26 (Elysian Fields)",
+        "sections": [
+            {
+                "name": "Stunt Jump #26 (Elysian Fields)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1249,
+                "y": 547
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #19 (Elysian Fields)",
+        "sections": [
+            {
+                "name": "Stunt Jump #19 (Elysian Fields)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1233,
+                "y": 607
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #11 (Misty Lane)",
+        "sections": [
+            {
+                "name": "Stunt Jump #11 (Misty Lane)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1219,
+                "y": 676
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #15 (New Hennequet)",
+        "sections": [
+            {
+                "name": "Stunt Jump #15 (New Hennequet)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1145,
+                "y": 191
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #65 (Filmore)",
+        "sections": [
+            {
+                "name": "Stunt Jump #65 (Filmore)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1760,
+                "y": 874
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #28 (Adept Way)",
+        "sections": [
+            {
+                "name": "Stunt Jump #28 (Adept Way)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2363,
+                "y": 1122
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #29 (Adept Way)",
+        "sections": [
+            {
+                "name": "Stunt Jump #29 (Adept Way)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2588,
+                "y": 913
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #30 (Amberbrook)",
+        "sections": [
+            {
+                "name": "Stunt Jump #30 (Amberbrook)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2728,
+                "y": 802
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #63 (Adept Way)",
+        "sections": [
+            {
+                "name": "Stunt Jump #63 (Adept Way)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2390,
+                "y": 910
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #24 (Centennial Beach)",
+        "sections": [
+            {
+                "name": "Stunt Jump #24 (Centennial Beach)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2476,
+                "y": 331
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #23 (Centennial Beach)",
+        "sections": [
+            {
+                "name": "Stunt Jump #23 (Centennial Beach)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2361,
+                "y": 330
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #22 (Stilwater Boardwalk)",
+        "sections": [
+            {
+                "name": "Stunt Jump #22 (Stilwater Boardwalk)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2201,
+                "y": 319
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #49 (Stilwater Boardwalk)",
+        "sections": [
+            {
+                "name": "Stunt Jump #49 (Stilwater Boardwalk)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2232,
+                "y": 390
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #50 (Stilwater Boardwalk)",
+        "sections": [
+            {
+                "name": "Stunt Jump #50 (Stilwater Boardwalk)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2268,
+                "y": 415
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #52 (Stilwater Boardwalk)",
+        "sections": [
+            {
+                "name": "Stunt Jump #52 (Stilwater Boardwalk)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2074,
+                "y": 329
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #53 (Stilwater Boardwalk)",
+        "sections": [
+            {
+                "name": "Stunt Jump #53 (Stilwater Boardwalk)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2107,
+                "y": 361
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #51 (Stilwater Boardwalk)",
+        "sections": [
+            {
+                "name": "Stunt Jump #51 (Stilwater Boardwalk)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2137,
+                "y": 303
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #64 (Harrowgate)",
+        "sections": [
+            {
+                "name": "Stunt Jump #64 (Harrowgate)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2086,
+                "y": 1887
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #59 (Mission Beach)",
+        "sections": [
+            {
+                "name": "Stunt Jump #59 (Mission Beach)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2309,
+                "y": 1939
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #58 (Mission Beach)",
+        "sections": [
+            {
+                "name": "Stunt Jump #58 (Mission Beach)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2353,
+                "y": 1943
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #60 (Athos Bay)",
+        "sections": [
+            {
+                "name": "Stunt Jump #60 (Athos Bay)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2445,
+                "y": 1929
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #61 (Athos Bay)",
+        "sections": [
+            {
+                "name": "Stunt Jump #61 (Athos Bay)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2491,
+                "y": 1921
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #62 (Athos Bay)",
+        "sections": [
+            {
+                "name": "Stunt Jump #62 (Athos Bay)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2473,
+                "y": 1911
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #69 (Black Bottom)",
+        "sections": [
+            {
+                "name": "Stunt Jump #69 (Black Bottom)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2670,
+                "y": 2312
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #56 (Pilsen)",
+        "sections": [
+            {
+                "name": "Stunt Jump #56 (Pilsen)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2334,
+                "y": 2152
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #48 (Fox Drive)",
+        "sections": [
+            {
+                "name": "Stunt Jump #48 (Fox Drive)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2677,
+                "y": 2437
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #47 (Fox Drive)",
+        "sections": [
+            {
+                "name": "Stunt Jump #47 (Fox Drive)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2718,
+                "y": 2503
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #68 (The Mills)",
+        "sections": [
+            {
+                "name": "Stunt Jump #68 (The Mills)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2110,
+                "y": 2492
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #79 (Charlestown)",
+        "sections": [
+            {
+                "name": "Stunt Jump #79 (Charlestown)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 2320,
+                "y": 2349
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #70 (Huntersfield)",
+        "sections": [
+            {
+                "name": "Stunt Jump #70 (Huntersfield)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1598,
+                "y": 2630
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #78 (Poseidon Alley)",
+        "sections": [
+            {
+                "name": "Stunt Jump #78 (Poseidon Alley)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1793,
+                "y": 2771
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #38 (Huntersfield)",
+        "sections": [
+            {
+                "name": "Stunt Jump #38 (Huntersfield)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1537,
+                "y": 2807
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #27 (Wardill Airport)",
+        "sections": [
+            {
+                "name": "Stunt Jump #27 (Wardill Airport)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1392,
+                "y": 3083
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #10 (Wardill Airport)",
+        "sections": [
+            {
+                "name": "Stunt Jump #10 (Wardill Airport)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1295,
+                "y": 3162
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #45 (Wardill Airport)",
+        "sections": [
+            {
+                "name": "Stunt Jump #45 (Wardill Airport)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1205,
+                "y": 3119
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #9 (Wardill Airport)",
+        "sections": [
+            {
+                "name": "Stunt Jump #9 (Wardill Airport)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1235,
+                "y": 3199
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #8 (Wardill Airport)",
+        "sections": [
+            {
+                "name": "Stunt Jump #8 (Wardill Airport)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1176,
+                "y": 3175
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #42 (Wardill Airport)",
+        "sections": [
+            {
+                "name": "Stunt Jump #42 (Wardill Airport)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1074,
+                "y": 3133
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #41 (Wardill Airport)",
+        "sections": [
+            {
+                "name": "Stunt Jump #41 (Wardill Airport)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1049,
+                "y": 3163
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #39 (Wardill Airport)",
+        "sections": [
+            {
+                "name": "Stunt Jump #39 (Wardill Airport)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1062,
+                "y": 3218
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #55 (Wardill Airport)",
+        "sections": [
+            {
+                "name": "Stunt Jump #55 (Wardill Airport)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1080,
+                "y": 3065
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #7 (Wardill Airport)",
+        "sections": [
+            {
+                "name": "Stunt Jump #7 (Wardill Airport)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 971,
+                "y": 3011
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #5 (Wardill Airport)",
+        "sections": [
+            {
+                "name": "Stunt Jump #5 (Wardill Airport)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1066,
+                "y": 2966
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #6 (Wardill Airport)",
+        "sections": [
+            {
+                "name": "Stunt Jump #6 (Wardill Airport)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 981,
+                "y": 2923
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #54 (Wardill Airport)",
+        "sections": [
+            {
+                "name": "Stunt Jump #54 (Wardill Airport)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 941,
+                "y": 2902
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #31 (Wardill Airport)",
+        "sections": [
+            {
+                "name": "Stunt Jump #31 (Wardill Airport)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 952,
+                "y": 2899
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #1 (Wardill Airport)",
+        "sections": [
+            {
+                "name": "Stunt Jump #1 (Wardill Airport)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1049,
+                "y": 2866
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #2 (Wardill Airport)",
+        "sections": [
+            {
+                "name": "Stunt Jump #2 (Wardill Airport)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1181,
+                "y": 2975
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #3 (Wardill Airport)",
+        "sections": [
+            {
+                "name": "Stunt Jump #3 (Wardill Airport)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1168,
+                "y": 2927
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #4 (Wardill Airport)",
+        "sections": [
+            {
+                "name": "Stunt Jump #4 (Wardill Airport)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1166,
+                "y": 2871
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #43 (Wardill Airport)",
+        "sections": [
+            {
+                "name": "Stunt Jump #43 (Wardill Airport)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1196,
+                "y": 3016
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #44 (Wardill Airport)",
+        "sections": [
+            {
+                "name": "Stunt Jump #44 (Wardill Airport)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1175,
+                "y": 3017
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #67 (Stilwater University)",
+        "sections": [
+            {
+                "name": "Stunt Jump #67 (Stilwater University)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 932,
+                "y": 2103
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #36 (Stilwater University)",
+        "sections": [
+            {
+                "name": "Stunt Jump #36 (Stilwater University)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 574,
+                "y": 1769
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #71 (Stilwater University)",
+        "sections": [
+            {
+                "name": "Stunt Jump #71 (Stilwater University)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 549,
+                "y": 1712
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #32 (Pleasant View)",
+        "sections": [
+            {
+                "name": "Stunt Jump #32 (Pleasant View)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 897,
+                "y": 1494
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #33 (Pleasant View)",
+        "sections": [
+            {
+                "name": "Stunt Jump #33 (Pleasant View)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 850,
+                "y": 1385
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #34 (Pleasant View)",
+        "sections": [
+            {
+                "name": "Stunt Jump #34 (Pleasant View)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 906,
+                "y": 1250
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #35 (Pleasant View)",
+        "sections": [
+            {
+                "name": "Stunt Jump #35 (Pleasant View)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 887,
+                "y": 1257
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #66 (Pleasant View)",
+        "sections": [
+            {
+                "name": "Stunt Jump #66 (Pleasant View)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 911,
+                "y": 1175
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #72 (Stilwater Penitentiary)",
+        "sections": [
+            {
+                "name": "Stunt Jump #72 (Stilwater Penitentiary)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 677,
+                "y": 837
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #73 (Stilwater Penitentiary)",
+        "sections": [
+            {
+                "name": "Stunt Jump #73 (Stilwater Penitentiary)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 665,
+                "y": 818
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #74 (Stilwater Nuclear)",
+        "sections": [
+            {
+                "name": "Stunt Jump #74 (Stilwater Nuclear)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 221,
+                "y": 2610
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #75 (Stilwater Nuclear)",
+        "sections": [
+            {
+                "name": "Stunt Jump #75 (Stilwater Nuclear)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 161,
+                "y": 2774
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #76 (Stilwater Nuclear)",
+        "sections": [
+            {
+                "name": "Stunt Jump #76 (Stilwater Nuclear)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 146,
+                "y": 2445
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #77 (Stilwater Nuclear)",
+        "sections": [
+            {
+                "name": "Stunt Jump #77 (Stilwater Nuclear)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 169,
+                "y": 2447
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #40 (Ultor Dome)",
+        "sections": [
+            {
+                "name": "Stunt Jump #40 (Ultor Dome)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1190,
+                "y": 1287
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #46 (Ultor Dome)",
+        "sections": [
+            {
+                "name": "Stunt Jump #46 (Ultor Dome)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1260,
+                "y": 1562
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #80 (Pleasant View)",
+        "sections": [
+            {
+                "name": "Stunt Jump #80 (Pleasant View)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 978,
+                "y": 1624
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #37 (Sunsinger)",
+        "sections": [
+            {
+                "name": "Stunt Jump #37 (Sunsinger)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1163,
+                "y": 1894
+            }
+        ]
+    },
+    {
+        "name": "Stunt Jump #57 (Encanto)",
+        "sections": [
+            {
+                "name": "Stunt Jump #57 (Encanto)"
+            }
+        ],
+        "map_locations": [
+            {
+                "map": "stilwater",
+                "x": 1774,
+                "y": 2201
+            }
+        ]
     }
 ]
