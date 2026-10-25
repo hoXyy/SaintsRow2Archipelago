@@ -60,6 +60,11 @@ pub struct IncomingMessage {
     pub style_level: bool,
     pub tags: bool,
     pub stunt_jumps: bool,
+    pub taxi: bool,
+    pub ambulance: bool,
+    pub fire_truck: bool,
+    pub tow_truck: bool,
+    pub hoing: bool,
 }
 
 #[derive(Deserialize)]
@@ -140,6 +145,16 @@ struct EnabledProgression {
     tags: bool,
     #[serde(default)]
     stunt_jumps: bool,
+    #[serde(default)]
+    taxi: bool,
+    #[serde(default)]
+    ambulance: bool,
+    #[serde(default)]
+    fire_truck: bool,
+    #[serde(default)]
+    tow_truck: bool,
+    #[serde(default)]
+    hoing: bool,
 }
 
 #[derive(Deserialize)]
@@ -302,6 +317,11 @@ pub fn parse_incoming(input: &[u8]) -> IncomingMessage {
                     style_level: session.enabled_progression.style_level,
                     tags: session.enabled_progression.tags,
                     stunt_jumps: session.enabled_progression.stunt_jumps,
+                    taxi: session.enabled_progression.taxi,
+                    ambulance: session.enabled_progression.ambulance,
+                    fire_truck: session.enabled_progression.fire_truck,
+                    tow_truck: session.enabled_progression.tow_truck,
+                    hoing: session.enabled_progression.hoing,
                     ..IncomingMessage::default()
                 }
             }
