@@ -325,6 +325,11 @@ def get_enabled_activity_list(world: SR2World) -> list[int]:
         ):
             enabled_activities.append(option)
 
+        if option == StartingActivity.option_stunt_jumps and bool(
+            world.options.include_stunt_jumps.value
+        ):
+            enabled_activities.append(option)
+
         if is_activity_enabled_in_options(world, activity):
             enabled_activities.append(option)
 

@@ -37,7 +37,7 @@ class RequiredGangArcs(OptionSet):
 
 class StartingActivity(Choice):
     """
-    Select which activity/collectible will be unlocked initially when you finish the mission Appointed Defender
+    Select which activity/collectible will be unlocked initially when you finish the mission Appointed Defender.
     """
 
     display_name = "Starting Activity/Collectible"
@@ -58,11 +58,12 @@ class StartingActivity(Choice):
     option_hitman = 13
     option_cd = 14
     option_tags = 15
-    option_car_races = 16
-    option_bike_races = 17
-    option_plane_races = 18
-    option_helicopter_races = 19
-    option_boat_races = 20
+    option_stunt_jumps = 16
+    option_car_races = 17
+    option_bike_races = 18
+    option_plane_races = 19
+    option_helicopter_races = 20
+    option_boat_races = 21
 
     random_sentinel = -1
 
@@ -444,6 +445,17 @@ class IncludeNotorietyTrapItems(Toggle):
     default = 1
 
 
+class IncludeStuntJumps(Toggle):
+    """
+    Whether to include all stunt jumps in the location list.
+    One stunt jump is omitted if the Ultor Arc is not enabled due to that jump being designed to be done at the end of Pyramid Scheme.
+    """
+
+    display_name = "Include Stunt Jumps"
+
+    default = 1
+
+
 @dataclass
 class SR2Options(PerGameCommonOptions):
     death_link: DeathLink
@@ -484,6 +496,7 @@ class SR2Options(PerGameCommonOptions):
     misc_filler_item_weight: MiscFillerItemWeight
     include_notoriety_trap_items: IncludeNotorietyTrapItems
     include_weather_trap_items: IncludeWeatherTrapItems
+    include_stunt_jumps: IncludeStuntJumps
 
 
 option_groups = [
@@ -514,6 +527,7 @@ option_groups = [
             IncludePlaneRaces,
             IncludeSewage,
             IncludeSnatch,
+            IncludeStuntJumps,
             IncludeTorch,
             IncludeTags,
         ],
@@ -564,4 +578,5 @@ ACTIVITY_STARTING_ACTIVITY_OPTION_MAPPING = {
     StartingActivity.option_plane_races: "Plane Races",
     StartingActivity.option_cd: "CD",
     StartingActivity.option_tags: "Tags",
+    StartingActivity.option_stunt_jumps: "Stunt Jumps",
 }

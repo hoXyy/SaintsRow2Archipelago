@@ -11,6 +11,9 @@ from ..activities import (
 from ..collectibles import (
     CD_IDS,
     CD_MAPPING,
+    MISSABLE_STUNT_JUMP_MAPPING,
+    STUNT_JUMP_IDS,
+    STUNT_JUMP_MAPPING,
     STYLE_LEVEL_IDS,
     STYLE_LEVEL_LOCATIONS,
     TAGS_IDS,
@@ -69,6 +72,10 @@ SINGLE_LOCATIONS: dict[str, dict[str, int]] = {
     "chop_shop": CHOP_SHOP_LOCATIONS,
     "cd": {key: CD_IDS[name] for key, name in CD_MAPPING.items()},
     "tags": {key: TAGS_IDS[name] for key, name in TAGS_MAPPING.items()},
+    "stunt_jumps": {
+        key: STUNT_JUMP_IDS[name]
+        for key, name in (STUNT_JUMP_MAPPING | MISSABLE_STUNT_JUMP_MAPPING).items()
+    },
 }
 
 

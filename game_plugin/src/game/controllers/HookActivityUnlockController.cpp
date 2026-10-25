@@ -34,6 +34,7 @@ enum class ActivityUnlockKind {
     Cd,
     Tags,
     Races,
+    StuntJumps,
 };
 
 struct ActivityUnlockDefinition {
@@ -78,6 +79,8 @@ constexpr std::array kActivityUnlocks{
     ActivityUnlockDefinition{"Boat Races Activity Unlock Pass",
                              ActivityUnlockKind::Races,
                              RaceClass::BoatAndJetSki},
+    ActivityUnlockDefinition{"Stunt Jumps Unlock Pass",
+                             ActivityUnlockKind::StuntJumps, std::nullopt},
 };
 
 constexpr std::array<std::uint8_t, 9> kExpectedHitman{
@@ -97,6 +100,13 @@ constexpr std::array<std::uint8_t, 10> kExpectedTag{
     0x51, 0x53, 0x56, 0x57, 0x8B, 0x3D, 0xB4, 0x3F, 0x7A, 0x02};
 constexpr std::array<std::uint8_t, 10> kExpectedRace{
     0x53, 0x8A, 0x5C, 0x24, 0x08, 0x55, 0x56, 0x57, 0x33, 0xFF};
+// Prologue through the instructions the gate hook replaces.
+constexpr std::array<std::uint8_t, 34> kExpectedStuntJumpArm{
+    0x55, 0x8B, 0xEC, 0x83, 0xE4, 0xF8, 0x83, 0xEC, 0x4C, 0x53, 0x56, 0x8B,
+    0x75, 0x08, 0x80, 0x7E, 0x14, 0x00, 0x57, 0x0F, 0x84, 0xF9, 0x01, 0x00,
+    0x00, 0x8B, 0x48, 0x44, 0x8B, 0x3D, 0xD4, 0x03, 0x17, 0x02};
+constexpr std::array<std::uint8_t, 9> kExpectedStuntJumpArmExit{
+    0x5F, 0x5E, 0x5B, 0x8B, 0xE5, 0x5D, 0xC2, 0x08, 0x00};
 
 enum HookIndex : std::size_t {
     kHitmanHook,
@@ -275,6 +285,7 @@ struct HookActivityUnlockController::Implementation {
                 }
                 break;
             case ActivityUnlockKind::Races:
+            case ActivityUnlockKind::StuntJumps:
                 break;
         }
         return true;
@@ -439,6 +450,31 @@ struct HookActivityUnlockController::Implementation {
             }
             hooks[index] = std::move(*hook);
         }
+        return !IsKindManaged(ActivityUnlockKind::StuntJumps) ||
+               CreateStuntJumpHook();
+    }
+
+    // Jumps are always enabled natively, so instead of toggling triggers
+    // the hook refuses to arm one until the unlock is received.
+    bool CreateStuntJumpHook() {
+        const auto function = gameBase + addresses::kUniqueJumpTryArmRva;
+        const auto exit = function + addresses::kUniqueJumpTryArmExitOffset;
+        if (!ValidateHookTarget(gameModule, function, kExpectedStuntJumpArm) ||
+            !ValidatePatchSite(gameModule, exit, kExpectedStuntJumpArmExit)) {
+            LogError("WorldUnlock", "stunt jump hook target mismatch");
+            return false;
+        }
+
+        auto hook = safetyhook::MidHook::create(
+            reinterpret_cast<void*>(function +
+                                    addresses::kUniqueJumpTryArmGateOffset),
+            &StuntJumpArmHook, safetyhook::MidHook::StartDisabled);
+        if (!hook) {
+            LogError("WorldUnlock", "Could not create stunt jump hook");
+            return false;
+        }
+        stuntJumpHook = std::move(*hook);
+        stuntJumpArmExit = exit;
         return true;
     }
 
@@ -452,12 +488,21 @@ struct HookActivityUnlockController::Implementation {
                 return false;
             }
         }
+        if (stuntJumpHook && !stuntJumpHook.enable()) {
+            LogError("WorldUnlock", "Could not enable stunt jump hook");
+            return false;
+        }
         return true;
     }
 
     bool DisableEnabledHooks() {
         const auto& definitions = HookDefinitions();
         bool success{true};
+        if (stuntJumpHook && stuntJumpHook.enabled() &&
+            !stuntJumpHook.disable()) {
+            LogError("WorldUnlock", "Could not disable stunt jump hook");
+            success = false;
+        }
         for (std::size_t index = kHookCount; index-- > 0;) {
             auto& hook = hooks[index];
             if (hook && hook.enabled() && !hook.disable()) {
@@ -471,11 +516,13 @@ struct HookActivityUnlockController::Implementation {
     }
 
     bool AnyHookEnabled() const noexcept {
-        return std::ranges::any_of(
-            hooks, [](const auto& hook) { return hook.enabled(); });
+        return stuntJumpHook.enabled() ||
+               std::ranges::any_of(
+                   hooks, [](const auto& hook) { return hook.enabled(); });
     }
 
     void ResetHookObjects() {
+        stuntJumpHook.reset();
         for (auto hook = hooks.rbegin(); hook != hooks.rend(); ++hook) {
             hook->reset();
         }
@@ -714,6 +761,14 @@ struct HookActivityUnlockController::Implementation {
         self->ApplyRaceVisibility();
     }
 
+    static void StuntJumpArmHook(safetyhook::Context& context) {
+        auto* const self = active.load(std::memory_order_acquire);
+        if (self && self->stuntJumpHook &&
+            !self->Permits(ActivityUnlockKind::StuntJumps)) {
+            context.eip = self->stuntJumpArmExit;
+        }
+    }
+
     // KindBit masks for every kind except Races.
     std::uint32_t managedKinds{};
     std::uint32_t ownedKinds{};
@@ -737,6 +792,8 @@ struct HookActivityUnlockController::Implementation {
     std::uintptr_t gameplayInstanceAddress{};
 
     std::array<safetyhook::InlineHook, kHookCount> hooks;
+    safetyhook::MidHook stuntJumpHook;
+    std::uintptr_t stuntJumpArmExit{};
 
     bool installed{};
     bool initialized{};

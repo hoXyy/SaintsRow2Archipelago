@@ -28,6 +28,7 @@ The current location checks are:
     - each medal for Races
 - CDs
 - Tags
+- Stunt Jumps
 - Style Level
     - one location for each level
 
@@ -139,7 +140,6 @@ Open an **x86 Native Tools Command Prompt for VS**. Navigate to the `game_plugin
 *Very much not an exhaustive list*
 
 - More checks:
-    - other collectibles like and stunt jumps
+    - other collectibles like barnstorming
     - buyable items in liquor stores and fast food places?
-- In-game AP indicators ([ImGui](https://github.com/ocornut/imgui)-based?)
 - Support for the PC DLC mod
