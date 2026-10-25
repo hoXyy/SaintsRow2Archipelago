@@ -249,13 +249,22 @@ class IncludeHitman(Toggle):
     default = 1
 
 
-class IncludeCDs(Toggle):
+class IncludeCDs(Choice):
     """
-    Whether to include all 50 CDs as individual location checks.
+    Whether to include CDs as location checks.
+
+    If set to individual locations, each of the 50 CDs is its own location.
+
+    Supported options are: off, individual, progressive
     """
 
     display_name = "Include CDs"
-    default = 1
+
+    option_off = 0
+    option_individual = 1
+    option_progressive = 2
+
+    default = option_individual
 
 
 class IncludeBoatRaces(Toggle):
@@ -364,13 +373,22 @@ class AllowProgressionItemsOnHighStyleLevel(Toggle):
     default = 0
 
 
-class IncludeTags(Toggle):
+class IncludeTags(Choice):
     """
-    Whether to include all 50 tags as individual location checks.
+    Whether to include tags as location checks.
+
+    If set to individual locations, each of the 50 tags is its own location.
+
+    Supported options are: off, individual, progressive
     """
 
     display_name = "Include Tags"
-    default = 1
+
+    option_off = 0
+    option_individual = 1
+    option_progressive = 2
+
+    default = option_individual
 
 
 class MoneyFillerItemWeight(Range):
@@ -445,15 +463,62 @@ class IncludeNotorietyTrapItems(Toggle):
     default = 1
 
 
-class IncludeStuntJumps(Toggle):
+class IncludeStuntJumps(Choice):
     """
-    Whether to include all stunt jumps in the location list.
+    Whether to include stunt jumps in the location list.
+
+    If set to individual locations, each stunt jump is its own location.
     One stunt jump is omitted if the Ultor Arc is not enabled due to that jump being designed to be done at the end of Pyramid Scheme.
+
+    Supported options are: off, individual, progressive
     """
 
     display_name = "Include Stunt Jumps"
 
-    default = 1
+    option_off = 0
+    option_individual = 1
+    option_progressive = 2
+
+    default = option_individual
+
+
+class ProgressiveCDsLocationCount(Range):
+    """
+    Amount of progressive CD locations to include in the location list.
+    """
+
+    display_name = "Progressive CDs Location Count"
+
+    range_start = 1
+    range_end = 50
+
+    default = 50
+
+
+class ProgressiveTagsLocationCount(Range):
+    """
+    Amount of progressive tags locations to include in the location list.
+    """
+
+    display_name = "Progressive Tags Location Count"
+
+    range_start = 1
+    range_end = 50
+
+    default = 50
+
+
+class ProgressiveStuntJumpsLocationCount(Range):
+    """
+    Amount of progressive stunt jump locations to include in the location list.
+    """
+
+    display_name = "Progressive Stunt Jumps Location Count"
+
+    range_start = 1
+    range_end = 79
+
+    default = 79
 
 
 @dataclass
@@ -497,6 +562,9 @@ class SR2Options(PerGameCommonOptions):
     include_notoriety_trap_items: IncludeNotorietyTrapItems
     include_weather_trap_items: IncludeWeatherTrapItems
     include_stunt_jumps: IncludeStuntJumps
+    progressive_cd_count: ProgressiveCDsLocationCount
+    progressive_tags_count: ProgressiveTagsLocationCount
+    progressive_jumps_count: ProgressiveStuntJumpsLocationCount
 
 
 option_groups = [
@@ -530,6 +598,14 @@ option_groups = [
             IncludeStuntJumps,
             IncludeTorch,
             IncludeTags,
+        ],
+    ),
+    OptionGroup(
+        "Progressive Location Count Options",
+        [
+            ProgressiveCDsLocationCount,
+            ProgressiveStuntJumpsLocationCount,
+            ProgressiveTagsLocationCount,
         ],
     ),
     OptionGroup(

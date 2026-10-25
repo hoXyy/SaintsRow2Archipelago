@@ -12,6 +12,9 @@ from worlds.generic.Rules import add_item_rule, forbid_items
 from .collectibles import (
     CD_MAPPING,
     MISSABLE_STUNT_JUMP_MAPPING,
+    PROGRESSIVE_CD_LOCATIONS,
+    PROGRESSIVE_STUNT_JUMP_LOCATIONS,
+    PROGRESSIVE_TAGS_LOCATIONS,
     STUNT_JUMP_MAPPING,
     STYLE_LEVEL_LOCATIONS,
     TAGS_MAPPING,
@@ -303,15 +306,18 @@ def set_completion_rules(world: SR2World) -> None:
 def set_collectible_rules(world: SR2World, access_rules: AccessRules) -> None:
     location_cache = world.multiworld.regions.location_cache[world.player]
 
-    for location in CD_MAPPING.values():
+    for location in [*CD_MAPPING.values(), *PROGRESSIVE_CD_LOCATIONS]:
         if location in location_cache:
             require(access_rules, location, Has(CD_UNLOCK_ITEM))
 
-    for location in TAGS_MAPPING.values():
+    for location in [*TAGS_MAPPING.values(), *PROGRESSIVE_TAGS_LOCATIONS]:
         if location in location_cache:
             require(access_rules, location, Has(TAGS_UNLOCK_ITEM))
 
-    for location in (STUNT_JUMP_MAPPING | MISSABLE_STUNT_JUMP_MAPPING).values():
+    for location in [
+        *(STUNT_JUMP_MAPPING | MISSABLE_STUNT_JUMP_MAPPING).values(),
+        *PROGRESSIVE_STUNT_JUMP_LOCATIONS,
+    ]:
         if location in location_cache:
             require(access_rules, location, Has(STUNT_JUMPS_UNLOCK_ITEM))
 

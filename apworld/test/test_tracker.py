@@ -2,7 +2,12 @@ import json
 import unittest
 from importlib.resources import files
 
-from ..collectibles import STYLE_LEVEL_LOCATIONS
+from ..collectibles import (
+    PROGRESSIVE_CD_LOCATIONS,
+    PROGRESSIVE_STUNT_JUMP_LOCATIONS,
+    PROGRESSIVE_TAGS_LOCATIONS,
+    STYLE_LEVEL_LOCATIONS,
+)
 from ..locations import LOCATION_NAME_TO_ID
 from ..missions import get_mission_by_key
 
@@ -10,7 +15,13 @@ from ..missions import get_mission_by_key
 TRACKER_DIR = files(__package__.rpartition(".")[0]).joinpath("tracker")
 
 # Locations without a place on the map.
-NOT_ON_MAP = {get_mission_by_key("tss01").name, *STYLE_LEVEL_LOCATIONS}
+NOT_ON_MAP = {
+    get_mission_by_key("tss01").name,
+    *STYLE_LEVEL_LOCATIONS,
+    *PROGRESSIVE_CD_LOCATIONS,
+    *PROGRESSIVE_STUNT_JUMP_LOCATIONS,
+    *PROGRESSIVE_TAGS_LOCATIONS,
+}
 
 
 def load(name: str):

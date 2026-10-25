@@ -208,3 +208,17 @@ STUNT_JUMP_IDS = {
         )
     }
 }
+
+
+PROGRESSIVE_TAGS_LOCATIONS = [f"{i} Tags Sprayed" for i in range(1, 51)]
+PROGRESSIVE_TAGS_IDS = {
+    **{name: 800 + i for i, name in enumerate(PROGRESSIVE_TAGS_LOCATIONS)}
+}
+PROGRESSIVE_CD_LOCATIONS = [f"{i} CDs Collected" for i in range(1, 51)]
+PROGRESSIVE_CD_IDS = {
+    **{name: 850 + i for i, name in enumerate(PROGRESSIVE_CD_LOCATIONS)}
+}
+PROGRESSIVE_STUNT_JUMP_LOCATIONS = [f"{i} Stunt Jumps Completed" for i in range(1, 80)]
+PROGRESSIVE_STUNT_JUMP_IDS = {
+    **{name: 900 + i for i, name in enumerate(PROGRESSIVE_STUNT_JUMP_LOCATIONS)}
+}

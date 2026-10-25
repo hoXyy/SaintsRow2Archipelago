@@ -1,6 +1,10 @@
 from BaseClasses import LocationProgressType
 
-from ..collectibles import MISSABLE_STUNT_JUMP_MAPPING, STUNT_JUMP_MAPPING
+from ..collectibles import (
+    MISSABLE_STUNT_JUMP_MAPPING,
+    PROGRESSIVE_STUNT_JUMP_LOCATIONS,
+    STUNT_JUMP_MAPPING,
+)
 from ..items import STUNT_JUMPS_UNLOCK_ITEM
 from ..missions import get_mission_by_key
 from ..options import RONIN_ARC_NAME, ULTOR_EPILOGUE_ARC_NAME
@@ -107,3 +111,40 @@ class TestStuntJumpsDisabled(SR2TestBase):
 
         self.collect_all_but(STUNT_JUMPS_UNLOCK_ITEM)
         self.assertTrue(pyramid_scheme.can_reach(self.multiworld.state))
+
+
+class TestStuntJumpsProgressive(SR2TestBase):
+    run_default_tests = False
+    options = {"include_stunt_jumps": 2, "progressive_jumps_count": 20}
+
+    def test_progressive_stunt_jumps_up_to_the_count_exist(self):
+        for jump in PROGRESSIVE_STUNT_JUMP_LOCATIONS[:20]:
+            with self.subTest(jump=jump):
+                try:
+                    self.world.get_location(jump)
+                except KeyError:
+                    self.fail(f"{jump} does not exist, even though it should!")
+
+    def test_progressive_stunt_jumps_past_the_count_dont_exist(self):
+        for jump in PROGRESSIVE_STUNT_JUMP_LOCATIONS[20:]:
+            self.assertRaises(KeyError, self.world.get_location, jump)
+
+    def test_individual_stunt_jumps_dont_exist(self):
+        for jump in (STUNT_JUMP_MAPPING | MISSABLE_STUNT_JUMP_MAPPING).values():
+            self.assertRaises(KeyError, self.world.get_location, jump)
+
+    def test_progressive_stunt_jumps_require_the_unlock_item(self):
+        state = self.get_fresh_state()
+        unlock_item = self.get_item_by_name(STUNT_JUMPS_UNLOCK_ITEM)
+
+        for jump in PROGRESSIVE_STUNT_JUMP_LOCATIONS[:20]:
+            with self.subTest(jump=jump):
+                location = self.world.get_location(jump)
+                self.assertFalse(location.can_reach(state))
+
+        state.collect(unlock_item, prevent_sweep=True)
+
+        for jump in PROGRESSIVE_STUNT_JUMP_LOCATIONS[:20]:
+            with self.subTest(jump=jump):
+                location = self.world.get_location(jump)
+                self.assertTrue(location.can_reach(state))

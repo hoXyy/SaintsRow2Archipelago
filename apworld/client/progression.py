@@ -12,6 +12,12 @@ from ..collectibles import (
     CD_IDS,
     CD_MAPPING,
     MISSABLE_STUNT_JUMP_MAPPING,
+    PROGRESSIVE_CD_IDS,
+    PROGRESSIVE_CD_LOCATIONS,
+    PROGRESSIVE_STUNT_JUMP_IDS,
+    PROGRESSIVE_STUNT_JUMP_LOCATIONS,
+    PROGRESSIVE_TAGS_IDS,
+    PROGRESSIVE_TAGS_LOCATIONS,
     STUNT_JUMP_IDS,
     STUNT_JUMP_MAPPING,
     STYLE_LEVEL_IDS,
@@ -77,6 +83,38 @@ SINGLE_LOCATIONS: dict[str, dict[str, int]] = {
         for key, name in (STUNT_JUMP_MAPPING | MISSABLE_STUNT_JUMP_MAPPING).items()
     },
 }
+
+# Categories whose count of collected keys also checks progressive locations.
+PROGRESSIVE_LOCATIONS: dict[str, list[int]] = {
+    "cd": [PROGRESSIVE_CD_IDS[name] for name in PROGRESSIVE_CD_LOCATIONS],
+    "tags": [PROGRESSIVE_TAGS_IDS[name] for name in PROGRESSIVE_TAGS_LOCATIONS],
+    "stunt_jumps": [
+        PROGRESSIVE_STUNT_JUMP_IDS[name] for name in PROGRESSIVE_STUNT_JUMP_LOCATIONS
+    ],
+}
+
+
+class CollectibleCounts:
+    """Distinct collectible keys reported during one AP session."""
+
+    def __init__(self) -> None:
+        self.collected: dict[str, set[str]] = {
+            category: set() for category in PROGRESSIVE_LOCATIONS
+        }
+
+    def clear(self) -> None:
+        for keys in self.collected.values():
+            keys.clear()
+
+    def locations_for_progress(
+        self, category: str | None, key: str | None, current: int
+    ) -> list[int]:
+        """Return the progressive location ids reached after this event."""
+        keys = self.collected.get(category) if category is not None else None
+        if keys is None or key is None or not current:
+            return []
+        keys.add(key)
+        return PROGRESSIVE_LOCATIONS[category][: len(keys)]
 
 
 def locations_for_progress(
