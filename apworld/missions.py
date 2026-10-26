@@ -381,13 +381,14 @@ ULTOR_EPILOGUE_CHAIN: MissionChain = {
 }
 
 ULTOR_SECRET_MISSION = Mission(
-    id=56, key="em01", name="Ultor Secret Mission: Revelation"
+    id=56, key="em01", name="Ultor Secret Mission: Revelation", required_respect=0
 )
 
 STILWATER_CAVERNS_STRONGHOLD = Mission(
     id=5,
     key="sh_tss_caverns",
     name="Saints Stronghold: Stilwater Caverns",
+    required_respect=0,
 )
 
 MISSION_CHAINS = [
