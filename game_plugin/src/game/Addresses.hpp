@@ -63,6 +63,28 @@ inline constexpr std::uint32_t kCollectedCdCapacity = 60;
 inline constexpr std::size_t kStuntJumpsCompletedOffset = 0x14C0;
 inline constexpr std::size_t kStuntJumpsTotalOffset = 0x14C4;
 
+// Job level completion. The "<job> - levels completed" tracked stats live in
+// profile.dat and are shared by every save, so they can't be used. The vehicle
+// jobs restart at level 1 every run; each site runs once per finished level,
+// after the run's level counter has been advanced.
+// Taxi: ECX holds the fares delivered this run.
+inline constexpr std::ptrdiff_t kTaxiLevelCompletedRva = 0x0022AFB2;
+// Paramedic: EAX holds the levels finished this run.
+inline constexpr std::ptrdiff_t kParamedicLevelCompletedRva = 0x001F4FAE;
+// Firefighter: EBP is the diversion; the dword at the offset holds the levels
+// finished this run.
+inline constexpr std::ptrdiff_t kFirefighterLevelCompletedRva = 0x0020D7C6;
+inline constexpr std::size_t kFirefighterLevelsOffset = 0x1C;
+// Towing: EBP is the diversion; the dword at the offset is the zero-based
+// level just finished.
+inline constexpr std::ptrdiff_t kTowingLevelCompletedRva = 0x0022F297;
+inline constexpr std::size_t kTowingLevelIndexOffset = 0x14;
+// Ho-ing: just after the manager's highest completed level is raised. It
+// lives only in memory: zero at launch, not saved and not reset on load.
+inline constexpr std::ptrdiff_t kHoingLevelCompletedRva = 0x0023A25C;
+inline constexpr std::size_t kHoingHighestLevelOffset = 0x18;
+inline constexpr std::uint32_t kJobLevelCount = 10;
+
 inline constexpr std::ptrdiff_t kUnlockableProcessorRva = 0x002BBEB0;
 inline constexpr std::ptrdiff_t kUnlockableEnqueueRva = 0x002BBD50;
 inline constexpr std::ptrdiff_t kUnlockableCountRva = 0x0105A29C;
@@ -128,6 +150,20 @@ inline constexpr std::ptrdiff_t kTagSetAllSpotsEnabledRva = 0x00226B00;
 inline constexpr std::ptrdiff_t kUniqueJumpTryArmRva = 0x0020B4B0;
 inline constexpr std::size_t kUniqueJumpTryArmGateOffset = 0x19;
 inline constexpr std::size_t kUniqueJumpTryArmExitOffset = 0x212;
+
+// Job diversions. The vehicle jobs have no story gate; each manager's start
+// check (vtable +0x14, thiscall, no arguments) returns true once the player
+// drives the matching vehicle, and the diversion dispatcher then starts it.
+inline constexpr std::ptrdiff_t kParamedicCheckStartRva = 0x001F18D0;
+inline constexpr std::ptrdiff_t kFirefighterCheckStartRva = 0x0020BED0;
+inline constexpr std::ptrdiff_t kTaxiCheckStartRva = 0x00228EA0;
+inline constexpr std::ptrdiff_t kTowingCheckStartRva = 0x0022E7C0;
+// Ho-ing starts from location triggers instead: the trigger callback (cdecl,
+// returns true to start) and the manager's story-gated trigger toggle
+// (vtable +0x4C, thiscall with one byte argument).
+inline constexpr std::ptrdiff_t kHoingStartTriggerRva = 0x0023A460;
+inline constexpr std::ptrdiff_t kHoingSetTriggersEnabledRva = 0x00238D60;
+inline constexpr std::ptrdiff_t kHoingManagerRva = 0x023A4B68;
 
 // Race visibility.
 inline constexpr std::ptrdiff_t kRaceToggleAllRva = 0x00280C80;

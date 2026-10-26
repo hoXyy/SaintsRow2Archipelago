@@ -52,6 +52,12 @@ PLANE_RACES_UNLOCK_ITEM = "Plane Races Activity Unlock Pass"
 HELICOPTER_RACES_UNLOCK_ITEM = "Helicopter Races Activity Unlock Pass"
 BOAT_RACES_UNLOCK_ITEM = "Boat Races Activity Unlock Pass"
 
+TAXI_DIVERSION_UNLOCK_ITEM = "Taxi Diversion Unlock Pass"
+PARAMEDIC_DIVERSION_UNLOCK_ITEM = "Paramedic Diversion Unlock Pass"
+FIREFIGHTER_DIVERSION_UNLOCK_ITEM = "Firefighter Diversion Unlock Pass"
+TOWING_DIVERSION_UNLOCK_ITEM = "Towing Diversion Unlock Pass"
+HOING_DIVERSION_UNLOCK_ITEM = "Ho-ing Diversion Unlock Pass"
+
 EM01_UNLOCK_ITEM = "Dex's Phone Number"
 TSS_SH_CAVERNS_UNLOCK_ITEM = "Stilwater Caverns Stronghold Unlock"
 
@@ -81,6 +87,11 @@ PERSISTENT_ACTIVITY_UNLOCK_ITEMS = [
     HELICOPTER_RACES_UNLOCK_ITEM,
     BOAT_RACES_UNLOCK_ITEM,
     STUNT_JUMPS_UNLOCK_ITEM,
+    TAXI_DIVERSION_UNLOCK_ITEM,
+    PARAMEDIC_DIVERSION_UNLOCK_ITEM,
+    FIREFIGHTER_DIVERSION_UNLOCK_ITEM,
+    TOWING_DIVERSION_UNLOCK_ITEM,
+    HOING_DIVERSION_UNLOCK_ITEM,
 ]
 
 ACTIVITY_UNLOCK_ITEMS_SETTINGS_MAPPING = {
@@ -106,6 +117,11 @@ ACTIVITY_UNLOCK_ITEMS_SETTINGS_MAPPING = {
     StartingActivity.option_boat_races: BOAT_RACES_UNLOCK_ITEM,
     StartingActivity.option_helicopter_races: HELICOPTER_RACES_UNLOCK_ITEM,
     StartingActivity.option_stunt_jumps: STUNT_JUMPS_UNLOCK_ITEM,
+    StartingActivity.option_taxi_diversion: TAXI_DIVERSION_UNLOCK_ITEM,
+    StartingActivity.option_firefighter_diversion: FIREFIGHTER_DIVERSION_UNLOCK_ITEM,
+    StartingActivity.option_towing_diversion: TOWING_DIVERSION_UNLOCK_ITEM,
+    StartingActivity.option_paramedic_diversion: PARAMEDIC_DIVERSION_UNLOCK_ITEM,
+    StartingActivity.option_hoing_diversion: HOING_DIVERSION_UNLOCK_ITEM,
 }
 
 ITEM_NAME_TO_ID = {

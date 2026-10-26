@@ -37,6 +37,18 @@ from .collectibles import (
     TAGS_IDS,
     TAGS_MAPPING,
 )
+from .diversions import (
+    FIREFIGHTER_DIVERSION_IDS,
+    FIREFIGHTER_DIVERSION_LOCATIONS,
+    HOING_DIVERSION_IDS,
+    HOING_DIVERSION_LOCATIONS,
+    PARAMEDIC_DIVERSION_IDS,
+    PARAMEDIC_DIVERSION_LOCATIONS,
+    TAXI_DIVERSION_IDS,
+    TAXI_DIVERSION_LOCATIONS,
+    TOWING_DIVERSION_IDS,
+    TOWING_DIVERSION_LOCATIONS,
+)
 from .items import SR2Item
 from .missions import (
     BROTHERHOOD_CHAIN,
@@ -83,6 +95,7 @@ def create_locations(world: SR2World) -> None:
     create_activities_location(world)
     create_collectible_locations(world)
     create_style_level_locations(world)
+    create_diversion_locations(world)
 
 
 def create_mission_locations(world: SR2World) -> None:
@@ -379,6 +392,80 @@ def create_style_level_locations(world: SR2World) -> None:
         region.locations.append(style_location)
 
 
+def create_diversion_locations(world: SR2World) -> None:
+    region = world.get_region("Stilwater")
+
+    if is_activity_enabled_in_options(world, "Taxi"):
+        for location in TAXI_DIVERSION_LOCATIONS[
+            : world.options.include_taxi_diversion_levels.value
+        ]:
+            region.locations.append(
+                SR2Location(
+                    world.player,
+                    location,
+                    TAXI_DIVERSION_IDS[location],
+                    region,
+                    respect_safe=True,
+                )
+            )
+
+    if is_activity_enabled_in_options(world, "Towing"):
+        for location in TOWING_DIVERSION_LOCATIONS[
+            : world.options.include_towing_diversion_levels.value
+        ]:
+            region.locations.append(
+                SR2Location(
+                    world.player,
+                    location,
+                    TOWING_DIVERSION_IDS[location],
+                    region,
+                    respect_safe=True,
+                )
+            )
+
+    if is_activity_enabled_in_options(world, "Firefighter"):
+        for location in FIREFIGHTER_DIVERSION_LOCATIONS[
+            : world.options.include_firefighter_diversion_levels.value
+        ]:
+            region.locations.append(
+                SR2Location(
+                    world.player,
+                    location,
+                    FIREFIGHTER_DIVERSION_IDS[location],
+                    region,
+                    respect_safe=True,
+                )
+            )
+
+    if is_activity_enabled_in_options(world, "Ho-ing"):
+        for location in HOING_DIVERSION_LOCATIONS[
+            : world.options.include_hoing_diversion_levels.value
+        ]:
+            region.locations.append(
+                SR2Location(
+                    world.player,
+                    location,
+                    HOING_DIVERSION_IDS[location],
+                    region,
+                    respect_safe=True,
+                )
+            )
+
+    if is_activity_enabled_in_options(world, "Paramedic"):
+        for location in PARAMEDIC_DIVERSION_LOCATIONS[
+            : world.options.include_paramedic_diversion_levels.value
+        ]:
+            region.locations.append(
+                SR2Location(
+                    world.player,
+                    location,
+                    PARAMEDIC_DIVERSION_IDS[location],
+                    region,
+                    respect_safe=True,
+                )
+            )
+
+
 def add_check_with_completion_event(
     world: SR2World, region: Region, mission: Mission
 ) -> None:
@@ -436,6 +523,11 @@ def generate_location_name_to_id() -> dict[str, int]:
         **PROGRESSIVE_TAGS_IDS,
         **PROGRESSIVE_CD_IDS,
         **PROGRESSIVE_STUNT_JUMP_IDS,
+        **PARAMEDIC_DIVERSION_IDS,
+        **TAXI_DIVERSION_IDS,
+        **TOWING_DIVERSION_IDS,
+        **HOING_DIVERSION_IDS,
+        **FIREFIGHTER_DIVERSION_IDS,
     }
 
 

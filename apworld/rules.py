@@ -31,16 +31,28 @@ from .activities import (
     MEDAL_STRINGS,
     RACES,
 )
+from .diversions import (
+    FIREFIGHTER_DIVERSION_LOCATIONS,
+    HOING_DIVERSION_LOCATIONS,
+    PARAMEDIC_DIVERSION_LOCATIONS,
+    TAXI_DIVERSION_LOCATIONS,
+    TOWING_DIVERSION_LOCATIONS,
+)
 from .items import (
     CD_UNLOCK_ITEM,
     CHOP_SHOP_UNLOCK_ITEM,
     EM01_UNLOCK_ITEM,
+    FIREFIGHTER_DIVERSION_UNLOCK_ITEM,
     HITMAN_UNLOCK_ITEM,
+    HOING_DIVERSION_UNLOCK_ITEM,
     LEVEL_ACTIVITY_UNLOCK_ITEMS,
+    PARAMEDIC_DIVERSION_UNLOCK_ITEM,
     PERSISTENT_ACTIVITY_UNLOCK_ITEMS,
     RESPECT_ITEM_NAME,
     STUNT_JUMPS_UNLOCK_ITEM,
     TAGS_UNLOCK_ITEM,
+    TAXI_DIVERSION_UNLOCK_ITEM,
+    TOWING_DIVERSION_UNLOCK_ITEM,
     TSS_SH_CAVERNS_UNLOCK_ITEM,
     get_race_unlock_item,
 )
@@ -104,6 +116,7 @@ def set_all_rules(world: SR2World) -> None:
     set_mission_rules(world, access_rules)
     set_activity_rules(world, access_rules)
     set_collectible_rules(world, access_rules)
+    set_diversion_rules(world, access_rules)
 
     for location_name, rule in access_rules.items():
         world.set_rule(world.get_location(location_name), rule)
@@ -324,6 +337,30 @@ def set_collectible_rules(world: SR2World, access_rules: AccessRules) -> None:
     if any(jump in location_cache for jump in MISSABLE_STUNT_JUMP_MAPPING.values()):
         pyramid_scheme = get_mission_by_key("ep02")
         require_for_mission(access_rules, pyramid_scheme, Has(STUNT_JUMPS_UNLOCK_ITEM))
+
+
+def set_diversion_rules(world: SR2World, access_rules: AccessRules) -> None:
+    location_cache = world.multiworld.regions.location_cache[world.player]
+
+    for location in TAXI_DIVERSION_LOCATIONS:
+        if location in location_cache:
+            require(access_rules, location, Has(TAXI_DIVERSION_UNLOCK_ITEM))
+
+    for location in TOWING_DIVERSION_LOCATIONS:
+        if location in location_cache:
+            require(access_rules, location, Has(TOWING_DIVERSION_UNLOCK_ITEM))
+
+    for location in PARAMEDIC_DIVERSION_LOCATIONS:
+        if location in location_cache:
+            require(access_rules, location, Has(PARAMEDIC_DIVERSION_UNLOCK_ITEM))
+
+    for location in HOING_DIVERSION_LOCATIONS:
+        if location in location_cache:
+            require(access_rules, location, Has(HOING_DIVERSION_UNLOCK_ITEM))
+
+    for location in FIREFIGHTER_DIVERSION_LOCATIONS:
+        if location in location_cache:
+            require(access_rules, location, Has(FIREFIGHTER_DIVERSION_UNLOCK_ITEM))
 
 
 def set_style_level_rules(world: SR2World):

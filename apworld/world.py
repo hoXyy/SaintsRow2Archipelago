@@ -221,6 +221,12 @@ class SR2World(World):
                 "tags": self.options.include_tags.value != 0,
                 "style_level": self.options.style_level_location_count.value > 0,
                 "stunt_jumps": self.options.include_stunt_jumps.value != 0,
+                "taxi": self.options.include_taxi_diversion_levels.value > 0,
+                "paramedic": self.options.include_paramedic_diversion_levels.value > 0,
+                "firefighter": self.options.include_firefighter_diversion_levels.value
+                > 0,
+                "towing": self.options.include_towing_diversion_levels.value > 0,
+                "hoing": self.options.include_hoing_diversion_levels.value > 0,
             },
             "options": self.options.as_dict(
                 *sr2_options.SR2Options.__annotations__.keys()

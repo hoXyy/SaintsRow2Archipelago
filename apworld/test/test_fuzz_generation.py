@@ -337,6 +337,17 @@ class TestGenerationFuzz(SR2TestBase):
             progression["stunt_jumps"],
             has_location(lambda n: n.startswith("Stunt Jump #")),
         )
+        for category, prefix in (
+            ("taxi", "Taxi Diversion - "),
+            ("paramedic", "Paramedic Diversion - "),
+            ("firefighter", "Firefighter Diversion - "),
+            ("towing", "Towing Diversion - "),
+            ("hoing", "Ho-ing Diversion - "),
+        ):
+            self.assertEqual(
+                progression[category],
+                has_location(lambda n, prefix=prefix: n.startswith(prefix)),
+            )
         self.assertEqual(
             progression["style_level"],
             has_location(lambda n: n.startswith("Style Level - ")),

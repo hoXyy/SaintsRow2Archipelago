@@ -25,6 +25,18 @@ from ..collectibles import (
     TAGS_IDS,
     TAGS_MAPPING,
 )
+from ..diversions import (
+    FIREFIGHTER_DIVERSION_IDS,
+    FIREFIGHTER_DIVERSION_LOCATIONS,
+    HOING_DIVERSION_IDS,
+    HOING_DIVERSION_LOCATIONS,
+    PARAMEDIC_DIVERSION_IDS,
+    PARAMEDIC_DIVERSION_LOCATIONS,
+    TAXI_DIVERSION_IDS,
+    TAXI_DIVERSION_LOCATIONS,
+    TOWING_DIVERSION_IDS,
+    TOWING_DIVERSION_LOCATIONS,
+)
 from ..missions import (
     MISSION_CHAINS,
     STILWATER_CAVERNS_STRONGHOLD,
@@ -93,6 +105,21 @@ PROGRESSIVE_LOCATIONS: dict[str, list[int]] = {
     ],
 }
 
+# Diversions report each level as it is finished (N - 1 to N), so level N is
+# checked when it is finished. The vehicle jobs restart at level 1 every run,
+# so earlier levels are reported again and ignored by the server.
+DIVERSION_LEVEL_LOCATIONS: dict[str, list[int]] = {
+    "taxi": [TAXI_DIVERSION_IDS[name] for name in TAXI_DIVERSION_LOCATIONS],
+    "paramedic": [
+        PARAMEDIC_DIVERSION_IDS[name] for name in PARAMEDIC_DIVERSION_LOCATIONS
+    ],
+    "firefighter": [
+        FIREFIGHTER_DIVERSION_IDS[name] for name in FIREFIGHTER_DIVERSION_LOCATIONS
+    ],
+    "towing": [TOWING_DIVERSION_IDS[name] for name in TOWING_DIVERSION_LOCATIONS],
+    "hoing": [HOING_DIVERSION_IDS[name] for name in HOING_DIVERSION_LOCATIONS],
+}
+
 
 class CollectibleCounts:
     """Distinct collectible keys reported during one AP session."""
@@ -133,6 +160,8 @@ def locations_for_progress(
         return _race_medals(key, current)
     if category == "style_level":
         return [STYLE_LEVEL_IDS[name] for name in STYLE_LEVEL_LOCATIONS[:current]]
+    if category in DIVERSION_LEVEL_LOCATIONS:
+        return DIVERSION_LEVEL_LOCATIONS[category][previous:current]
     return []
 
 

@@ -18,6 +18,7 @@
 namespace sr2ap {
 class ActivityListMonitor;
 class DeathMonitor;
+class JobLevelMonitor;
 class SaveRevisionMonitor;
 
 class SessionRuntime {
@@ -29,6 +30,7 @@ class SessionRuntime {
     bool InstallSaveMonitoring(SaveRevisionMonitor& monitor, bool enabled);
     bool InstallDeathMonitoring(DeathMonitor& monitor, bool enabled);
     bool InstallListMonitoring(ActivityListMonitor& monitor, bool enabled);
+    bool InstallJobMonitoring(JobLevelMonitor& monitor, bool enabled);
     void Connect(std::uint16_t port);
     void ProcessGameEvents();
     void PollNetwork(const GameContext& context);

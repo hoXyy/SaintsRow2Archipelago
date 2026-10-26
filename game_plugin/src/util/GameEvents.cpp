@@ -36,6 +36,15 @@ void GameEventQueue::PushListOpened(const ActivityList activityList,
         {GameEventKind::ListOpened, 0, 0, false, activityList, list});
 }
 
+void GameEventQueue::PushJobLevelCompleted(const Job job,
+                                           const std::uint32_t level) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    GameEvent event{GameEventKind::JobLevelCompleted};
+    event.job = job;
+    event.level = level;
+    events_.push_back(event);
+}
+
 std::vector<GameEvent> GameEventQueue::Drain() {
     std::vector<GameEvent> events;
     std::lock_guard<std::mutex> lock(mutex_);

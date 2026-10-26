@@ -65,6 +65,16 @@ def is_activity_enabled_in_options(world: SR2World, name: str) -> bool:
             return world.options.include_heli_races.value == 1
         case "Plane Races":
             return world.options.include_plane_races.value == 1
+        case "Taxi":
+            return world.options.include_taxi_diversion_levels.value > 0
+        case "Towing":
+            return world.options.include_towing_diversion_levels.value > 0
+        case "Firefighter":
+            return world.options.include_firefighter_diversion_levels.value > 0
+        case "Ho-ing":
+            return world.options.include_hoing_diversion_levels.value > 0
+        case "Paramedic":
+            return world.options.include_paramedic_diversion_levels.value > 0
         case _:
             return False
 

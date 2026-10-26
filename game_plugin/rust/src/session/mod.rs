@@ -386,6 +386,11 @@ impl SessionRuntime {
             "style_level" => session.style_level,
             "tags" => session.tags,
             "stunt_jumps" => session.stunt_jumps,
+            "taxi" => session.taxi,
+            "paramedic" => session.paramedic,
+            "firefighter" => session.firefighter,
+            "towing" => session.towing,
+            "hoing" => session.hoing,
             _ => false,
         };
 

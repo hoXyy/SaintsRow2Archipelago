@@ -35,6 +35,11 @@ enum class ActivityUnlockKind {
     Tags,
     Races,
     StuntJumps,
+    Taxi,
+    Paramedic,
+    Firefighter,
+    Towing,
+    Hoing,
 };
 
 struct ActivityUnlockDefinition {
@@ -81,6 +86,16 @@ constexpr std::array kActivityUnlocks{
                              RaceClass::BoatAndJetSki},
     ActivityUnlockDefinition{"Stunt Jumps Unlock Pass",
                              ActivityUnlockKind::StuntJumps, std::nullopt},
+    ActivityUnlockDefinition{"Taxi Diversion Unlock Pass",
+                             ActivityUnlockKind::Taxi, std::nullopt},
+    ActivityUnlockDefinition{"Paramedic Diversion Unlock Pass",
+                             ActivityUnlockKind::Paramedic, std::nullopt},
+    ActivityUnlockDefinition{"Firefighter Diversion Unlock Pass",
+                             ActivityUnlockKind::Firefighter, std::nullopt},
+    ActivityUnlockDefinition{"Towing Diversion Unlock Pass",
+                             ActivityUnlockKind::Towing, std::nullopt},
+    ActivityUnlockDefinition{"Ho-ing Diversion Unlock Pass",
+                             ActivityUnlockKind::Hoing, std::nullopt},
 };
 
 constexpr std::array<std::uint8_t, 9> kExpectedHitman{
@@ -107,6 +122,23 @@ constexpr std::array<std::uint8_t, 34> kExpectedStuntJumpArm{
     0x00, 0x8B, 0x48, 0x44, 0x8B, 0x3D, 0xD4, 0x03, 0x17, 0x02};
 constexpr std::array<std::uint8_t, 9> kExpectedStuntJumpArmExit{
     0x5F, 0x5E, 0x5B, 0x8B, 0xE5, 0x5D, 0xC2, 0x08, 0x00};
+// The paramedic and firefighter start checks share a prologue.
+constexpr std::array<std::uint8_t, 14> kExpectedParamedicStart{
+    0x53, 0x56, 0x8B, 0x35, 0xD4, 0x03, 0x17,
+    0x02, 0x8B, 0x86, 0x74, 0x0D, 0x00, 0x00};
+constexpr std::array<std::uint8_t, 14> kExpectedFirefighterStart{
+    0x53, 0x56, 0x8B, 0x35, 0xD4, 0x03, 0x17,
+    0x02, 0x8B, 0x86, 0x74, 0x0D, 0x00, 0x00};
+constexpr std::array<std::uint8_t, 8> kExpectedTaxiStart{
+    0x56, 0x8B, 0x35, 0xD4, 0x03, 0x17, 0x02, 0x57};
+constexpr std::array<std::uint8_t, 14> kExpectedTowingStart{
+    0x56, 0x57, 0x8B, 0x3D, 0xD4, 0x03, 0x17,
+    0x02, 0x8B, 0x87, 0x74, 0x0D, 0x00, 0x00};
+constexpr std::array<std::uint8_t, 13> kExpectedHoingStartTrigger{
+    0x8B, 0x4C, 0x24, 0x08, 0x85, 0xC9, 0x74,
+    0x41, 0xA1, 0xD4, 0x03, 0x17, 0x02};
+constexpr std::array<std::uint8_t, 12> kExpectedHoingSetTriggers{
+    0x55, 0x57, 0x8B, 0xF9, 0x33, 0xED, 0x39, 0xAF, 0xA4, 0x01, 0x00, 0x00};
 
 enum HookIndex : std::size_t {
     kHitmanHook,
@@ -117,6 +149,12 @@ enum HookIndex : std::size_t {
     kCdHook,
     kTagHook,
     kRaceHook,
+    kParamedicHook,
+    kFirefighterHook,
+    kTaxiHook,
+    kTowingHook,
+    kHoingStartTriggerHook,
+    kHoingSetTriggersHook,
     kHookCount,
 };
 
@@ -229,6 +267,9 @@ struct HookActivityUnlockController::Implementation {
         nativeRacesEnabled = storyUnlocked;
         nativeCdsEnabled = true;
         nativeTagsEnabled = true;
+        // The ho-ing loader enables its triggers regardless of the story;
+        // only missions turn them off.
+        nativeHoingTriggersEnabled = *freeroam;
 
         ClearOwnership();
         ApplyCurrentPolicy();
@@ -284,8 +325,18 @@ struct HookActivityUnlockController::Implementation {
                     hooks[kTagHook].ccall<void>(std::uint8_t{1});
                 }
                 break;
+            case ActivityUnlockKind::Hoing:
+                if (nativeHoingTriggersEnabled) {
+                    hooks[kHoingSetTriggersHook].thiscall<void>(
+                        hoingManager, std::uint8_t{1});
+                }
+                break;
             case ActivityUnlockKind::Races:
             case ActivityUnlockKind::StuntJumps:
+            case ActivityUnlockKind::Taxi:
+            case ActivityUnlockKind::Paramedic:
+            case ActivityUnlockKind::Firefighter:
+            case ActivityUnlockKind::Towing:
                 break;
         }
         return true;
@@ -354,6 +405,29 @@ struct HookActivityUnlockController::Implementation {
              reinterpret_cast<void*>(&TagHook)},
             {"race", ActivityUnlockKind::Races, addresses::kRaceToggleAllRva,
              kExpectedRace, reinterpret_cast<void*>(&RaceHook)},
+            {"paramedic start", ActivityUnlockKind::Paramedic,
+             addresses::kParamedicCheckStartRva, kExpectedParamedicStart,
+             reinterpret_cast<void*>(
+                 &JobStartHook<kParamedicHook, ActivityUnlockKind::Paramedic>)},
+            {"firefighter start", ActivityUnlockKind::Firefighter,
+             addresses::kFirefighterCheckStartRva, kExpectedFirefighterStart,
+             reinterpret_cast<void*>(
+                 &JobStartHook<kFirefighterHook,
+                               ActivityUnlockKind::Firefighter>)},
+            {"taxi start", ActivityUnlockKind::Taxi,
+             addresses::kTaxiCheckStartRva, kExpectedTaxiStart,
+             reinterpret_cast<void*>(
+                 &JobStartHook<kTaxiHook, ActivityUnlockKind::Taxi>)},
+            {"towing start", ActivityUnlockKind::Towing,
+             addresses::kTowingCheckStartRva, kExpectedTowingStart,
+             reinterpret_cast<void*>(
+                 &JobStartHook<kTowingHook, ActivityUnlockKind::Towing>)},
+            {"ho-ing start trigger", ActivityUnlockKind::Hoing,
+             addresses::kHoingStartTriggerRva, kExpectedHoingStartTrigger,
+             reinterpret_cast<void*>(&HoingStartTriggerHook)},
+            {"ho-ing triggers", ActivityUnlockKind::Hoing,
+             addresses::kHoingSetTriggersEnabledRva, kExpectedHoingSetTriggers,
+             reinterpret_cast<void*>(&HoingSetTriggersHook)},
         }};
         return definitions;
     }
@@ -403,6 +477,8 @@ struct HookActivityUnlockController::Implementation {
             reinterpret_cast<void*>(base + addresses::kHitmanManagerRva);
         chopShopManager =
             reinterpret_cast<void*>(base + addresses::kChopShopManagerRva);
+        hoingManager =
+            reinterpret_cast<void*>(base + addresses::kHoingManagerRva);
         triggerEnableAddress = base + addresses::kTriggerEnableRva;
         storyLockedAddress = base + addresses::kDiversionsAreStoryLockedRva;
         gameplayInstanceAddress = base + addresses::kCurrentGameplayInstanceRva;
@@ -583,6 +659,12 @@ struct HookActivityUnlockController::Implementation {
         if (IsKindManaged(ActivityUnlockKind::Races)) {
             ApplyRaceVisibility();
         }
+        if (IsKindManaged(ActivityUnlockKind::Hoing)) {
+            hooks[kHoingSetTriggersHook].thiscall<void>(
+                hoingManager,
+                static_cast<std::uint8_t>(nativeHoingTriggersEnabled &&
+                                          Permits(ActivityUnlockKind::Hoing)));
+        }
     }
 
     void ApplyCollectiblePolicy() {
@@ -761,6 +843,38 @@ struct HookActivityUnlockController::Implementation {
         self->ApplyRaceVisibility();
     }
 
+    // Vehicle jobs start whenever the player drives the matching vehicle, so
+    // the start check reports false until the unlock is received.
+    template <HookIndex Index, ActivityUnlockKind Kind>
+    static bool __fastcall JobStartHook(void* const manager, void*) {
+        auto* const self = ActiveFor(Index);
+        if (!self || !self->Permits(Kind)) {
+            return false;
+        }
+        return self->hooks[Index].thiscall<bool>(manager);
+    }
+
+    // Backstop for the hidden ho-ing triggers: the diversion's own exit path
+    // re-enables its trigger directly.
+    static bool __cdecl HoingStartTriggerHook(void* const trigger,
+                                              void* const human) {
+        auto* const self = ActiveFor(kHoingStartTriggerHook);
+        if (!self || !self->Permits(ActivityUnlockKind::Hoing)) {
+            return false;
+        }
+        return self->hooks[kHoingStartTriggerHook].ccall<bool>(trigger, human);
+    }
+
+    static void __fastcall HoingSetTriggersHook(void* const manager, void*,
+                                                const std::uint8_t requested) {
+        if (auto* const self = ActiveFor(kHoingSetTriggersHook)) {
+            self->hooks[kHoingSetTriggersHook].thiscall<void>(
+                manager,
+                self->Gate(ActivityUnlockKind::Hoing,
+                           self->nativeHoingTriggersEnabled, requested));
+        }
+    }
+
     static void StuntJumpArmHook(safetyhook::Context& context) {
         auto* const self = active.load(std::memory_order_acquire);
         if (self && self->stuntJumpHook &&
@@ -782,11 +896,13 @@ struct HookActivityUnlockController::Implementation {
     bool nativeCdsEnabled{true};
     bool nativeTagsEnabled{true};
     bool nativeRacesEnabled{};
+    bool nativeHoingTriggersEnabled{};
 
     std::uintptr_t gameBase{};
     ModuleInfo gameModule;
     void* hitmanManager{};
     void* chopShopManager{};
+    void* hoingManager{};
     std::uintptr_t triggerEnableAddress{};
     std::uintptr_t storyLockedAddress{};
     std::uintptr_t gameplayInstanceAddress{};

@@ -64,6 +64,11 @@ class StartingActivity(Choice):
     option_plane_races = 19
     option_helicopter_races = 20
     option_boat_races = 21
+    option_taxi_diversion = 22
+    option_paramedic_diversion = 23
+    option_firefighter_diversion = 24
+    option_towing_diversion = 25
+    option_hoing_diversion = 26
 
     random_sentinel = -1
 
@@ -521,6 +526,81 @@ class ProgressiveStuntJumpsLocationCount(Range):
     default = 79
 
 
+class IncludeTaxiDiversionLevels(Range):
+    """
+    Amount of levels of the taxi diversion to include.
+
+    Set to 0 to disable.
+    """
+
+    display_name = "Taxi Diversion Levels To Include"
+
+    range_start = 0
+    range_end = 10
+
+    default = 10
+
+
+class IncludeParamedicDiversionLevels(Range):
+    """
+    Amount of levels of the paramedic diversion to include.
+
+    Set to 0 to disable.
+    """
+
+    display_name = "Paramedic Diversion Levels To Include"
+
+    range_start = 0
+    range_end = 10
+
+    default = 10
+
+
+class IncludeTowingDiversionLevels(Range):
+    """
+    Amount of levels of the towing diversion to include.
+
+    Set to 0 to disable.
+    """
+
+    display_name = "Towing Diversion Levels To Include"
+
+    range_start = 0
+    range_end = 10
+
+    default = 10
+
+
+class IncludeHoingDiversionLevels(Range):
+    """
+    Amount of levels of the ho-ing diversion to include.
+
+    Set to 0 to disable.
+    """
+
+    display_name = "Ho-ing Diversion Levels To Include"
+
+    range_start = 0
+    range_end = 10
+
+    default = 10
+
+
+class IncludeFirefighterDiversionLevels(Range):
+    """
+    Amount of levels of the firefighter diversion to include.
+
+    Set to 0 to disable.
+    """
+
+    display_name = "Firefighter Diversion Levels To Include"
+
+    range_start = 0
+    range_end = 10
+
+    default = 10
+
+
 @dataclass
 class SR2Options(PerGameCommonOptions):
     death_link: DeathLink
@@ -565,6 +645,11 @@ class SR2Options(PerGameCommonOptions):
     progressive_cd_count: ProgressiveCDsLocationCount
     progressive_tags_count: ProgressiveTagsLocationCount
     progressive_jumps_count: ProgressiveStuntJumpsLocationCount
+    include_taxi_diversion_levels: IncludeTaxiDiversionLevels
+    include_paramedic_diversion_levels: IncludeParamedicDiversionLevels
+    include_towing_diversion_levels: IncludeTowingDiversionLevels
+    include_hoing_diversion_levels: IncludeHoingDiversionLevels
+    include_firefighter_diversion_levels: IncludeFirefighterDiversionLevels
 
 
 option_groups = [
@@ -598,6 +683,16 @@ option_groups = [
             IncludeStuntJumps,
             IncludeTorch,
             IncludeTags,
+        ],
+    ),
+    OptionGroup(
+        "Diversion Location Options",
+        [
+            IncludeFirefighterDiversionLevels,
+            IncludeTaxiDiversionLevels,
+            IncludeTowingDiversionLevels,
+            IncludeHoingDiversionLevels,
+            IncludeParamedicDiversionLevels,
         ],
     ),
     OptionGroup(
@@ -655,4 +750,9 @@ ACTIVITY_STARTING_ACTIVITY_OPTION_MAPPING = {
     StartingActivity.option_cd: "CD",
     StartingActivity.option_tags: "Tags",
     StartingActivity.option_stunt_jumps: "Stunt Jumps",
+    StartingActivity.option_taxi_diversion: "Taxi",
+    StartingActivity.option_towing_diversion: "Towing",
+    StartingActivity.option_firefighter_diversion: "Firefighter",
+    StartingActivity.option_hoing_diversion: "Ho-ing",
+    StartingActivity.option_paramedic_diversion: "Paramedic",
 }
