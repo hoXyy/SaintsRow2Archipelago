@@ -1,5 +1,6 @@
 from typing import Any, ClassVar
 
+from BaseClasses import Tutorial
 from Options import OptionError
 from worlds.AutoWorld import WebWorld, World
 
@@ -25,6 +26,16 @@ class SR2Web(WebWorld):
     option_groups = sr2_options.option_groups
     theme = "ocean"
     bug_report_page = "https://github.com/hoXyy/SaintsRow2Archipelago/issues"
+    tutorials = [
+        Tutorial(
+            "Setup Guide",
+            "A guide to set up the Saints Row 2 Archipelago",
+            "English",
+            "setup_en.md",
+            "setup/en",
+            ["hoxi"],
+        )
+    ]
 
 
 class SR2World(World):
