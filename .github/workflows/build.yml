@@ -4,6 +4,12 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  workflow_call:
+    inputs:
+      version:
+        description: Version to embed in the game plugin. Defaults to dev-<commit sha>.
+        type: string
+        default: ""
 
 jobs:
   build-plugin:
@@ -26,7 +32,7 @@ jobs:
         with:
           workspaces: game_plugin/rust -> ../build-ci/cargo-target
       - name: Build
-        run: cd game_plugin && make BUILD_DIR=build-ci PROJECT_VERSION=dev-${{ github.sha }}
+        run: cd game_plugin && make BUILD_DIR=build-ci PROJECT_VERSION=${{ inputs.version || format('dev-{0}', github.sha) }}
       - name: Download ASI loader
         run: |
           Invoke-WebRequest -Uri "https://github.com/ThirteenAG/Ultimate-ASI-Loader/releases/download/Win32-latest/dinput8-Win32.zip" -OutFile "dinput8.zip"
@@ -41,11 +47,14 @@ jobs:
           cp game_plugin/config/SR2Archipelago.toml.example output/scripts/SR2Archipelago.toml
           cp -r modded_game_files/sr2ap_core_files output/Mods/sr2ap_core_files
           cp -r modded_game_files/sr2ap_seed_files output/Mods/sr2ap_seed_files
+      - name: Create zip file
+        run: powershell Compress-Archive -Path output/* -DestinationPath SR2Archipelago.zip
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
           name: SR2Archipelago.zip
-          path: output
+          path: SR2Archipelago.zip
+          archive: false
 
   build-apworld:
     name: Build APWorld
