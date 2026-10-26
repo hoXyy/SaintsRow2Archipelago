@@ -144,7 +144,7 @@ ITEM_NAME_TO_ID = {
 }
 
 DEFAULT_ITEM_CLASSIFICATION = {
-    RESPECT_ITEM_NAME: ItemClassification.progression,
+    RESPECT_ITEM_NAME: ItemClassification.progression_skip_balancing,
     BONUS_RESPECT_ITEM_NAME: ItemClassification.useful,
     EM01_UNLOCK_ITEM: ItemClassification.progression,
     TSS_SH_CAVERNS_UNLOCK_ITEM: ItemClassification.progression,
