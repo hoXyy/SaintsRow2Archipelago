@@ -528,7 +528,9 @@ class ProgressiveStuntJumpsLocationCount(Range):
 
 class IncludeTaxiDiversionLevels(Range):
     """
-    Amount of levels of the taxi diversion to include. Set to 0 to disable.
+    Amount of levels of the taxi diversion to include.
+
+    Set to 0 to disable.
     """
 
     display_name = "Taxi Diversion Levels To Include"
@@ -541,7 +543,9 @@ class IncludeTaxiDiversionLevels(Range):
 
 class IncludeParamedicDiversionLevels(Range):
     """
-    Amount of levels of the paramedic diversion to include. Set to 0 to disable.
+    Amount of levels of the paramedic diversion to include.
+
+    Set to 0 to disable.
     """
 
     display_name = "Paramedic Diversion Levels To Include"
@@ -554,7 +558,9 @@ class IncludeParamedicDiversionLevels(Range):
 
 class IncludeTowingDiversionLevels(Range):
     """
-    Amount of levels of the towing diversion to include. Set to 0 to disable.
+    Amount of levels of the towing diversion to include.
+
+    Set to 0 to disable.
     """
 
     display_name = "Towing Diversion Levels To Include"
@@ -567,7 +573,9 @@ class IncludeTowingDiversionLevels(Range):
 
 class IncludeHoingDiversionLevels(Range):
     """
-    Amount of levels of the ho-ing diversion to include. Set to 0 to disable.
+    Amount of levels of the ho-ing diversion to include.
+
+    Set to 0 to disable.
     """
 
     display_name = "Ho-ing Diversion Levels To Include"
@@ -580,7 +588,9 @@ class IncludeHoingDiversionLevels(Range):
 
 class IncludeFirefighterDiversionLevels(Range):
     """
-    Amount of levels of the firefighter diversion to include. Set to 0 to disable.
+    Amount of levels of the firefighter diversion to include.
+
+    Set to 0 to disable.
     """
 
     display_name = "Firefighter Diversion Levels To Include"
