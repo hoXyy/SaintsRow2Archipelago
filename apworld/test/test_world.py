@@ -42,6 +42,42 @@ class TestSlotData(SR2TestBase):
             "style_level": True,
             "tags": True,
             "stunt_jumps": True,
+            "taxi": True,
+            "paramedic": True,
+            "firefighter": True,
+            "towing": True,
+            "hoing": True,
+        }
+
+        self.assertEqual(slot_enabled_progression, expected_enabled_progression)
+
+    def test_enabled_progression_no_diversions(self) -> None:
+        self.options = {
+            "include_taxi_diversion_levels": 0,
+            "include_paramedic_diversion_levels": 0,
+            "include_firefighter_diversion_levels": 0,
+            "include_towing_diversion_levels": 0,
+            "include_hoing_diversion_levels": 0,
+        }
+        self.world_setup()
+        slot_data = self.world.fill_slot_data()
+        slot_enabled_progression = slot_data["enabled_progression"]
+
+        expected_enabled_progression = {
+            "missions": True,
+            "activities": True,
+            "cds": True,
+            "chop_shop": True,
+            "hitman": True,
+            "races": True,
+            "style_level": True,
+            "tags": True,
+            "stunt_jumps": True,
+            "taxi": False,
+            "paramedic": False,
+            "firefighter": False,
+            "towing": False,
+            "hoing": False,
         }
 
         self.assertEqual(slot_enabled_progression, expected_enabled_progression)
@@ -62,6 +98,11 @@ class TestSlotData(SR2TestBase):
             "style_level": True,
             "tags": True,
             "stunt_jumps": True,
+            "taxi": True,
+            "paramedic": True,
+            "firefighter": True,
+            "towing": True,
+            "hoing": True,
         }
 
         self.assertEqual(slot_enabled_progression, expected_enabled_progression)
@@ -88,6 +129,11 @@ class TestSlotData(SR2TestBase):
             "style_level": True,
             "tags": True,
             "stunt_jumps": True,
+            "taxi": True,
+            "paramedic": True,
+            "firefighter": True,
+            "towing": True,
+            "hoing": True,
         }
 
         self.assertEqual(slot_enabled_progression, expected_enabled_progression)
@@ -108,6 +154,11 @@ class TestSlotData(SR2TestBase):
             "style_level": True,
             "tags": True,
             "stunt_jumps": True,
+            "taxi": True,
+            "paramedic": True,
+            "firefighter": True,
+            "towing": True,
+            "hoing": True,
         }
 
         self.assertEqual(slot_enabled_progression, expected_enabled_progression)
@@ -128,6 +179,11 @@ class TestSlotData(SR2TestBase):
             "style_level": True,
             "tags": True,
             "stunt_jumps": True,
+            "taxi": True,
+            "paramedic": True,
+            "firefighter": True,
+            "towing": True,
+            "hoing": True,
         }
 
         self.assertEqual(slot_enabled_progression, expected_enabled_progression)
@@ -162,6 +218,11 @@ class TestSlotData(SR2TestBase):
             "style_level": True,
             "tags": True,
             "stunt_jumps": True,
+            "taxi": True,
+            "paramedic": True,
+            "firefighter": True,
+            "towing": True,
+            "hoing": True,
         }
 
         self.assertEqual(slot_enabled_progression, expected_enabled_progression)
@@ -182,6 +243,11 @@ class TestSlotData(SR2TestBase):
             "style_level": False,
             "tags": True,
             "stunt_jumps": True,
+            "taxi": True,
+            "paramedic": True,
+            "firefighter": True,
+            "towing": True,
+            "hoing": True,
         }
 
         self.assertEqual(slot_enabled_progression, expected_enabled_progression)
@@ -202,6 +268,11 @@ class TestSlotData(SR2TestBase):
             "style_level": True,
             "tags": False,
             "stunt_jumps": True,
+            "taxi": True,
+            "paramedic": True,
+            "firefighter": True,
+            "towing": True,
+            "hoing": True,
         }
 
         self.assertEqual(slot_enabled_progression, expected_enabled_progression)
@@ -222,6 +293,11 @@ class TestSlotData(SR2TestBase):
             "style_level": True,
             "tags": True,
             "stunt_jumps": False,
+            "taxi": True,
+            "paramedic": True,
+            "firefighter": True,
+            "towing": True,
+            "hoing": True,
         }
 
         self.assertEqual(slot_enabled_progression, expected_enabled_progression)

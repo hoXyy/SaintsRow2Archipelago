@@ -28,6 +28,11 @@ STARTING_ACTIVITY_INCLUDE_OPTIONS = {
     StartingActivity.option_plane_races: "include_plane_races",
     StartingActivity.option_helicopter_races: "include_heli_races",
     StartingActivity.option_boat_races: "include_boat_races",
+    StartingActivity.option_taxi_diversion: "include_taxi_diversion_levels",
+    StartingActivity.option_paramedic_diversion: "include_paramedic_diversion_levels",
+    StartingActivity.option_firefighter_diversion: "include_firefighter_diversion_levels",
+    StartingActivity.option_towing_diversion: "include_towing_diversion_levels",
+    StartingActivity.option_hoing_diversion: "include_hoing_diversion_levels",
 }
 
 

@@ -23,6 +23,12 @@ from ..collectibles import (
     STYLE_LEVEL_LOCATIONS,
     TAGS_MAPPING,
 )
+from ..diversions import (
+    HOING_DIVERSION_IDS,
+    HOING_DIVERSION_LOCATIONS,
+    TAXI_DIVERSION_IDS,
+    TAXI_DIVERSION_LOCATIONS,
+)
 from ..missions import get_mission_by_key
 
 
@@ -89,6 +95,16 @@ class TestLocationsForProgress(unittest.TestCase):
         self.assertEqual(
             [STUNT_JUMP_IDS[name]], locations_for_progress("stunt_jumps", key, 0, 1)
         )
+
+    def test_diversion_reports_only_new_levels(self) -> None:
+        expected = [TAXI_DIVERSION_IDS[name] for name in TAXI_DIVERSION_LOCATIONS[3:5]]
+
+        self.assertEqual(expected, locations_for_progress("taxi", "levels", 3, 5))
+
+    def test_loaded_diversion_reports_every_completed_level(self) -> None:
+        expected = [HOING_DIVERSION_IDS[name] for name in HOING_DIVERSION_LOCATIONS]
+
+        self.assertEqual(expected, locations_for_progress("hoing", "levels", 0, 10))
 
     def test_hitman(self) -> None:
         key, location_id = next(iter(HITMAN_LOCATIONS.items()))
