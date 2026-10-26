@@ -4,7 +4,6 @@ from collections import Counter
 from typing import Any
 
 from BaseClasses import LocationProgressType
-from Fill import distribute_items_restrictive
 from Options import OptionError
 
 from ..items import (
@@ -156,7 +155,11 @@ def expected_option_error(options: dict[str, Any]) -> str | None:
 
 class TestGenerationFuzz(SR2TestBase):
     """Random options must either be rejected for a known reason or generate a
-    world that fills and can be beaten."""
+    world matching them.
+
+    Whether generated worlds fill and can be beaten is left to the
+    Archipelago fuzzer CI job, which also covers multiworlds and output.
+    """
 
     auto_construct = False
     run_default_tests = False
@@ -187,7 +190,6 @@ class TestGenerationFuzz(SR2TestBase):
         self.assert_item_pool(options)
         self.assert_style_levels(options)
         self.assert_slot_data()
-        self.assert_fills_and_is_beatable()
 
     def assert_respect_error_is_true(self, message: str) -> None:
         unfilled = self.multiworld.get_unfilled_locations(self.player)
@@ -361,22 +363,3 @@ class TestGenerationFuzz(SR2TestBase):
         self.assertLessEqual(set(slot_data["persistent_items"]), player_items)
         self.assertLessEqual(set(slot_data["managed_unlockables"]), player_items)
         self.assertLessEqual(set(slot_data["managed_cheats"]), player_items)
-
-    def assert_fills_and_is_beatable(self) -> None:
-        all_state = self.multiworld.get_all_state()
-        unreachable = [
-            location.name
-            for location in self.multiworld.get_locations(self.player)
-            if not location.can_reach(all_state)
-        ]
-        self.assertEqual([], unreachable)
-        self.assertTrue(self.multiworld.can_beat_game(all_state))
-
-        distribute_items_restrictive(self.multiworld)
-
-        self.assertEqual([], self.multiworld.get_unfilled_locations(self.player))
-        self.assertTrue(self.multiworld.fulfills_accessibility())
-        for location in self.multiworld.get_filled_locations(self.player):
-            item = location.item
-            if item.name == RESPECT_ITEM_NAME and item.player == self.player:
-                self.assertTrue(location.respect_safe, location.name)
