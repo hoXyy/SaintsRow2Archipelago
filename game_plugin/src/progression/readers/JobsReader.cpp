@@ -39,11 +39,11 @@ struct JobsSnapshot {
 };
 
 constexpr std::array kJobDefinitions{
-    JobDefinition{"ambulance", addresses::kAmbulanceLevelsStatId},
-    JobDefinition{"fire_truck", addresses::kFireTruckLevelsStatId},
+    JobDefinition{"paramedic", addresses::kParamedicLevelsStatId},
+    JobDefinition{"firefighter", addresses::kFirefighterLevelsStatId},
     JobDefinition{"hoing", addresses::kHoingLevelsStatId},
     JobDefinition{"taxi", addresses::kTaxiLevelsStatId},
-    JobDefinition{"tow_truck", addresses::kTowTruckLevelsStatId},
+    JobDefinition{"towing", addresses::kTowingLevelsStatId},
 };
 
 JobsSnapshot ReadSnapshot(const GameContext& context) {

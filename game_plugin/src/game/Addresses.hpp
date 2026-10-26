@@ -70,10 +70,10 @@ inline constexpr std::size_t kTrackedStatStride = 0x44;
 inline constexpr std::size_t kTrackedStatValueOffset = 0x34;
 // "<job> - levels completed": each job raises its stat to the number of
 // levels finished.
-inline constexpr std::uint32_t kAmbulanceLevelsStatId = 0x9D;
-inline constexpr std::uint32_t kFireTruckLevelsStatId = 0xA0;
+inline constexpr std::uint32_t kParamedicLevelsStatId = 0x9D;
+inline constexpr std::uint32_t kFirefighterLevelsStatId = 0xA0;
 inline constexpr std::uint32_t kTaxiLevelsStatId = 0xAF;
-inline constexpr std::uint32_t kTowTruckLevelsStatId = 0xB2;
+inline constexpr std::uint32_t kTowingLevelsStatId = 0xB2;
 inline constexpr std::uint32_t kHoingLevelsStatId = 0xC5;
 inline constexpr std::uint32_t kJobLevelCount = 10;
 
@@ -146,10 +146,10 @@ inline constexpr std::size_t kUniqueJumpTryArmExitOffset = 0x212;
 // Job diversions. The vehicle jobs have no story gate; each manager's start
 // check (vtable +0x14, thiscall, no arguments) returns true once the player
 // drives the matching vehicle, and the diversion dispatcher then starts it.
-inline constexpr std::ptrdiff_t kAmbulanceCheckStartRva = 0x001F18D0;
-inline constexpr std::ptrdiff_t kFireTruckCheckStartRva = 0x0020BED0;
+inline constexpr std::ptrdiff_t kParamedicCheckStartRva = 0x001F18D0;
+inline constexpr std::ptrdiff_t kFirefighterCheckStartRva = 0x0020BED0;
 inline constexpr std::ptrdiff_t kTaxiCheckStartRva = 0x00228EA0;
-inline constexpr std::ptrdiff_t kTowTruckCheckStartRva = 0x0022E7C0;
+inline constexpr std::ptrdiff_t kTowingCheckStartRva = 0x0022E7C0;
 // Ho-ing starts from location triggers instead: the trigger callback (cdecl,
 // returns true to start) and the manager's story-gated trigger toggle
 // (vtable +0x4C, thiscall with one byte argument).

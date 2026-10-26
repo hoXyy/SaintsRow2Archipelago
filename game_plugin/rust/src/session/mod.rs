@@ -387,9 +387,9 @@ impl SessionRuntime {
             "tags" => session.tags,
             "stunt_jumps" => session.stunt_jumps,
             "taxi" => session.taxi,
-            "ambulance" => session.ambulance,
-            "fire_truck" => session.fire_truck,
-            "tow_truck" => session.tow_truck,
+            "paramedic" => session.paramedic,
+            "firefighter" => session.firefighter,
+            "towing" => session.towing,
             "hoing" => session.hoing,
             _ => false,
         };

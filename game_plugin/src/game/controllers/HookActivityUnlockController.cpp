@@ -36,9 +36,9 @@ enum class ActivityUnlockKind {
     Races,
     StuntJumps,
     Taxi,
-    Ambulance,
-    FireTruck,
-    TowTruck,
+    Paramedic,
+    Firefighter,
+    Towing,
     Hoing,
 };
 
@@ -89,11 +89,11 @@ constexpr std::array kActivityUnlocks{
     ActivityUnlockDefinition{"Taxi Diversion Unlock Pass",
                              ActivityUnlockKind::Taxi, std::nullopt},
     ActivityUnlockDefinition{"Paramedic Diversion Unlock Pass",
-                             ActivityUnlockKind::Ambulance, std::nullopt},
-    ActivityUnlockDefinition{"Fire Truck Diversion Unlock Pass",
-                             ActivityUnlockKind::FireTruck, std::nullopt},
-    ActivityUnlockDefinition{"Tow Truck Diversion Unlock Pass",
-                             ActivityUnlockKind::TowTruck, std::nullopt},
+                             ActivityUnlockKind::Paramedic, std::nullopt},
+    ActivityUnlockDefinition{"Firefighter Diversion Unlock Pass",
+                             ActivityUnlockKind::Firefighter, std::nullopt},
+    ActivityUnlockDefinition{"Towing Diversion Unlock Pass",
+                             ActivityUnlockKind::Towing, std::nullopt},
     ActivityUnlockDefinition{"Ho-ing Diversion Unlock Pass",
                              ActivityUnlockKind::Hoing, std::nullopt},
 };
@@ -122,16 +122,16 @@ constexpr std::array<std::uint8_t, 34> kExpectedStuntJumpArm{
     0x00, 0x8B, 0x48, 0x44, 0x8B, 0x3D, 0xD4, 0x03, 0x17, 0x02};
 constexpr std::array<std::uint8_t, 9> kExpectedStuntJumpArmExit{
     0x5F, 0x5E, 0x5B, 0x8B, 0xE5, 0x5D, 0xC2, 0x08, 0x00};
-// The ambulance and fire truck start checks share a prologue.
-constexpr std::array<std::uint8_t, 14> kExpectedAmbulanceStart{
+// The paramedic and firefighter start checks share a prologue.
+constexpr std::array<std::uint8_t, 14> kExpectedParamedicStart{
     0x53, 0x56, 0x8B, 0x35, 0xD4, 0x03, 0x17,
     0x02, 0x8B, 0x86, 0x74, 0x0D, 0x00, 0x00};
-constexpr std::array<std::uint8_t, 14> kExpectedFireTruckStart{
+constexpr std::array<std::uint8_t, 14> kExpectedFirefighterStart{
     0x53, 0x56, 0x8B, 0x35, 0xD4, 0x03, 0x17,
     0x02, 0x8B, 0x86, 0x74, 0x0D, 0x00, 0x00};
 constexpr std::array<std::uint8_t, 8> kExpectedTaxiStart{
     0x56, 0x8B, 0x35, 0xD4, 0x03, 0x17, 0x02, 0x57};
-constexpr std::array<std::uint8_t, 14> kExpectedTowTruckStart{
+constexpr std::array<std::uint8_t, 14> kExpectedTowingStart{
     0x56, 0x57, 0x8B, 0x3D, 0xD4, 0x03, 0x17,
     0x02, 0x8B, 0x87, 0x74, 0x0D, 0x00, 0x00};
 constexpr std::array<std::uint8_t, 13> kExpectedHoingStartTrigger{
@@ -149,10 +149,10 @@ enum HookIndex : std::size_t {
     kCdHook,
     kTagHook,
     kRaceHook,
-    kAmbulanceHook,
-    kFireTruckHook,
+    kParamedicHook,
+    kFirefighterHook,
     kTaxiHook,
-    kTowTruckHook,
+    kTowingHook,
     kHoingStartTriggerHook,
     kHoingSetTriggersHook,
     kHookCount,
@@ -334,9 +334,9 @@ struct HookActivityUnlockController::Implementation {
             case ActivityUnlockKind::Races:
             case ActivityUnlockKind::StuntJumps:
             case ActivityUnlockKind::Taxi:
-            case ActivityUnlockKind::Ambulance:
-            case ActivityUnlockKind::FireTruck:
-            case ActivityUnlockKind::TowTruck:
+            case ActivityUnlockKind::Paramedic:
+            case ActivityUnlockKind::Firefighter:
+            case ActivityUnlockKind::Towing:
                 break;
         }
         return true;
@@ -405,22 +405,23 @@ struct HookActivityUnlockController::Implementation {
              reinterpret_cast<void*>(&TagHook)},
             {"race", ActivityUnlockKind::Races, addresses::kRaceToggleAllRva,
              kExpectedRace, reinterpret_cast<void*>(&RaceHook)},
-            {"ambulance start", ActivityUnlockKind::Ambulance,
-             addresses::kAmbulanceCheckStartRva, kExpectedAmbulanceStart,
+            {"paramedic start", ActivityUnlockKind::Paramedic,
+             addresses::kParamedicCheckStartRva, kExpectedParamedicStart,
              reinterpret_cast<void*>(
-                 &JobStartHook<kAmbulanceHook, ActivityUnlockKind::Ambulance>)},
-            {"fire truck start", ActivityUnlockKind::FireTruck,
-             addresses::kFireTruckCheckStartRva, kExpectedFireTruckStart,
+                 &JobStartHook<kParamedicHook, ActivityUnlockKind::Paramedic>)},
+            {"firefighter start", ActivityUnlockKind::Firefighter,
+             addresses::kFirefighterCheckStartRva, kExpectedFirefighterStart,
              reinterpret_cast<void*>(
-                 &JobStartHook<kFireTruckHook, ActivityUnlockKind::FireTruck>)},
+                 &JobStartHook<kFirefighterHook,
+                               ActivityUnlockKind::Firefighter>)},
             {"taxi start", ActivityUnlockKind::Taxi,
              addresses::kTaxiCheckStartRva, kExpectedTaxiStart,
              reinterpret_cast<void*>(
                  &JobStartHook<kTaxiHook, ActivityUnlockKind::Taxi>)},
-            {"tow truck start", ActivityUnlockKind::TowTruck,
-             addresses::kTowTruckCheckStartRva, kExpectedTowTruckStart,
+            {"towing start", ActivityUnlockKind::Towing,
+             addresses::kTowingCheckStartRva, kExpectedTowingStart,
              reinterpret_cast<void*>(
-                 &JobStartHook<kTowTruckHook, ActivityUnlockKind::TowTruck>)},
+                 &JobStartHook<kTowingHook, ActivityUnlockKind::Towing>)},
             {"ho-ing start trigger", ActivityUnlockKind::Hoing,
              addresses::kHoingStartTriggerRva, kExpectedHoingStartTrigger,
              reinterpret_cast<void*>(&HoingStartTriggerHook)},
