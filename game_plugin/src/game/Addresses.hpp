@@ -63,18 +63,26 @@ inline constexpr std::uint32_t kCollectedCdCapacity = 60;
 inline constexpr std::size_t kStuntJumpsCompletedOffset = 0x14C0;
 inline constexpr std::size_t kStuntJumpsTotalOffset = 0x14C4;
 
-// Save-backed tracked stats, indexed by stat id.
-inline constexpr std::ptrdiff_t kTrackedStatTableRva = 0x01052BE0;
-inline constexpr std::ptrdiff_t kTrackedStatCountRva = 0x02127CE8;
-inline constexpr std::size_t kTrackedStatStride = 0x44;
-inline constexpr std::size_t kTrackedStatValueOffset = 0x34;
-// "<job> - levels completed": each job raises its stat to the number of
-// levels finished.
-inline constexpr std::uint32_t kParamedicLevelsStatId = 0x9D;
-inline constexpr std::uint32_t kFirefighterLevelsStatId = 0xA0;
-inline constexpr std::uint32_t kTaxiLevelsStatId = 0xAF;
-inline constexpr std::uint32_t kTowingLevelsStatId = 0xB2;
-inline constexpr std::uint32_t kHoingLevelsStatId = 0xC5;
+// Job level completion. The "<job> - levels completed" tracked stats live in
+// profile.dat and are shared by every save, so they can't be used. The vehicle
+// jobs restart at level 1 every run; each site runs once per finished level,
+// after the run's level counter has been advanced.
+// Taxi: ECX holds the fares delivered this run.
+inline constexpr std::ptrdiff_t kTaxiLevelCompletedRva = 0x0022AFB2;
+// Paramedic: EAX holds the levels finished this run.
+inline constexpr std::ptrdiff_t kParamedicLevelCompletedRva = 0x001F4FAE;
+// Firefighter: EBP is the diversion; the dword at the offset holds the levels
+// finished this run.
+inline constexpr std::ptrdiff_t kFirefighterLevelCompletedRva = 0x0020D7C6;
+inline constexpr std::size_t kFirefighterLevelsOffset = 0x1C;
+// Towing: EBP is the diversion; the dword at the offset is the zero-based
+// level just finished.
+inline constexpr std::ptrdiff_t kTowingLevelCompletedRva = 0x0022F297;
+inline constexpr std::size_t kTowingLevelIndexOffset = 0x14;
+// Ho-ing: just after the manager's highest completed level is raised. It
+// lives only in memory: zero at launch, not saved and not reset on load.
+inline constexpr std::ptrdiff_t kHoingLevelCompletedRva = 0x0023A25C;
+inline constexpr std::size_t kHoingHighestLevelOffset = 0x18;
 inline constexpr std::uint32_t kJobLevelCount = 10;
 
 inline constexpr std::ptrdiff_t kUnlockableProcessorRva = 0x002BBEB0;

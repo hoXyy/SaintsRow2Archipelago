@@ -105,8 +105,9 @@ PROGRESSIVE_LOCATIONS: dict[str, list[int]] = {
     ],
 }
 
-# Diversions report their completed level count, so level N is checked once
-# the count reaches N.
+# Diversions report each level as it is finished (N - 1 to N), so level N is
+# checked when it is finished. The vehicle jobs restart at level 1 every run,
+# so earlier levels are reported again and ignored by the server.
 DIVERSION_LEVEL_LOCATIONS: dict[str, list[int]] = {
     "taxi": [TAXI_DIVERSION_IDS[name] for name in TAXI_DIVERSION_LOCATIONS],
     "paramedic": [

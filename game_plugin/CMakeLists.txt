@@ -197,6 +197,7 @@ if (WIN32)
             src/game/SaveRevisionMonitor.cpp
             src/game/DeathMonitor.cpp
             src/game/ActivityListMonitor.cpp
+            src/game/JobLevelMonitor.cpp
             src/game/DeathLinkActions.cpp
             src/game/Lua.hpp
             src/game/Lua.cpp

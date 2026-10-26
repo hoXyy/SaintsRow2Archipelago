@@ -13,12 +13,21 @@ enum class GameEventKind {
     SaveWritten,
     RequestCompleted,
     PlayerDied,
-    ListOpened
+    ListOpened,
+    JobLevelCompleted
 };
 
 enum class ActivityList {
     Hitman,
     ChopShop
+};
+
+enum class Job {
+    Paramedic,
+    Firefighter,
+    Taxi,
+    Towing,
+    Hoing
 };
 
 struct GameEvent {
@@ -29,6 +38,9 @@ struct GameEvent {
     ActivityList activityList{};
     // One-based list number.
     std::uint32_t list{};
+    Job job{};
+    // One-based level number.
+    std::uint32_t level{};
 };
 
 class GameEventQueue {
@@ -43,6 +55,7 @@ class GameEventQueue {
     void PushRequestCompleted(std::uint64_t requestId, bool applied);
     void PushPlayerDied();
     void PushListOpened(ActivityList activityList, std::uint32_t list);
+    void PushJobLevelCompleted(Job job, std::uint32_t level);
 
     // Plugin thread.
     [[nodiscard]] std::vector<GameEvent> Drain();

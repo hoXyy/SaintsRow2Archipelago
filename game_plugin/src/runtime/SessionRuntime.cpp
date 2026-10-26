@@ -9,6 +9,7 @@
 #include "game/ActivityListMonitor.hpp"
 #include "game/DeathMonitor.hpp"
 #include "game/GameState.hpp"
+#include "game/JobLevelMonitor.hpp"
 #include "game/SaveRevisionMonitor.hpp"
 #include "rust/cxx.h"
 #include "util/Logger.hpp"
@@ -31,6 +32,22 @@ std::string_view CategoryName(const ActivityList activityList) {
             return "hitman";
         case ActivityList::ChopShop:
             return "chop_shop";
+    }
+    return {};
+}
+
+std::string_view CategoryName(const Job job) {
+    switch (job) {
+        case Job::Paramedic:
+            return "paramedic";
+        case Job::Firefighter:
+            return "firefighter";
+        case Job::Taxi:
+            return "taxi";
+        case Job::Towing:
+            return "towing";
+        case Job::Hoing:
+            return "hoing";
     }
     return {};
 }
@@ -120,6 +137,14 @@ bool SessionRuntime::InstallListMonitoring(ActivityListMonitor& monitor,
            });
 }
 
+bool SessionRuntime::InstallJobMonitoring(JobLevelMonitor& monitor,
+                                          bool enabled) {
+    return enabled && gameSupported_ &&
+           monitor.Install([events = events_](Job job, std::uint32_t level) {
+               events->PushJobLevelCompleted(job, level);
+           });
+}
+
 void SessionRuntime::Connect(std::uint16_t port) {
     rust::session_connect(*session_, port);
 }
@@ -151,6 +176,15 @@ void SessionRuntime::ProcessGameEvents() {
                         event.list);
                     break;
                 }
+                case GameEventKind::JobLevelCompleted:
+                    // Only the finished level, never the levels before it:
+                    // those were reported when they were finished.
+                    SendProgression(
+                        {.category = std::string{CategoryName(event.job)},
+                         .key = "levels",
+                         .previous = event.level - 1,
+                         .current = event.level});
+                    break;
             }
         } catch (const ::rust::Error& error) {
             LogError("Session", std::string{"Could not process game event: "} +

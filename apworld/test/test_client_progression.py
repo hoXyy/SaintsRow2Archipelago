@@ -96,15 +96,15 @@ class TestLocationsForProgress(unittest.TestCase):
             [STUNT_JUMP_IDS[name]], locations_for_progress("stunt_jumps", key, 0, 1)
         )
 
-    def test_diversion_reports_only_new_levels(self) -> None:
-        expected = [TAXI_DIVERSION_IDS[name] for name in TAXI_DIVERSION_LOCATIONS[3:5]]
+    def test_finished_diversion_level_reports_only_that_level(self) -> None:
+        expected = [TAXI_DIVERSION_IDS[TAXI_DIVERSION_LOCATIONS[4]]]
 
-        self.assertEqual(expected, locations_for_progress("taxi", "levels", 3, 5))
+        self.assertEqual(expected, locations_for_progress("taxi", "levels", 4, 5))
 
-    def test_loaded_diversion_reports_every_completed_level(self) -> None:
-        expected = [HOING_DIVERSION_IDS[name] for name in HOING_DIVERSION_LOCATIONS]
+    def test_last_diversion_level(self) -> None:
+        expected = [HOING_DIVERSION_IDS[HOING_DIVERSION_LOCATIONS[9]]]
 
-        self.assertEqual(expected, locations_for_progress("hoing", "levels", 0, 10))
+        self.assertEqual(expected, locations_for_progress("hoing", "levels", 9, 10))
 
     def test_hitman(self) -> None:
         key, location_id = next(iter(HITMAN_LOCATIONS.items()))

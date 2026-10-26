@@ -9,6 +9,7 @@
 #include "game/GameState.hpp"
 #include "game/GameThreadDispatcher.hpp"
 #include "game/HudNotifications.hpp"
+#include "game/JobLevelMonitor.hpp"
 #include "game/MapReveal.hpp"
 #include "game/MenuVersionOverlay.hpp"
 #include "game/ModuleInfo.hpp"
@@ -143,6 +144,14 @@ DWORD WINAPI PluginThread(void* parameter) {
             LogWarning("Lists", "List monitoring unavailable; no list hints");
         }
 
+        JobLevelMonitor jobMonitor;
+        if (session.InstallJobMonitoring(jobMonitor, config.enabled)) {
+            LogInfo("Jobs", "Job level monitoring installed");
+        } else if (config.enabled && gameSupported) {
+            LogWarning("Jobs",
+                       "Job level monitoring unavailable; no job checks");
+        }
+
         if (config.enabled) {
             if (config.debugLogging) {
                 LogDebug("Progression",
@@ -179,6 +188,7 @@ DWORD WINAPI PluginThread(void* parameter) {
             }
             deathMonitor.Poll(gameContext);
             listMonitor.Poll();
+            jobMonitor.Poll();
             session.ProcessGameEvents();
 
             session.UpdateReadiness(gameContext.readiness);
@@ -233,6 +243,7 @@ DWORD WINAPI PluginThread(void* parameter) {
 
         LogInfo("Plugin", "SR2Archipelago shutting down");
         session.Shutdown();
+        jobMonitor.Remove();
         listMonitor.Remove();
         deathMonitor.Remove();
         saveRevisions.Remove();

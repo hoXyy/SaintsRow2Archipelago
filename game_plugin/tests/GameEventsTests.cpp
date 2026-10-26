@@ -49,6 +49,20 @@ TEST(GameEventsTest, ListOpenedCarriesListAndKeepsOrder) {
     EXPECT_EQ(events[2].list, 5U);
 }
 
+TEST(GameEventsTest, JobLevelCompletedCarriesJobAndLevel) {
+    GameEventQueue queue;
+    queue.PushJobLevelCompleted(Job::Taxi, 4);
+    queue.PushJobLevelCompleted(Job::Hoing, 1);
+
+    const auto events = queue.Drain();
+    ASSERT_EQ(events.size(), 2U);
+    EXPECT_EQ(events[0].kind, GameEventKind::JobLevelCompleted);
+    EXPECT_EQ(events[0].job, Job::Taxi);
+    EXPECT_EQ(events[0].level, 4U);
+    EXPECT_EQ(events[1].job, Job::Hoing);
+    EXPECT_EQ(events[1].level, 1U);
+}
+
 TEST(GameEventsTest, DroppedCompletionReportsNotApplied) {
     auto queue = std::make_shared<GameEventQueue>();
     {
