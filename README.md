@@ -26,6 +26,12 @@ The current location checks are:
     - each level for level based ones
     - each vehicle/target for Chop Shop/Hitman
     - each medal for Races
+- Diversions (each level for each one)
+    - Taxi Driver
+    - Ambulance EMT
+    - Tow Truck
+    - Ho-ing
+    - Fire Truck
 - CDs
 - Tags
 - Stunt Jumps
