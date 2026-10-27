@@ -20,6 +20,7 @@ from ..items import (
     ACTIVITY_UNLOCK_ITEMS_SETTINGS_MAPPING,
     CHOP_SHOP_UNLOCK_ITEM,
     HITMAN_UNLOCK_ITEM,
+    HOING_DIVERSION_UNLOCK_ITEM,
     TAGS_UNLOCK_ITEM,
     get_race_unlock_item,
 )
@@ -405,6 +406,47 @@ class TestHitmanBradWithoutTags(SR2TestBase):
 
     def test_brad_only_needs_hitman_when_tags_are_disabled(self) -> None:
         location = self.world.get_location(BRAD)
+        state = self.get_fresh_state()
+        state.collect(
+            self.get_item_by_name(
+                get_mission_complete_item_name(get_mission_by_key("tss02"))
+            ),
+            prevent_sweep=True,
+        )
+        state.collect(self.get_item_by_name(HITMAN_UNLOCK_ITEM), prevent_sweep=True)
+
+        self.assertTrue(location.access_rule(state))
+
+
+JAMES = "Hitman (Barrio) - James"
+
+
+class TestHitmanJamesNeedsHoing(SR2TestBase):
+    run_default_tests = False
+
+    def test_james_needs_the_tags_pass(self) -> None:
+        location = self.world.get_location(JAMES)
+        state = self.get_fresh_state()
+        state.collect(
+            self.get_item_by_name(
+                get_mission_complete_item_name(get_mission_by_key("tss02"))
+            ),
+            prevent_sweep=True,
+        )
+        state.collect(self.get_item_by_name(HITMAN_UNLOCK_ITEM), prevent_sweep=True)
+
+        self.assertFalse(location.access_rule(state))
+        state.collect(
+            self.get_item_by_name(HOING_DIVERSION_UNLOCK_ITEM), prevent_sweep=True
+        )
+        self.assertTrue(location.access_rule(state))
+
+
+class TestHitmanJamesWithoutHoing(SR2TestBase):
+    options = {"include_hoing_diversion_levels": 0}
+
+    def test_james_only_needs_hitman_when_tags_are_disabled(self) -> None:
+        location = self.world.get_location(JAMES)
         state = self.get_fresh_state()
         state.collect(
             self.get_item_by_name(
