@@ -22,10 +22,10 @@ struct NotorietyTrap {
 };
 
 constexpr std::array<NotorietyTrap, 4> supportedItems{{
-    {.itemName = "Trap: Max Police Notoriety", .faction_id = 3},
-    {.itemName = "Trap: Max Ronin Notoriety", .faction_id = 1},
-    {.itemName = "Trap: Max Brotherhood Notoriety", .faction_id = 0},
-    {.itemName = "Trap: Max Samedi Notoriety", .faction_id = 2},
+    {.itemName = "Max Police Notoriety", .faction_id = 3},
+    {.itemName = "Max Ronin Notoriety", .faction_id = 1},
+    {.itemName = "Max Brotherhood Notoriety", .faction_id = 0},
+    {.itemName = "Max Samedi Notoriety", .faction_id = 2},
 }};
 constexpr float maximumNotorietyLevel{5.0F};
 constexpr float noNotoriety{0.0F};
