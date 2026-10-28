@@ -45,7 +45,7 @@ The items in the pool are:
 - (most) [Cheats](https://saintsrow.fandom.com/wiki/Cheats_in_Saints_Row_2)
 - Traps
     - Max Ronin/Brotherhood/Samedi/Police Notoriety
-    - Permanent Heavy Rain/Thunderstorm (until a Restore Weather Cycle item is received)
+    - Heavy Rain/Thunderstorm
     - Each type is toggleable in the settings
 - Money (1k, 5k, 10k, 25k, 50k, 100k)
 
