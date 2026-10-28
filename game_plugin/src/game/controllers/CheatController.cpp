@@ -38,8 +38,7 @@ constexpr std::ptrdiff_t carRepairRva{0x002852E0};
 constexpr std::ptrdiff_t maxHealthRva{0x00284ED0};
 constexpr std::array<CheatDefinition, 42> supportedApItems{{
     {"Clear Skies Weather", 1, "#78669", weatherCallbackRva, 1},
-    {"Restore Normal Weather Cycle", 0, "#78670", restoreWeatherCallbackRva,
-     1},
+    {"Restore Normal Weather Cycle", 0, "#78670", restoreWeatherCallbackRva, 1},
     {"Heavy Rain", 4, "#78666", weatherCallbackRva, 1},
     {"Light Rain", 5, "#78668", weatherCallbackRva, 1},
     {"Overcast Weather", 6, "#78665", weatherCallbackRva, 1},
