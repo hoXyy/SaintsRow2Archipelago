@@ -101,6 +101,13 @@ inline constexpr std::size_t kCheatRecordSize = 0x68;
 inline constexpr std::size_t kCheatPhoneCodePointerOffset = 0x10;
 inline constexpr std::size_t kCheatActivateCallbackOffset = 0x54;
 
+// Weather. The weather cheats store the forced stage in the override; while it
+// is set, every weather tick refills the upcoming stage slots with it and
+// restarts their timers. The slot array's first entry starts with the stage
+// pointer currently shown.
+inline constexpr std::ptrdiff_t kWeatherOverrideStageRva = 0x02126E14;
+inline constexpr std::ptrdiff_t kWeatherStageSlotsPointerRva = 0x02126DEC;
+
 inline constexpr std::ptrdiff_t kPlayerGlobalRva = 0x01D703D4;
 inline constexpr std::size_t kPlayerRespectOffset = 0x1200;
 inline constexpr std::size_t kPlayerStyleLevelOffset = 0x1204;
