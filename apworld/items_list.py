@@ -167,7 +167,6 @@ MISC_CHEAT_ITEMS = [
     "Set Time to Noon",
     "Clear Skies Weather",
     "Overcast Weather",
-    "Restore Normal Weather Cycle",
     "Remove Police Notoriety",
     "Remove Gang Notoriety",
     "Max Health",
