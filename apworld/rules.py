@@ -30,6 +30,7 @@ from .activities import (
     HITMAN_LISTS,
     MEDAL_STRINGS,
     RACES,
+    is_activity_enabled_in_options,
 )
 from .diversions import (
     FIREFIGHTER_DIVERSION_LOCATIONS,
@@ -277,6 +278,14 @@ def set_activity_rules(world: SR2World, access_rules: AccessRules) -> None:
         world.options.include_tags.value
     ):
         require(access_rules, "Hitman (Barrio) - Brad", Has(TAGS_UNLOCK_ITEM))
+
+    # This target needs ho-ing to be unlocked
+    if "Hitman (Barrio) - James" in location_cache and is_activity_enabled_in_options(
+        world, "Ho-ing"
+    ):
+        require(
+            access_rules, "Hitman (Barrio) - James", Has(HOING_DIVERSION_UNLOCK_ITEM)
+        )
 
 
 def set_completion_rules(world: SR2World) -> None:
