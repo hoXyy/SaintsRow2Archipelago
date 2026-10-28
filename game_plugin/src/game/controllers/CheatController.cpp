@@ -37,15 +37,15 @@ constexpr std::ptrdiff_t noGangNotorietyRva{0x00284D70};
 constexpr std::ptrdiff_t carRepairRva{0x002852E0};
 constexpr std::ptrdiff_t maxHealthRva{0x00284ED0};
 constexpr std::array<CheatDefinition, 42> supportedApItems{{
-    {"Weather: Clear Skies", 1, "#78669", weatherCallbackRva, 1},
-    {"Weather: Restore Normal Cycle", 0, "#78670", restoreWeatherCallbackRva,
+    {"Clear Skies Weather", 1, "#78669", weatherCallbackRva, 1},
+    {"Restore Normal Weather Cycle", 0, "#78670", restoreWeatherCallbackRva,
      1},
-    {"Trap: Heavy Rain", 4, "#78666", weatherCallbackRva, 1},
-    {"Trap: Light Rain", 5, "#78668", weatherCallbackRva, 1},
-    {"Weather: Overcast", 6, "#78665", weatherCallbackRva, 1},
-    {"Trap: Thunderstorm", 25, "#666", thunderstormCallbackRva, 1},
-    {"Time: Midnight", 7, "#2400", timeCallbackRva, 1},
-    {"Time: Noon", 8, "#1200", timeCallbackRva, 1},
+    {"Heavy Rain", 4, "#78666", weatherCallbackRva, 1},
+    {"Light Rain", 5, "#78668", weatherCallbackRva, 1},
+    {"Overcast Weather", 6, "#78665", weatherCallbackRva, 1},
+    {"Thunderstorm", 25, "#666", thunderstormCallbackRva, 1},
+    {"Set Time to Midnight", 7, "#2400", timeCallbackRva, 1},
+    {"Set Time to Noon", 8, "#1200", timeCallbackRva, 1},
     {"Remove Police Notoriety", 20, "#50", noPoliceNotorietyRva, 1},
     {"Remove Gang Notoriety", 21, "#51", noGangNotorietyRva, 1},
     {"Car Repair", 24, "#1056", carRepairRva, 1},

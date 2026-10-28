@@ -6,9 +6,9 @@ TRAP_NOTORIETY_ITEMS = [
 ]
 
 TRAP_CHEATS = [
-    "Trap: Heavy Rain",
-    "Trap: Light Rain",
-    "Trap: Thunderstorm",
+    "Heavy Rain",
+    "Light Rain",
+    "Thunderstorm",
 ]
 
 TRAP_ITEMS = TRAP_CHEATS + TRAP_NOTORIETY_ITEMS
@@ -163,11 +163,11 @@ FILLER_UNLOCKABLES = [
 
 
 MISC_CHEAT_ITEMS = [
-    "Time: Midnight",
-    "Time: Noon",
-    "Weather: Clear Skies",
-    "Weather: Overcast",
-    "Weather: Restore Normal Cycle",
+    "Set Time to Midnight",
+    "Set Time to Noon",
+    "Clear Skies Weather",
+    "Overcast Weather",
+    "Restore Normal Weather Cycle",
     "Remove Police Notoriety",
     "Remove Gang Notoriety",
     "Max Health",
