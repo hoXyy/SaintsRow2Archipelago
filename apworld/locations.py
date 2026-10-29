@@ -18,6 +18,7 @@ from .activities import (
     HITMAN_LISTS,
     MEDAL_STRINGS,
     PLANE_RACES,
+    get_activity_level_count_option_mapping,
     is_activity_enabled_in_options,
 )
 from .collectibles import (
@@ -142,6 +143,7 @@ def create_mission_locations(world: SR2World) -> None:
 
 def create_activities_location(world: SR2World) -> None:
     region = world.get_region("Stilwater")
+    level_count_mapping = get_activity_level_count_option_mapping(world)
 
     for activity in ACTIVITIES_LEVEL_BASED:
         if is_activity_enabled_in_options(world, activity):
@@ -150,8 +152,7 @@ def create_activities_location(world: SR2World) -> None:
             ]
 
             for location in activity_locations:
-                # each level based activity has 6 levels
-                for level in range(1, 7):
+                for level in range(1, level_count_mapping[activity] + 1):
                     curr_key = f"{activity} ({location}) - Level {level}"
                     region.locations.append(
                         SR2Location(
@@ -164,7 +165,7 @@ def create_activities_location(world: SR2World) -> None:
                     )
 
                     # add completion event and item to all levels below the last one to have the proper progression tree
-                    if level < 6:
+                    if level < level_count_mapping[activity]:
                         completion_event = SR2Location(
                             world.player,
                             f"Event: {curr_key} Complete",

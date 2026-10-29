@@ -350,7 +350,7 @@ class TestPlaneRacesDisabled(RaceClassDisabledTests, SR2TestBase):
 
 class TestLevelBasedActivityDisabled(SR2TestBase):
     run_default_tests = False
-    options = {"include_fraud": 0}
+    options = {"include_fraud_levels": 0}
 
     def test_activity_has_no_events_and_checks(self) -> None:
         activity = "Insurance Fraud"
@@ -377,6 +377,29 @@ class TestLevelBasedActivityDisabled(SR2TestBase):
 
                 self.assertEqual(0, len(locations))
                 self.assertEqual(0, len(events))
+
+
+class TestLevelBasedActivityPartialLevels(SR2TestBase):
+    options = {"include_fraud_levels": 3}
+
+    def test_only_included_levels_have_checks_and_events(self) -> None:
+        activity = "Insurance Fraud"
+        districts = [
+            value for d in ACTIVITIES_LEVEL_BASED[activity] for value in d.values()
+        ]
+        location_names = {
+            location.name for location in self.multiworld.get_locations(self.player)
+        }
+
+        for district in districts:
+            with self.subTest(activity=activity, district=district):
+                for level in range(1, 7):
+                    curr_key = f"{activity} ({district}) - Level {level}"
+                    event_key = f"Event: {curr_key} Complete"
+
+                    self.assertEqual(level <= 3, curr_key in location_names)
+                    # the last included level has nothing after it to unlock
+                    self.assertEqual(level < 3, event_key in location_names)
 
 
 BRAD = "Hitman (Barrio) - Brad"

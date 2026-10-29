@@ -235,8 +235,10 @@ def set_activity_rules(world: SR2World, access_rules: AccessRules) -> None:
                 level_rule = HasAll(tss02_complete_item, prerequisite_item)
                 require(access_rules, curr_key, level_rule)
 
-                if level < 6:
-                    require(access_rules, f"Event: {curr_key} Complete", level_rule)
+                # the last included level has no completion event
+                event_key = f"Event: {curr_key} Complete"
+                if event_key in location_cache:
+                    require(access_rules, event_key, level_rule)
 
     for location in CHOP_SHOP_LISTS:
         vehicles = [value for d in CHOP_SHOP_LISTS[location] for value in d.values()]

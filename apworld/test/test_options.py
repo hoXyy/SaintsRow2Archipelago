@@ -22,7 +22,7 @@ NO_FILLER_WEIGHTS = {
 # Jailbreak 1 (Appointed Defender holds the starting pass), so style levels
 # make up the rest.
 ONLY_DEMO_DERBY = dict.fromkeys(STARTING_ACTIVITY_INCLUDE_OPTIONS.values(), 0) | {
-    "include_demo_derby": 1,
+    "include_demo_derby_levels": 6,
     "starting_activity": StartingActivity.option_demo_derby,
     "required_gang_arcs": {RONIN_ARC_NAME},
 }

@@ -28,29 +28,29 @@ if TYPE_CHECKING:
 def is_activity_enabled_in_options(world: SR2World, name: str) -> bool:
     match name:
         case "Crowd Control":
-            return world.options.include_crowd_control.value == 1
+            return world.options.include_crowd_control_levels.value > 0
         case "Demolition Derby":
-            return world.options.include_demo_derby.value == 1
+            return world.options.include_demo_derby_levels.value > 0
         case "Drug Trafficking":
-            return world.options.include_drug_trafficking.value == 1
+            return world.options.include_drug_trafficking_levels.value > 0
         case "Escort":
-            return world.options.include_escort.value == 1
+            return world.options.include_escort_levels.value > 0
         case "Fight Club":
-            return world.options.include_fight_club.value == 1
+            return world.options.include_fight_club_levels.value > 0
         case "Insurance Fraud":
-            return world.options.include_fraud.value == 1
+            return world.options.include_fraud_levels.value > 0
         case "FUZZ":
-            return world.options.include_fuzz.value == 1
+            return world.options.include_fuzz_levels.value > 0
         case "Heli Assault":
-            return world.options.include_heli_assault.value == 1
+            return world.options.include_heli_assault_levels.value > 0
         case "Mayhem":
-            return world.options.include_mayhem.value == 1
+            return world.options.include_mayhem_levels.value > 0
         case "Septic Avenger":
-            return world.options.include_sewage.value == 1
+            return world.options.include_sewage_levels.value > 0
         case "Snatch":
-            return world.options.include_snatch.value == 1
+            return world.options.include_snatch_levels.value > 0
         case "Trail Blazing":
-            return world.options.include_torch.value == 1
+            return world.options.include_torch_levels.value > 0
         case "Chop Shop":
             return world.options.include_chop_shop.value == 1
         case "Hitman":
@@ -77,6 +77,23 @@ def is_activity_enabled_in_options(world: SR2World, name: str) -> bool:
             return world.options.include_paramedic_diversion_levels.value > 0
         case _:
             return False
+
+
+def get_activity_level_count_option_mapping(world: SR2World) -> dict[str, int]:
+    return {
+        "Crowd Control": world.options.include_crowd_control_levels.value,
+        "Demolition Derby": world.options.include_demo_derby_levels.value,
+        "Drug Trafficking": world.options.include_drug_trafficking_levels.value,
+        "Escort": world.options.include_escort_levels.value,
+        "Fight Club": world.options.include_fight_club_levels.value,
+        "Insurance Fraud": world.options.include_fraud_levels.value,
+        "FUZZ": world.options.include_fuzz_levels.value,
+        "Heli Assault": world.options.include_heli_assault_levels.value,
+        "Mayhem": world.options.include_mayhem_levels.value,
+        "Septic Avenger": world.options.include_sewage_levels.value,
+        "Snatch": world.options.include_snatch_levels.value,
+        "Trail Blazing": world.options.include_torch_levels.value,
+    }
 
 
 def generate_level_ids(

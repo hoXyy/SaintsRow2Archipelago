@@ -190,18 +190,18 @@ class TestSlotData(SR2TestBase):
 
     def test_enabled_progression_no_activities(self) -> None:
         self.options = {
-            "include_crowd_control": 0,
-            "include_demo_derby": 0,
-            "include_drug_trafficking": 0,
-            "include_escort": 0,
-            "include_fight_club": 0,
-            "include_fraud": 0,
-            "include_fuzz": 0,
-            "include_heli_assault": 0,
-            "include_mayhem": 0,
-            "include_sewage": 0,
-            "include_snatch": 0,
-            "include_torch": 0,
+            "include_crowd_control_levels": 0,
+            "include_demo_derby_levels": 0,
+            "include_drug_trafficking_levels": 0,
+            "include_escort_levels": 0,
+            "include_fight_club_levels": 0,
+            "include_fraud_levels": 0,
+            "include_fuzz_levels": 0,
+            "include_heli_assault_levels": 0,
+            "include_mayhem_levels": 0,
+            "include_sewage_levels": 0,
+            "include_snatch_levels": 0,
+            "include_torch_levels": 0,
             "starting_activity": StartingActivity.option_chop_shop,
         }
         self.world_setup()
