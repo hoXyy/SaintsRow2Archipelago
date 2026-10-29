@@ -128,112 +128,172 @@ class IncludeStilwaterCavernsAsGoal(Toggle):
     default = 0
 
 
-class IncludeCrowdControl(Toggle):
+class IncludeCrowdControlLevels(Range):
     """
-    Whether to include both Crowd Control instances with each level as an individual location check.
-    """
+    Amount of Crowd Control levels to include. Applies to both locations of the activity individually.
 
-    display_name = "Include Crowd Control"
-    default = 1
-
-
-class IncludeDemoDerby(Toggle):
-    """
-    Whether to include Demolition Derby with each level as an individual location check.
+    Set to 0 to disable.
     """
 
-    display_name = "Include Demolition Derby"
-    default = 1
+    display_name = "Amount of Included Crowd Control Levels"
+    default = 6
+
+    range_start = 0
+    range_end = 6
 
 
-class IncludeDrugTrafficking(Toggle):
+class IncludeDemoDerbyLevels(Range):
     """
-    Whether to include both Drug Trafficking instances with each level as an individual location check.
-    """
+    Amount of Demolition Derby levels to include.
 
-    display_name = "Include Drug Trafficking"
-    default = 1
-
-
-class IncludeEscort(Toggle):
-    """
-    Whether to include both Escort instances with each level as an individual location check.
+    Set to 0 to disable.
     """
 
-    display_name = "Include Escort"
-    default = 1
+    display_name = "Amount of Included Demolition Derby Levels"
+    default = 6
+
+    range_start = 0
+    range_end = 6
 
 
-class IncludeFightClub(Toggle):
+class IncludeDrugTraffickingLevels(Range):
     """
-    Whether to include both Fight Club instances with each level as an individual location check.
-    """
+    Amount of Drug Trafficking levels to include. Applies to both locations of the activity individually.
 
-    display_name = "Include Fight Club"
-    default = 1
-
-
-class IncludeFraud(Toggle):
-    """
-    Whether to include both Insurance Fraud instances with each level as an individual location check.
+    Set to 0 to disable.
     """
 
-    display_name = "Include Insurance Fraud"
-    default = 1
+    display_name = "Amount of Included Drug Trafficking Levels"
+    default = 6
+
+    range_start = 0
+    range_end = 6
 
 
-class IncludeFuzz(Toggle):
+class IncludeEscortLevels(Range):
     """
-    Whether to include both FUZZ instances with each level as an individual location check.
-    """
+    Amount of Escort levels to include. Applies to both locations of the activity individually.
 
-    display_name = "Include FUZZ"
-    default = 1
-
-
-class IncludeHeliAssault(Toggle):
-    """
-    Whether to include both Heli Assault instances with each level as an individual location check.
+    Set to 0 to disable.
     """
 
-    display_name = "Include Heli Assault"
-    default = 1
+    display_name = "Amount of Included Escort Levels"
+    default = 6
+
+    range_start = 0
+    range_end = 6
 
 
-class IncludeMayhem(Toggle):
+class IncludeFightClubLevels(Range):
     """
-    Whether to include both Mayhem instances with each level as an individual location check.
-    """
+    Amount of Fight Club levels to include. Applies to both locations of the activity individually.
 
-    display_name = "Include Mayhem"
-    default = 1
-
-
-class IncludeSewage(Toggle):
-    """
-    Whether to include both Septic Avenger instances with each level as an individual location check.
+    Set to 0 to disable.
     """
 
-    display_name = "Include Septic Avenger"
-    default = 1
+    display_name = "Amount of Included Fight Club Levels"
+    default = 6
+
+    range_start = 0
+    range_end = 6
 
 
-class IncludeSnatch(Toggle):
+class IncludeFraudLevels(Range):
     """
-    Whether to include both Snatch instances with each level as an individual location check.
-    """
+    Amount of Insurance Fraud levels to include. Applies to both locations of the activity individually.
 
-    display_name = "Include Snatch"
-    default = 1
-
-
-class IncludeTorch(Toggle):
-    """
-    Whether to include both Trail Blazing instances with each level as an individual location check.
+    Set to 0 to disable.
     """
 
-    display_name = "Include Trail Blazing"
-    default = 1
+    display_name = "Amount of Included Insurance Fraud Levels"
+    default = 6
+
+    range_start = 0
+    range_end = 6
+
+
+class IncludeFuzzLevels(Range):
+    """
+    Amount of FUZZ levels to include. Applies to both locations of the activity individually.
+
+    Set to 0 to disable.
+    """
+
+    display_name = "Amount of Included FUZZ Levels"
+    default = 6
+
+    range_start = 0
+    range_end = 6
+
+
+class IncludeHeliAssaultLevels(Range):
+    """
+    Amount of Heli Assault levels to include. Applies to both locations of the activity individually.
+
+    Set to 0 to disable.
+    """
+
+    display_name = "Amount of Included Heli Assault Levels"
+    default = 6
+
+    range_start = 0
+    range_end = 6
+
+
+class IncludeMayhemLevels(Range):
+    """
+    Amount of Mayhem levels to include. Applies to both locations of the activity individually.
+
+    Set to 0 to disable.
+    """
+
+    display_name = "Amount of Included Mayhem Levels"
+    default = 6
+
+    range_start = 0
+    range_end = 6
+
+
+class IncludeSewageLevels(Range):
+    """
+    Amount of Septic Avenger levels to include. Applies to both locations of the activity individually.
+
+    Set to 0 to disable.
+    """
+
+    display_name = "Amount of Included Septic Avenger Levels"
+    default = 6
+
+    range_start = 0
+    range_end = 6
+
+
+class IncludeSnatchLevels(Range):
+    """
+    Amount of Snatch levels to include. Applies to both locations of the activity individually.
+
+    Set to 0 to disable.
+    """
+
+    display_name = "Amount of Included Snatch Levels"
+    default = 6
+
+    range_start = 0
+    range_end = 6
+
+
+class IncludeTorchLevels(Range):
+    """
+    Amount of Trail Blazing levels to include. Applies to both locations of the activity individually.
+
+    Set to 0 to disable.
+    """
+
+    display_name = "Amount of Included Trail Blazing Levels"
+    default = 6
+
+    range_start = 0
+    range_end = 6
 
 
 class IncludeChopShop(Toggle):
@@ -610,20 +670,20 @@ class SR2Options(PerGameCommonOptions):
     include_secret_mission_as_goal: IncludeSecretMissionAsGoal
     include_stilwater_caverns: IncludeStilwaterCaverns
     include_stilwater_caverns_as_goal: IncludeStilwaterCavernsAsGoal
-    include_crowd_control: IncludeCrowdControl
+    include_crowd_control_levels: IncludeCrowdControlLevels
     include_chop_shop: IncludeChopShop
-    include_demo_derby: IncludeDemoDerby
-    include_drug_trafficking: IncludeDrugTrafficking
-    include_escort: IncludeEscort
-    include_fight_club: IncludeFightClub
-    include_fuzz: IncludeFuzz
-    include_fraud: IncludeFraud
-    include_heli_assault: IncludeHeliAssault
+    include_demo_derby_levels: IncludeDemoDerbyLevels
+    include_drug_trafficking_levels: IncludeDrugTraffickingLevels
+    include_escort_levels: IncludeEscortLevels
+    include_fight_club_levels: IncludeFightClubLevels
+    include_fuzz_levels: IncludeFuzzLevels
+    include_fraud_levels: IncludeFraudLevels
+    include_heli_assault_levels: IncludeHeliAssaultLevels
     include_hitman: IncludeHitman
-    include_mayhem: IncludeMayhem
-    include_sewage: IncludeSewage
-    include_snatch: IncludeSnatch
-    include_torch: IncludeTorch
+    include_mayhem_levels: IncludeMayhemLevels
+    include_sewage_levels: IncludeSewageLevels
+    include_snatch_levels: IncludeSnatchLevels
+    include_torch_levels: IncludeTorchLevels
     include_cds: IncludeCDs
     include_boat_races: IncludeBoatRaces
     include_bike_races: IncludeBikeRaces
@@ -663,25 +723,25 @@ option_groups = [
             StartingActivity,
             IncludeCDs,
             IncludeChopShop,
-            IncludeCrowdControl,
-            IncludeDemoDerby,
-            IncludeDrugTrafficking,
-            IncludeEscort,
-            IncludeFightClub,
-            IncludeFuzz,
-            IncludeFraud,
-            IncludeHeliAssault,
+            IncludeCrowdControlLevels,
+            IncludeDemoDerbyLevels,
+            IncludeDrugTraffickingLevels,
+            IncludeEscortLevels,
+            IncludeFightClubLevels,
+            IncludeFuzzLevels,
+            IncludeFraudLevels,
+            IncludeHeliAssaultLevels,
             IncludeHitman,
-            IncludeMayhem,
+            IncludeMayhemLevels,
             IncludeBoatRaces,
             IncludeBikeRaces,
             IncludeCarRaces,
             IncludeHeliRaces,
             IncludePlaneRaces,
-            IncludeSewage,
-            IncludeSnatch,
+            IncludeSewageLevels,
+            IncludeSnatchLevels,
             IncludeStuntJumps,
-            IncludeTorch,
+            IncludeTorchLevels,
             IncludeTags,
         ],
     ),

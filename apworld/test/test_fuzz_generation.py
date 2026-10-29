@@ -4,7 +4,7 @@ from collections import Counter
 from typing import Any
 
 from BaseClasses import LocationProgressType
-from Options import OptionError
+from Options import OptionError, Range
 
 from ..items import (
     ACTIVITY_UNLOCK_ITEMS_SETTINGS_MAPPING,
@@ -36,6 +36,7 @@ from ..options import (
     RONIN_ARC_NAME,
     SAMEDI_ARC_NAME,
     ULTOR_EPILOGUE_ARC_NAME,
+    SR2Options,
 )
 from .bases import STARTING_ACTIVITY_INCLUDE_OPTIONS, SR2TestBase
 from .fuzz import fuzz_cases, sample_range
@@ -79,7 +80,7 @@ def sample_options(rng: random.Random) -> dict[str, Any]:
     # on" configs common instead of vanishingly rare.
     density = rng.choice((0.0, 0.1, 0.3, 0.5, 0.7, 0.9, 1.0, 1.0))
     options: dict[str, Any] = {
-        name: int(rng.random() < density)
+        name: sample_include(rng, name) if rng.random() < density else 0
         for name in STARTING_ACTIVITY_INCLUDE_OPTIONS.values()
     }
 
@@ -113,6 +114,14 @@ def sample_options(rng: random.Random) -> dict[str, Any]:
         "trap_chance": sample_range(rng, 0, 100),
         "bonus_respect_percentage": sample_range(rng, 0, 100),
     }
+
+
+def sample_include(rng: random.Random, name: str) -> int:
+    # Level count options also get partial counts, not just all or nothing.
+    option = SR2Options.type_hints[name]
+    if issubclass(option, Range):
+        return sample_range(rng, 1, option.range_end)
+    return 1
 
 
 def enabled_starting_activities(options: dict[str, Any]) -> list[int]:
