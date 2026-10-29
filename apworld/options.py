@@ -550,6 +550,8 @@ class IncludeStuntJumps(Choice):
 class ProgressiveCDsLocationCount(Range):
     """
     Amount of progressive CD locations to include in the location list.
+
+    Only applies with progressive CDs enabled.
     """
 
     display_name = "Progressive CDs Location Count"
@@ -563,6 +565,8 @@ class ProgressiveCDsLocationCount(Range):
 class ProgressiveTagsLocationCount(Range):
     """
     Amount of progressive tags locations to include in the location list.
+
+    Only applies with progressive tags enabled.
     """
 
     display_name = "Progressive Tags Location Count"
@@ -576,6 +580,8 @@ class ProgressiveTagsLocationCount(Range):
 class ProgressiveStuntJumpsLocationCount(Range):
     """
     Amount of progressive stunt jump locations to include in the location list.
+
+    Only applies with progressive stunt jumps enabled.
     """
 
     display_name = "Progressive Stunt Jumps Location Count"
@@ -714,15 +720,18 @@ class SR2Options(PerGameCommonOptions):
 
 option_groups = [
     OptionGroup(
+        "Game Options",
+        [
+            StartingActivity,
+        ],
+    ),
+    OptionGroup(
         "Goal Options",
         [RequiredGangArcs, IncludeSecretMissionAsGoal, IncludeStilwaterCavernsAsGoal],
     ),
     OptionGroup(
-        "Activity & Collectibles Location Options",
+        "Level-Based Activities Location Options",
         [
-            StartingActivity,
-            IncludeCDs,
-            IncludeChopShop,
             IncludeCrowdControlLevels,
             IncludeDemoDerbyLevels,
             IncludeDrugTraffickingLevels,
@@ -731,18 +740,33 @@ option_groups = [
             IncludeFuzzLevels,
             IncludeFraudLevels,
             IncludeHeliAssaultLevels,
-            IncludeHitman,
             IncludeMayhemLevels,
+            IncludeSewageLevels,
+            IncludeSnatchLevels,
+            IncludeTorchLevels,
+        ],
+    ),
+    OptionGroup(
+        "Other Activity Location Options",
+        [
             IncludeBoatRaces,
             IncludeBikeRaces,
             IncludeCarRaces,
+            IncludeChopShop,
             IncludeHeliRaces,
+            IncludeHitman,
             IncludePlaneRaces,
-            IncludeSewageLevels,
-            IncludeSnatchLevels,
+        ],
+    ),
+    OptionGroup(
+        "Collectible Location Options",
+        [
+            IncludeCDs,
             IncludeStuntJumps,
-            IncludeTorchLevels,
             IncludeTags,
+            ProgressiveCDsLocationCount,
+            ProgressiveStuntJumpsLocationCount,
+            ProgressiveTagsLocationCount,
         ],
     ),
     OptionGroup(
@@ -753,14 +777,6 @@ option_groups = [
             IncludeTowingDiversionLevels,
             IncludeHoingDiversionLevels,
             IncludeParamedicDiversionLevels,
-        ],
-    ),
-    OptionGroup(
-        "Progressive Location Count Options",
-        [
-            ProgressiveCDsLocationCount,
-            ProgressiveStuntJumpsLocationCount,
-            ProgressiveTagsLocationCount,
         ],
     ),
     OptionGroup(
