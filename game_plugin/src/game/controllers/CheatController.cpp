@@ -28,21 +28,16 @@ struct CheatDefinition {
 
 constexpr std::ptrdiff_t weaponCallbackRva{0x00285370};
 constexpr std::ptrdiff_t vehicleCallbackRva{0x00285270};
-constexpr std::ptrdiff_t weatherCallbackRva{0x00285480};
-constexpr std::ptrdiff_t thunderstormCallbackRva{0x002854C0};
 constexpr std::ptrdiff_t restoreWeatherCallbackRva{0x00285B20};
 constexpr std::ptrdiff_t timeCallbackRva{0x00285220};
 constexpr std::ptrdiff_t noPoliceNotorietyRva{0x00284D40};
 constexpr std::ptrdiff_t noGangNotorietyRva{0x00284D70};
 constexpr std::ptrdiff_t carRepairRva{0x002852E0};
 constexpr std::ptrdiff_t maxHealthRva{0x00284ED0};
-constexpr std::array<CheatDefinition, 42> supportedApItems{{
-    {"Clear Skies Weather", 1, "#78669", weatherCallbackRva, 1},
+// Weather items are handled by WeatherController; Restore Normal Weather Cycle
+// stays for seeds generated before it was removed.
+constexpr std::array<CheatDefinition, 37> supportedApItems{{
     {"Restore Normal Weather Cycle", 0, "#78670", restoreWeatherCallbackRva, 1},
-    {"Heavy Rain", 4, "#78666", weatherCallbackRva, 1},
-    {"Light Rain", 5, "#78668", weatherCallbackRva, 1},
-    {"Overcast Weather", 6, "#78665", weatherCallbackRva, 1},
-    {"Thunderstorm", 25, "#666", thunderstormCallbackRva, 1},
     {"Set Time to Midnight", 7, "#2400", timeCallbackRva, 1},
     {"Set Time to Noon", 8, "#1200", timeCallbackRva, 1},
     {"Remove Police Notoriety", 20, "#50", noPoliceNotorietyRva, 1},
@@ -87,19 +82,6 @@ const CheatDefinition* FindCheat(const std::string_view itemName) {
         [itemName](const auto& cheat) { return cheat.itemName == itemName; });
     return found == supportedApItems.end() ? nullptr : &*found;
 }
-
-constexpr std::string_view restoreWeatherItemName{
-    "Restore Normal Weather Cycle"};
-
-// Weather cheats force their stage until the cycle is restored; restoring
-// once the stage is shown lets it play out and the normal cycle resume.
-bool IsWeatherCheat(const CheatDefinition& definition) {
-    return definition.callbackRva == weatherCallbackRva ||
-           definition.callbackRva == thunderstormCallbackRva;
-}
-
-// Frames to wait for the forced stage to be shown before restoring anyway.
-constexpr std::uint32_t weatherRestoreMaxFrames{300};
 }  // namespace
 
 struct CheatController::Implementation {
@@ -170,40 +152,47 @@ struct CheatController::Implementation {
             return false;
         }
 
-        const auto record = ResolveRecord(*definition);
-        if (!record) {
+        std::optional<std::uint32_t> count =
+            ReadMemory<std::uint32_t>(gameBase + addresses::kCheatCountRva);
+
+        if (!count || definition->index >= *count) {
             return false;
         }
 
-        std::optional<std::uintptr_t> restoreRecord;
-        if (IsWeatherCheat(*definition)) {
-            restoreRecord = ResolveRecord(*FindCheat(restoreWeatherItemName));
-            if (!restoreRecord) {
-                return false;
-            }
+        const auto record = gameBase + addresses::kCheatTableRva +
+                            static_cast<std::uintptr_t>(definition->index) *
+                                addresses::kCheatRecordSize;
+
+        std::optional<std::uint32_t> phoneCodePointer =
+            ReadMemory<std::uint32_t>(record +
+                                      addresses::kCheatPhoneCodePointerOffset);
+        std::optional<std::uint32_t> callback = ReadMemory<std::uint32_t>(
+            record + addresses::kCheatActivateCallbackOffset);
+
+        if (!phoneCodePointer || !callback ||
+            *callback != gameBase + definition->callbackRva ||
+            !IsExecutableAddress(*callback)) {
+            return false;
+        }
+
+        const auto phoneCode = ReadFixedString(*phoneCodePointer, 32);
+        if (!phoneCode || *phoneCode != definition->phoneCode) {
+            return false;
         }
 
         const auto function = activateAddress;
         const auto activationCount = definition->activations;
-        const auto base = gameBase;
 
-        const bool queued =
-            dispatcher.Dispatch([function, record = *record, activationCount,
-                                 restoreRecord, base, &dispatcher, completion] {
-                if (!completion.CanApply()) {
-                    return;
-                }
-                for (std::uint32_t index = 0; index < activationCount;
-                     ++index) {
-                    InvokeActivate(function, record);
-                }
-                completion.Complete(true);
-                if (restoreRecord) {
-                    QueueWeatherCycleRestore(dispatcher, base, function,
-                                             *restoreRecord,
-                                             weatherRestoreMaxFrames);
-                }
-            });
+        const bool queued = dispatcher.Dispatch([function, record,
+                                                 activationCount, completion] {
+            if (!completion.CanApply()) {
+                return;
+            }
+            for (std::uint32_t index = 0; index < activationCount; ++index) {
+                InvokeActivate(function, record);
+            }
+            completion.Complete(true);
+        });
 
         if (!queued) {
             LogWarning("Cheats",
@@ -219,73 +208,6 @@ struct CheatController::Implementation {
     }
 
    private:
-    std::optional<std::uintptr_t> ResolveRecord(
-        const CheatDefinition& definition) const {
-        std::optional<std::uint32_t> count =
-            ReadMemory<std::uint32_t>(gameBase + addresses::kCheatCountRva);
-
-        if (!count || definition.index >= *count) {
-            return std::nullopt;
-        }
-
-        const auto record = gameBase + addresses::kCheatTableRva +
-                            static_cast<std::uintptr_t>(definition.index) *
-                                addresses::kCheatRecordSize;
-
-        std::optional<std::uint32_t> phoneCodePointer =
-            ReadMemory<std::uint32_t>(record +
-                                      addresses::kCheatPhoneCodePointerOffset);
-        std::optional<std::uint32_t> callback = ReadMemory<std::uint32_t>(
-            record + addresses::kCheatActivateCallbackOffset);
-
-        if (!phoneCodePointer || !callback ||
-            *callback != gameBase + definition.callbackRva ||
-            !IsExecutableAddress(*callback)) {
-            return std::nullopt;
-        }
-
-        const auto phoneCode = ReadFixedString(*phoneCodePointer, 32);
-        if (!phoneCode || *phoneCode != definition.phoneCode) {
-            return std::nullopt;
-        }
-
-        return record;
-    }
-
-    static bool IsForcedWeatherShown(const std::uintptr_t base) {
-        const auto forced = ReadMemory<std::uint32_t>(
-            base + addresses::kWeatherOverrideStageRva);
-        const auto slots = ReadMemory<std::uint32_t>(
-            base + addresses::kWeatherStageSlotsPointerRva);
-        if (!forced || !slots || *forced == 0 || *slots == 0) {
-            // Nothing left to wait for.
-            return true;
-        }
-        const auto shown = ReadMemory<std::uint32_t>(*slots);
-        return shown && *shown == *forced;
-    }
-
-    // Runs on the game thread; tasks dispatched from a task run next frame.
-    static void QueueWeatherCycleRestore(GameThreadDispatcher& dispatcher,
-                                         const std::uintptr_t base,
-                                         const std::uintptr_t function,
-                                         const std::uintptr_t restoreRecord,
-                                         const std::uint32_t framesLeft) {
-        const bool queued = dispatcher.Dispatch(
-            [&dispatcher, base, function, restoreRecord, framesLeft] {
-                if (framesLeft > 0 && !IsForcedWeatherShown(base)) {
-                    QueueWeatherCycleRestore(dispatcher, base, function,
-                                             restoreRecord, framesLeft - 1);
-                    return;
-                }
-                InvokeActivate(function, restoreRecord);
-            });
-
-        if (!queued) {
-            LogWarning("Cheats", "Failed to queue weather cycle restore");
-        }
-    }
-
     static void InvokeActivate(const std::uintptr_t function,
                                const std::uintptr_t record) {
         __asm {

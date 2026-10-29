@@ -8,7 +8,6 @@ TRAP_NOTORIETY_ITEMS = [
 TRAP_CHEATS = [
     "Heavy Rain",
     "Light Rain",
-    "Thunderstorm",
 ]
 
 TRAP_ITEMS = TRAP_CHEATS + TRAP_NOTORIETY_ITEMS
