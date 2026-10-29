@@ -510,7 +510,7 @@ class MiscFillerItemWeight(Range):
 
 class IncludeWeatherTrapItems(Toggle):
     """
-    Whether to include permanent weather traps in the item pool.
+    Whether to include weather traps in the item pool.
     """
 
     display_name = "Include weather trap items"
