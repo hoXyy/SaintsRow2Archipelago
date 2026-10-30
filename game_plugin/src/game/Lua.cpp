@@ -1,8 +1,14 @@
 #include "Lua.hpp"
 
+#include <algorithm>
 #include <array>
+#include <cctype>
 #include <cstdint>
 #include <limits>
+#include <optional>
+#include <string_view>
+#include <utility>
+#include <vector>
 
 #include "Addresses.hpp"
 #include "Memory.hpp"
@@ -88,6 +94,167 @@ void CallAddAmmo(const std::uintptr_t functionAddress, void* player,
         push player
         call functionAddress
         add esp, 8
+    }
+}
+
+// consumable stuff
+inline constexpr std::ptrdiff_t kGiveConsumableRva = 0x005882A0;
+constexpr std::array<std::uint8_t, 9> kGiveConsumableBytes{
+    0x83, 0xEC, 0x08, 0x56, 0x57, 0x8D, 0x44, 0x24, 0x0C,
+};
+inline constexpr std::ptrdiff_t kRemoveConsumableRva = 0x00588730;
+constexpr std::array<std::uint8_t, 7> kRemoveConsumableBytes{
+    0x39, 0x82, 0xF4, 0x0C, 0x00, 0x00, 0x56,
+};
+// Free list of the 48 nodes all humans share; null once every node is taken.
+inline constexpr std::ptrdiff_t kConsumableFreeListRva = 0x01D43FA0;
+inline constexpr std::ptrdiff_t kDrugCountRva = 0x01D43FA4;
+inline constexpr std::ptrdiff_t kDrugTableRva = 0x026EF860;
+inline constexpr std::size_t kDrugStride = 0x50;
+inline constexpr std::size_t kDrugCostOffset = 0x24;
+inline constexpr std::size_t kDrugTypeOffset = 0x34;
+inline constexpr std::size_t kMaxDrugNameLength = 64;
+// Circular list of held nodes, and the node being consumed right now.
+inline constexpr std::size_t kHumanConsumablesOffset = 0xCF4;
+inline constexpr std::size_t kHumanConsumingNodeOffset = 0xCF8;
+inline constexpr std::size_t kConsumableNodeDrugOffset = 0x08;
+// The slot scan drops the whole list when it finds more nodes than this.
+inline constexpr std::size_t kConsumableSlots = 4;
+
+struct ConsumableFunctions {
+    std::uintptr_t give;
+    std::uintptr_t remove;
+};
+
+struct HeldConsumable {
+    std::uintptr_t node;
+    std::int32_t type;
+    std::int32_t cost;
+};
+
+struct HeldConsumables {
+    std::size_t nodeCount;
+    std::vector<HeldConsumable> items;
+};
+
+[[nodiscard]] std::optional<ConsumableFunctions> ResolveConsumableFunctions(
+    const ModuleInfo& game) noexcept {
+    const auto giveAddress = game.base + kGiveConsumableRva;
+    const auto removeAddress = game.base + kRemoveConsumableRva;
+
+    if (!ValidateHookTarget(game, giveAddress, kGiveConsumableBytes) ||
+        !ValidateHookTarget(game, removeAddress, kRemoveConsumableBytes)) {
+        return std::nullopt;
+    }
+
+    return ConsumableFunctions{.give = giveAddress, .remove = removeAddress};
+}
+
+[[nodiscard]] std::optional<std::int32_t> FindDrugType(
+    const ModuleInfo& game, const std::string_view drugName) {
+    const auto count = ReadMemory<std::int32_t>(game.base + kDrugCountRva);
+    if (!count) {
+        return std::nullopt;
+    }
+
+    for (std::int32_t i = 0; i < *count; ++i) {
+        const auto entry = game.base + kDrugTableRva + i * kDrugStride;
+        const auto namePointer = ReadMemory<std::uint32_t>(entry);
+        if (!namePointer || *namePointer == 0) {
+            continue;
+        }
+
+        const auto name = ReadFixedString(*namePointer, kMaxDrugNameLength);
+        // The game finds entries by a lowercase name hash.
+        if (name && std::ranges::equal(*name, drugName, [](char a, char b) {
+                return std::tolower(static_cast<unsigned char>(a)) ==
+                       std::tolower(static_cast<unsigned char>(b));
+            })) {
+            return ReadMemory<std::int32_t>(entry + kDrugTypeOffset);
+        }
+    }
+
+    return std::nullopt;
+}
+
+[[nodiscard]] std::optional<HeldConsumables> ReadHeldConsumables(
+    const std::uintptr_t human) {
+    const auto head =
+        ReadMemory<std::uint32_t>(human + kHumanConsumablesOffset);
+    if (!head) {
+        return std::nullopt;
+    }
+
+    HeldConsumables held{};
+    std::uintptr_t node = *head;
+    while (node != 0 && held.nodeCount < kConsumableSlots) {
+        const auto drug =
+            ReadMemory<std::uint32_t>(node + kConsumableNodeDrugOffset);
+        const auto next = ReadMemory<std::uint32_t>(node);
+        if (!drug || !next) {
+            return std::nullopt;
+        }
+
+        ++held.nodeCount;
+        if (*drug != 0) {
+            const auto type = ReadMemory<std::int32_t>(*drug + kDrugTypeOffset);
+            const auto cost = ReadMemory<std::int32_t>(*drug + kDrugCostOffset);
+            if (!type || !cost) {
+                return std::nullopt;
+            }
+            held.items.push_back({.node = node, .type = *type, .cost = *cost});
+        }
+
+        node = *next;
+        if (node == *head) {
+            break;
+        }
+    }
+
+    return held;
+}
+
+// The cheapest item, of the incoming drug type if any is held. Never the one
+// being consumed: its node would go back to the pool mid-animation.
+[[nodiscard]] std::optional<std::uintptr_t> PickConsumableToReplace(
+    const std::vector<HeldConsumable>& items, const std::int32_t incomingType,
+    const std::uintptr_t consumingNode) {
+    const auto rank = [incomingType](const HeldConsumable& item) {
+        return std::pair{item.type != incomingType, item.cost};
+    };
+
+    const HeldConsumable* picked = nullptr;
+    for (const auto& item : items) {
+        if (item.node != consumingNode &&
+            (!picked || rank(item) < rank(*picked))) {
+            picked = &item;
+        }
+    }
+
+    return picked ? std::optional{picked->node} : std::nullopt;
+}
+
+[[nodiscard]] std::uintptr_t CallGiveConsumable(
+    const std::uintptr_t functionAddress, const char* drugName,
+    const std::uintptr_t human) {
+    std::uintptr_t node{};
+    __asm {
+        mov ecx, drugName
+        push human
+        call functionAddress
+        add esp, 4
+        mov node, eax
+    }
+    return node;
+}
+
+void CallRemoveConsumable(const std::uintptr_t functionAddress,
+                          const std::uintptr_t node,
+                          const std::uintptr_t human) {
+    __asm {
+        mov eax, node
+        mov edx, human
+        call functionAddress
     }
 }
 
@@ -290,6 +457,71 @@ bool AddWeaponAmmo(const char* weaponName, std::int32_t amount) {
         *category, amount);
 
     return true;
+}
+
+bool CanGiveConsumable() {
+    const auto game = InspectSupportedGameModule();
+    return game && ResolveConsumableFunctions(*game).has_value();
+}
+
+bool GiveConsumable(const char* drugName) {
+    if (!drugName || drugName[0] == '\0') {
+        return false;
+    }
+
+    const auto game = InspectSupportedGameModule();
+    if (!game) {
+        return false;
+    }
+
+    const auto functions = ResolveConsumableFunctions(*game);
+    if (!functions) {
+        return false;
+    }
+
+    const auto playerAddress =
+        ReadMemory<std::uint32_t>(game->base + addresses::kPlayerGlobalRva);
+
+    if (!playerAddress || *playerAddress == 0) {
+        return false;
+    }
+
+    // Checked up front so an unknown name never costs a held item.
+    const auto drugType = FindDrugType(*game, drugName);
+    if (!drugType) {
+        return false;
+    }
+
+    const auto player = static_cast<std::uintptr_t>(*playerAddress);
+    const auto held = ReadHeldConsumables(player);
+    if (!held) {
+        return false;
+    }
+
+    if (held->nodeCount >= kConsumableSlots) {
+        const auto consumingNode =
+            ReadMemory<std::uint32_t>(player + kHumanConsumingNodeOffset);
+        if (!consumingNode) {
+            return false;
+        }
+
+        const auto replaced =
+            PickConsumableToReplace(held->items, *drugType, *consumingNode);
+        if (!replaced) {
+            return false;
+        }
+
+        CallRemoveConsumable(functions->remove, *replaced, player);
+    }
+
+    // The give function writes to the node without checking the pool.
+    const auto freeList =
+        ReadMemory<std::uint32_t>(game->base + kConsumableFreeListRva);
+    if (!freeList || *freeList == 0) {
+        return false;
+    }
+
+    return CallGiveConsumable(functions->give, drugName, player) != 0;
 }
 
 bool CanKillCharacter(const ModuleInfo& game) {

@@ -16,6 +16,10 @@ bool GiveMoney(const std::int32_t amount);
 bool CanAddWeapon();
 bool AddWeapon(const char* weaponName, std::int32_t count);
 bool AddWeaponAmmo(const char* weaponName, std::int32_t amount);
+bool CanGiveConsumable();
+// Gives a drugs.xtbl entry to the player. With every slot taken, the cheapest
+// held item (preferring the same drug type) is removed first, like the stores.
+bool GiveConsumable(const char* drugName);
 
 // The character and vehicle functions below run on the game thread. Callers
 // must check the matching Can* function first; they do not re-validate.

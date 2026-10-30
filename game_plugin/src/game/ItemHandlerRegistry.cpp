@@ -7,6 +7,7 @@
 #include "GameThreadDispatcher.hpp"
 #include "controllers/WeatherController.hpp"
 #include "item_handlers/CheatItemHandler.hpp"
+#include "item_handlers/ConsumableItemHandler.hpp"
 #include "item_handlers/HookActivityUnlockItemHandler.hpp"
 #include "item_handlers/LuaActivityUnlockItemHandler.hpp"
 #include "item_handlers/MoneyItemHandler.hpp"
@@ -22,7 +23,7 @@ ItemHandlers CreateItemHandlers(ItemHandlerConfiguration configuration,
                                 GameThreadDispatcher& dispatcher,
                                 RespectController& respectController) {
     ItemHandlers handlers;
-    handlers.reserve(9);
+    handlers.reserve(10);
 
     // Weather items arrive with the cheats but are set without them.
     auto& managedCheats = configuration.managedCheats;
@@ -65,6 +66,7 @@ ItemHandlers CreateItemHandlers(ItemHandlerConfiguration configuration,
     }
 
     handlers.push_back(CreateWeaponItemHandler(dispatcher));
+    handlers.push_back(CreateConsumableItemHandler(dispatcher));
 
     return handlers;
 }
