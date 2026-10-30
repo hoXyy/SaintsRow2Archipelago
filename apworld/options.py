@@ -495,6 +495,19 @@ class VehicleFillerItemWeight(Range):
     default = 25
 
 
+class ConsumableFillerItemWeight(Range):
+    """
+    The weights of a consumable (food, booze etc.) filler item to be included in the item pool.
+    """
+
+    display_name = "Consumable Filler Item Weight"
+
+    range_start = 0
+    range_end = 100
+
+    default = 25
+
+
 class MiscFillerItemWeight(Range):
     """
     The weights of a misc. filler item to be included in the item pool.
@@ -704,6 +717,7 @@ class SR2Options(PerGameCommonOptions):
     money_filler_item_weight: MoneyFillerItemWeight
     weapon_filler_item_weight: WeaponFillerItemWeight
     vehicle_filler_item_weight: VehicleFillerItemWeight
+    consumable_filler_item_weight: ConsumableFillerItemWeight
     misc_filler_item_weight: MiscFillerItemWeight
     include_notoriety_trap_items: IncludeNotorietyTrapItems
     include_weather_trap_items: IncludeWeatherTrapItems
@@ -798,6 +812,7 @@ option_groups = [
             MoneyFillerItemWeight,
             WeaponFillerItemWeight,
             VehicleFillerItemWeight,
+            ConsumableFillerItemWeight,
             MiscFillerItemWeight,
         ],
     ),

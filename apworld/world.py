@@ -118,6 +118,7 @@ class SR2World(World):
                 self.options.weapon_filler_item_weight.value,
                 self.options.vehicle_filler_item_weight.value,
                 self.options.misc_filler_item_weight.value,
+                self.options.consumable_filler_item_weight.value,
             )
         )
 

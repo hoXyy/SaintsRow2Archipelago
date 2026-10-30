@@ -13,6 +13,7 @@ if TYPE_CHECKING:
 
 from .items_list import (
     CHEAT_ITEMS,
+    CONSUMABLE_FILLER_ITEMS,
     FILLER_UNLOCKABLES,
     MISC_CHEAT_ITEMS,
     MONEY_ITEM_NAMES,
@@ -141,6 +142,7 @@ ITEM_NAME_TO_ID = {
             LEVEL_ACTIVITY_UNLOCK_ITEMS + PERSISTENT_ACTIVITY_UNLOCK_ITEMS
         )
     },
+    **{name: 700 + i for i, name in enumerate(CONSUMABLE_FILLER_ITEMS)},
 }
 
 DEFAULT_ITEM_CLASSIFICATION = {
@@ -158,6 +160,7 @@ DEFAULT_ITEM_CLASSIFICATION = {
         LEVEL_ACTIVITY_UNLOCK_ITEMS + PERSISTENT_ACTIVITY_UNLOCK_ITEMS,
         ItemClassification.progression,
     ),
+    **dict.fromkeys(CONSUMABLE_FILLER_ITEMS, ItemClassification.filler),
 }
 
 
@@ -189,6 +192,7 @@ def get_random_nontrap_filler_item_name(world: SR2World) -> str:
         WEAPON_ITEM_NAMES,
         VEHICLE_CHEAT_ITEMS,
         MISC_CHEAT_ITEMS,
+        CONSUMABLE_FILLER_ITEMS,
     ]
 
     weights = [
@@ -196,6 +200,7 @@ def get_random_nontrap_filler_item_name(world: SR2World) -> str:
         world.options.weapon_filler_item_weight.value,
         world.options.vehicle_filler_item_weight.value,
         world.options.misc_filler_item_weight.value,
+        world.options.consumable_filler_item_weight.value,
     ]
 
     category = world.random.choices(categories, weights=weights, k=1)[0]

@@ -206,3 +206,30 @@ VEHICLE_CHEAT_ITEMS = [
 ]
 
 CHEAT_ITEMS = MISC_CHEAT_ITEMS + VEHICLE_CHEAT_ITEMS
+
+CONSUMABLE_FILLER_ITEMS = [
+    "The Twins",
+    "The Fist",
+    "Chicken Bazooms",
+    "Hot Gyro",
+    "Lil' Gyro",
+    "Kabob",
+    "Belly Jelly Donut",
+    "Brown Donut",
+    "Donut Holes",
+    "Strange Egg Roll",
+    "Sum Old Guy",
+    "Sum Yung Guy",
+    "Big Swallow",
+    "Grecian Juice",
+    "Coffee",
+    "Dong Tea",
+    "40 oz.",
+    "Gin N' Juice",
+    "Cognac",
+    "Bubbly",
+    "Blunt",
+    "Spliff",
+    "Pipe",
+    "Bong",
+]
