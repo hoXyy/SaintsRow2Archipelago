@@ -19,7 +19,7 @@ struct ConsumableItem {
     std::string_view drug;
 };
 
-constexpr std::array<ConsumableItem, 24> supportedItems{{
+constexpr std::array<ConsumableItem, 18> supportedItems{{
     // Food
     {"The Fist", "the_fist"},
     {"The Twins", "burgera"},
@@ -30,7 +30,7 @@ constexpr std::array<ConsumableItem, 24> supportedItems{{
     {"Belly Jelly Donut", "belly_jelly_donut"},
     {"Brown Donut", "brown_donut"},
     {"Donut Holes", "donut_holes"},
-    {"Strange Egg Roll", "strange_egg_roll"},
+    {"Strange Egg Roll", "EggRoll"},
     {"Sum Old Guy", "sum_old_guy"},
     {"Sum Yung Guy", "sum_yung_guy"},
 
@@ -42,15 +42,9 @@ constexpr std::array<ConsumableItem, 24> supportedItems{{
 
     // Booze
     {"40 oz.", "40oz"},
-    {"Gin N' Juice", "gin_n_juice"},
-    {"Cognac", "hennessy"},
-    {"Bubbly", "krystal"},
 
     // Weed
     {"Blunt", "blunt"},
-    {"Pipe", "pipe"},
-    {"Spliff", "spliff"},
-    {"Bong", "bong"},
 }};
 
 const ConsumableItem* FindItem(const std::string_view itemName) noexcept {

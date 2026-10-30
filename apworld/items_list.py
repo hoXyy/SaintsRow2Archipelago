@@ -225,11 +225,5 @@ CONSUMABLE_FILLER_ITEMS = [
     "Coffee",
     "Dong Tea",
     "40 oz.",
-    "Gin N' Juice",
-    "Cognac",
-    "Bubbly",
     "Blunt",
-    "Spliff",
-    "Pipe",
-    "Bong",
 ]
