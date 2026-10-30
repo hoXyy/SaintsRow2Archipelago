@@ -15,6 +15,7 @@ from ..items import (
 )
 from ..items_list import (
     CHEAT_ITEMS,
+    CONSUMABLE_FILLER_ITEMS,
     FILLER_UNLOCKABLES,
     MISC_CHEAT_ITEMS,
     MONEY_ITEM_NAMES,
@@ -48,6 +49,7 @@ FILLER_WEIGHT_CATEGORIES = {
     "weapon_filler_item_weight": WEAPON_ITEM_NAMES,
     "vehicle_filler_item_weight": VEHICLE_CHEAT_ITEMS,
     "misc_filler_item_weight": MISC_CHEAT_ITEMS,
+    "consumable_filler_item_weight": CONSUMABLE_FILLER_ITEMS,
 }
 
 TOGGLES = (
@@ -283,7 +285,12 @@ class TestGenerationFuzz(SR2TestBase):
         if options["trap_chance"] == 0:
             forbidden.update(TRAP_ITEMS)
         if options["trap_chance"] == 100 and traps_enabled(options):
-            forbidden.update(MONEY_ITEM_NAMES, WEAPON_ITEM_NAMES, CHEAT_ITEMS)
+            forbidden.update(
+                MONEY_ITEM_NAMES,
+                WEAPON_ITEM_NAMES,
+                CHEAT_ITEMS,
+                CONSUMABLE_FILLER_ITEMS,
+            )
         for weight_option, names in FILLER_WEIGHT_CATEGORIES.items():
             if options[weight_option] == 0:
                 forbidden.update(names)

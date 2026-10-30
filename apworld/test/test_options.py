@@ -16,6 +16,7 @@ NO_FILLER_WEIGHTS = {
     "weapon_filler_item_weight": 0,
     "vehicle_filler_item_weight": 0,
     "misc_filler_item_weight": 0,
+    "consumable_filler_item_weight": 0,
 }
 
 # Ronin needs 17 Respect. Demolition Derby gives 6 Respect-safe locations and

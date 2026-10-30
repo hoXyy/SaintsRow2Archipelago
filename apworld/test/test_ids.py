@@ -18,6 +18,7 @@ from ..items import (
 )
 from ..items_list import (
     CHEAT_ITEMS,
+    CONSUMABLE_FILLER_ITEMS,
     FILLER_UNLOCKABLES,
     MONEY_ITEM_NAMES,
     TRAP_ITEMS,
@@ -42,6 +43,7 @@ ITEM_ID_BLOCKS = (
         600,
         700,
     ),
+    ("consumables", CONSUMABLE_FILLER_ITEMS, 700, 800),
 )
 
 LOCATION_ID_BLOCKS = (

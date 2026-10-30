@@ -10,6 +10,7 @@ from ..items import (
 )
 from ..items_list import (
     CHEAT_ITEMS,
+    CONSUMABLE_FILLER_ITEMS,
     FILLER_UNLOCKABLES,
     MONEY_ITEM_NAMES,
     TRAP_ITEMS,
@@ -259,7 +260,11 @@ class TestItemClassification(SR2TestBase):
 
     def test_filler_is_filler(self) -> None:
         for item in (
-            FILLER_UNLOCKABLES + WEAPON_ITEM_NAMES + CHEAT_ITEMS + MONEY_ITEM_NAMES
+            FILLER_UNLOCKABLES
+            + WEAPON_ITEM_NAMES
+            + CHEAT_ITEMS
+            + MONEY_ITEM_NAMES
+            + CONSUMABLE_FILLER_ITEMS
         ):
             with self.subTest(item=item):
                 item = self.world.create_item(item)
