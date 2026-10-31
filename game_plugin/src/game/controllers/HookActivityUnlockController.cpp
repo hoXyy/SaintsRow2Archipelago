@@ -64,6 +64,10 @@ constexpr std::uint32_t KindBit(const ActivityUnlockKind kind) noexcept {
     return 1u << static_cast<std::uint32_t>(kind);
 }
 
+constexpr std::uint32_t kAlwaysManagedKinds{
+    KindBit(ActivityUnlockKind::Hitman) | KindBit(ActivityUnlockKind::ChopShop)};
+constexpr std::uint32_t kAllRaceClasses{(1u << kRaceClassCount) - 1};
+
 constexpr std::array kActivityUnlocks{
     ActivityUnlockDefinition{"Hitman Activity Unlock Pass",
                              ActivityUnlockKind::Hitman, std::nullopt},
@@ -188,7 +192,7 @@ struct HookActivityUnlockController::Implementation {
     Implementation& operator=(Implementation&&) = delete;
 
     bool Install(const std::span<const std::string> managedItems) {
-        if (installed || managedItems.empty()) {
+        if (installed) {
             return false;
         }
 
@@ -434,6 +438,9 @@ struct HookActivityUnlockController::Implementation {
 
     bool ConfigureManagedItems(
         const std::span<const std::string> managedItems) {
+        managedKinds = kAlwaysManagedKinds;
+        managedRaceClasses = kAllRaceClasses;
+
         for (const auto& itemName : managedItems) {
             const auto* const definition = FindUnlock(itemName);
             if (!definition) {
