@@ -60,10 +60,8 @@ ItemHandlers CreateItemHandlers(ItemHandlerConfiguration configuration,
     handlers.push_back(CreateMoneyItemHandler(dispatcher));
     handlers.push_back(CreateLuaActivityUnlockHandler(dispatcher));
 
-    if (!configuration.persistentItems.empty()) {
-        handlers.push_back(CreateHookActivityUnlockItemHandler(
-            dispatcher, std::move(configuration.persistentItems)));
-    }
+    handlers.push_back(CreateHookActivityUnlockItemHandler(
+        dispatcher, std::move(configuration.persistentItems)));
 
     handlers.push_back(CreateWeaponItemHandler(dispatcher));
     handlers.push_back(CreateConsumableItemHandler(dispatcher));
