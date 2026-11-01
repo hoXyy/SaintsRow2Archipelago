@@ -1,6 +1,6 @@
 import json
+import pkgutil
 import unittest
-from importlib.resources import files
 
 from ..collectibles import (
     PROGRESSIVE_CD_LOCATIONS,
@@ -19,7 +19,8 @@ from ..locations import LOCATION_NAME_TO_ID
 from ..missions import get_mission_by_key
 
 # The tracker folder lives in the apworld root, one package up.
-TRACKER_DIR = files(__package__.rpartition(".")[0]).joinpath("tracker")
+WORLD_PACKAGE = __package__.rpartition(".")[0]
+TRACKER_DIR = "tracker"
 
 # Locations without a place on the map.
 NOT_ON_MAP = {
@@ -36,8 +37,18 @@ NOT_ON_MAP = {
 }
 
 
+def read_tracker_file(name: str) -> bytes | None:
+    try:
+        return pkgutil.get_data(WORLD_PACKAGE, f"{TRACKER_DIR}/{name}")
+    except OSError:
+        return None
+
+
 def load(name: str):
-    return json.loads(TRACKER_DIR.joinpath(name).read_text(encoding="utf-8"))
+    data = read_tracker_file(name)
+    if data is None:
+        raise FileNotFoundError(f"Could not load tracker file {name!r}")
+    return json.loads(data.decode("utf-8"))
 
 
 def walk(nodes: list[dict]):
@@ -73,7 +84,7 @@ class TestTrackerData(unittest.TestCase):
     def test_maps_reference_existing_images(self) -> None:
         for tracker_map in load("maps.json"):
             with self.subTest(map=tracker_map["name"]):
-                self.assertTrue(TRACKER_DIR.joinpath(tracker_map["img"]).is_file())
+                self.assertIsNotNone(read_tracker_file(tracker_map["img"]))
 
     def test_layouts_reference_existing_maps(self) -> None:
         maps = {tracker_map["name"] for tracker_map in load("maps.json")}

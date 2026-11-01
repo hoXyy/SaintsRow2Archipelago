@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 import os
+import pkgutil
 import xml.etree.ElementTree as XmlTree
 import zipfile
 from datetime import UTC, datetime
-from importlib.resources import files
 from typing import TYPE_CHECKING
 
 import bsdiff4
@@ -22,19 +22,26 @@ from .options import (
     ULTOR_EPILOGUE_ARC_NAME,
 )
 
-GAME_FILES_DIR = files(__package__).joinpath("game_files")
+GAME_FILES_DIR = "game_files"
 MISSIONS_TABLE_FILE_NAME = "sr2_city_missions.xtbl"
-MISSIONS_TABLE_FILE = GAME_FILES_DIR.joinpath(MISSIONS_TABLE_FILE_NAME)
+MISSIONS_TABLE_FILE = f"{GAME_FILES_DIR}/{MISSIONS_TABLE_FILE_NAME}"
 
 MISSION_GLOBALS_LUA_FILE_NAME = "mission_globals.lua"
-VANILLA_MISSION_GLOBALS_LUA_FILE = GAME_FILES_DIR.joinpath(
-    MISSION_GLOBALS_LUA_FILE_NAME
+VANILLA_MISSION_GLOBALS_LUA_FILE = f"{GAME_FILES_DIR}/{MISSION_GLOBALS_LUA_FILE_NAME}"
+MODIFIED_MISSION_GLOBALS_PATCH_FILE = (
+    f"{GAME_FILES_DIR}/mission_globals_no_bh01_call.patch"
 )
-MODIFIED_MISSION_GLOBALS_PATCH_FILE = GAME_FILES_DIR.joinpath(
-    "mission_globals_no_bh01_call.patch"
-)
+MAIN_MENU_INFO_TEMPLATE_FILE = f"{GAME_FILES_DIR}/templates/ap_main_menu_info.cxt"
 
 PATCHED_FILES_OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "patched_game_files")
+
+
+def read_game_file(resource: str) -> bytes:
+    data = pkgutil.get_data(__package__, resource)
+    if data is None:
+        raise FileNotFoundError(f"Could not load bundled resource {resource!r}")
+    return data
+
 
 ARC_INTRO_CHAIN_MISSIONS = {
     RONIN_ARC_NAME: "rn01",
@@ -95,9 +102,10 @@ def generate_patched_game_files(world: SR2World, output_directory: str) -> None:
     enabled_arcs = world.options.required_gang_arcs.value
     curr_timestamp = datetime.strftime(datetime.now(UTC), "%d%b%Y-%H%M%S")
 
-    missions_global_file_content = VANILLA_MISSION_GLOBALS_LUA_FILE.read_bytes()
+    missions_global_file_content = read_game_file(VANILLA_MISSION_GLOBALS_LUA_FILE)
     patched_missions_global_file_content = bsdiff4.patch(
-        missions_global_file_content, MODIFIED_MISSION_GLOBALS_PATCH_FILE.read_bytes()
+        missions_global_file_content,
+        read_game_file(MODIFIED_MISSION_GLOBALS_PATCH_FILE),
     )
 
     patch_file_name = (
@@ -145,7 +153,7 @@ def generate_patched_game_files(world: SR2World, output_directory: str) -> None:
 def generate_patched_mission_chains_file(
     enabled_arcs: set[str], revelation_enabled: bool, stilwater_caverns_enabled: bool
 ) -> str:
-    root = XmlTree.fromstring(MISSIONS_TABLE_FILE.read_bytes())
+    root = XmlTree.fromstring(read_game_file(MISSIONS_TABLE_FILE))
 
     missions = {
         mission.findtext("Name"): mission for mission in root.findall("./Table/Mission")
@@ -206,9 +214,7 @@ def generate_main_menu_info_strings(world: SR2World) -> str:
     seed = world.multiworld.seed_name
     player_name = world.multiworld.player_name[world.player]
 
-    template_string = GAME_FILES_DIR.joinpath(
-        "templates", "ap_main_menu_info.cxt"
-    ).read_text(encoding="utf-8")
+    template_string = read_game_file(MAIN_MENU_INFO_TEMPLATE_FILE).decode("utf-8")
 
     return template_string.replace("{{SEED}}", seed).replace(
         "{{PLAYER_NAME}}", player_name
