@@ -19,10 +19,10 @@ from ..patch import (
     MISSIONS_TABLE_FILE_NAME,
     TEXT_LANGUAGES,
     VANILLA_MISSION_GLOBALS_LUA_FILE,
-    read_game_file,
     generate_main_menu_info_strings,
     generate_patched_game_files,
     generate_patched_mission_chains_file,
+    read_game_file,
 )
 from .bases import SR2TestBase
 
