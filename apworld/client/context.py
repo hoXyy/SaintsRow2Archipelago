@@ -263,7 +263,7 @@ class SR2Context(SuperContext):
 
         class SR2Manager(base_manager):
             base_title = (
-                f"Saints Row 2 Client {APWORLD_VERSION}"
+                f"Saints Row 2 Client v{APWORLD_VERSION}"
                 + (f" | UT {UT_VERSION}" if tracker_loaded else "")
                 + " | Archipelago"
             )
