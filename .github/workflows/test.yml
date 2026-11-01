@@ -50,8 +50,8 @@ jobs:
                   apworld-name: saints_row_2
                   ap-version: "0.6.8"
                   python-version: "3.12"
-                  runs: 500
-                  yamls-per-run: 1-3
+                  runs: 1000
+                  yamls-per-run: 1-6
 
     test-plugin:
         name: Test game integration plugin
