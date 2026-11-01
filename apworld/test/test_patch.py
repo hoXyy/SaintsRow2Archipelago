@@ -22,6 +22,7 @@ from ..patch import (
     generate_main_menu_info_strings,
     generate_patched_game_files,
     generate_patched_mission_chains_file,
+    read_game_file,
 )
 from .bases import SR2TestBase
 
@@ -140,7 +141,7 @@ class TestMissionPatch(unittest.TestCase):
 
 class TestEveryMissionPatchCombination(unittest.TestCase):
     def test_only_the_selected_missions_change(self) -> None:
-        vanilla = get_missions(MISSIONS_TABLE_FILE.read_text(encoding="utf-8"))
+        vanilla = get_missions(read_game_file(MISSIONS_TABLE_FILE).decode("utf-8"))
         arc_subsets = [
             set(subset)
             for size in range(len(ARCS) + 1)
@@ -232,7 +233,7 @@ class TestPatchContainer(SR2TestBase):
         container = self.write_container()
 
         self.assertEqual(
-            VANILLA_MISSION_GLOBALS_LUA_FILE.read_bytes(),
+            read_game_file(VANILLA_MISSION_GLOBALS_LUA_FILE),
             self.read_seed_file(container, MISSION_GLOBALS_LUA_FILE_NAME),
         )
 
@@ -241,6 +242,6 @@ class TestPatchContainer(SR2TestBase):
         container = self.write_container()
         lua = self.read_seed_file(container, MISSION_GLOBALS_LUA_FILE_NAME)
 
-        self.assertIn(BH01_CALL, VANILLA_MISSION_GLOBALS_LUA_FILE.read_bytes())
+        self.assertIn(BH01_CALL, read_game_file(VANILLA_MISSION_GLOBALS_LUA_FILE))
         self.assertNotIn(BH01_CALL, lua)
         self.assertIn(b"function bh01_phonecall()", lua)
