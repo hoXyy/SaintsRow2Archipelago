@@ -137,6 +137,8 @@ inline constexpr std::ptrdiff_t kRespectAddWriteRva = 0x005E1FF6;
 
 inline constexpr std::ptrdiff_t kSaveLoadAllRva = 0x00295F00;
 inline constexpr std::ptrdiff_t kSaveLoadInternalCallRva = 0x0029600B;
+// Restarting an activity level restores a checkpoint through the same loader.
+inline constexpr std::ptrdiff_t kCheckpointLoadCallRva = 0x002A03BF;
 inline constexpr std::ptrdiff_t kSaveWriteOpenCallRva = 0x00295240;
 inline constexpr std::ptrdiff_t kCFileOpenRva = 0x007FDC20;
 

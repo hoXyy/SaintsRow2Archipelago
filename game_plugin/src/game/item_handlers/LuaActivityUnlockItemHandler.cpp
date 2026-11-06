@@ -1,11 +1,20 @@
 #include "LuaActivityUnlockItemHandler.hpp"
 
+#include <algorithm>
 #include <array>
+#include <atomic>
+#include <safetyhook.hpp>
 #include <string_view>
+#include <utility>
+#include <vector>
 
 #include "fmt/format.h"
+#include "game/Addresses.hpp"
+#include "game/GameState.hpp"
 #include "game/GameThreadDispatcher.hpp"
 #include "game/Lua.hpp"
+#include "game/Memory.hpp"
+#include "game/ModuleInfo.hpp"
 #include "util/Logger.hpp"
 
 namespace sr2ap {
@@ -63,7 +72,7 @@ class LuaActivityUnlockItemHandler : public ItemHandler {
     }
 
     [[nodiscard]] bool Install() override {
-        return Lua::CanUnlockActivity();
+        return Lua::CanUnlockActivity() && InstallCheckpointHook();
     }
 
     [[nodiscard]] bool Handle(const std::string_view itemName,
@@ -73,32 +82,18 @@ class LuaActivityUnlockItemHandler : public ItemHandler {
             return false;
         }
 
-        const auto queued = dispatcher_.Dispatch(
-            [activitiesToUnlock = item->activitiesToUnlock,
-             itemName = std::string{itemName}, completion] {
-                if (!completion.CanApply()) {
-                    return;
-                }
+        const auto queued = dispatcher_.Dispatch([this, item, completion] {
+            if (!completion.CanApply()) {
+                return;
+            }
 
-                bool unlocked = true;
-                for (const auto& activity : activitiesToUnlock) {
-                    // Items with a single activity leave the second slot null.
-                    if (!activity) {
-                        continue;
-                    }
+            const bool unlocked = ApplyItem(*item);
+            if (unlocked && !std::ranges::contains(appliedItems_, item)) {
+                appliedItems_.push_back(item);
+            }
 
-                    if (!Lua::UnlockActivity(activity)) {
-                        unlocked = false;
-                        LogWarning(
-                            "ActivityUnlock",
-                            fmt::format(
-                                "Failed to trigger item={} to unlock activity",
-                                itemName, activity));
-                    }
-                }
-
-                completion.Complete(unlocked);
-            });
+            completion.Complete(unlocked);
+        });
 
         if (!queued) {
             LogWarning("ActivityUnlock",
@@ -108,11 +103,119 @@ class LuaActivityUnlockItemHandler : public ItemHandler {
         return queued;
     }
 
+    // Runs when a save loads or gameplay ends. A checkpoint can only lose items
+    // applied since its level began, so earlier ones needn't be tracked.
+    [[nodiscard]] bool ResetState() override {
+        return dispatcher_.Dispatch([this] {
+            appliedItems_.clear();
+            checkpointRestored.store(false, std::memory_order_release);
+        });
+    }
+
+    void Update() override {
+        if (!checkpointRestored.exchange(false, std::memory_order_acq_rel)) {
+            return;
+        }
+
+        if (!dispatcher_.Dispatch([this] { ReapplyItems(); })) {
+            checkpointRestored.store(true, std::memory_order_release);
+        }
+    }
+
     void Remove() override {
+        if (checkpointLoadHook_) {
+            if (const auto disabled = checkpointLoadHook_.disable();
+                !disabled) {
+                LogError("ActivityUnlock",
+                         "Failed to disable checkpoint load hook");
+            }
+            checkpointLoadHook_.reset();
+        }
+        checkpointRestored.store(false, std::memory_order_release);
     }
 
    private:
+    [[nodiscard]] bool InstallCheckpointHook() {
+        const auto* const game = InspectSupportedGameModule();
+        if (!game) {
+            return false;
+        }
+
+        const auto loadCall = game->base + addresses::kCheckpointLoadCallRva;
+        const auto loadTarget = game->base + addresses::kSaveLoadAllRva;
+        if (ResolveRelativeCallTarget(loadCall) != loadTarget) {
+            LogError("ActivityUnlock",
+                     "Unexpected checkpoint load call target");
+            return false;
+        }
+
+        auto hook = safetyhook::MidHook::create(
+            reinterpret_cast<void*>(loadCall), &CheckpointLoadHook,
+            safetyhook::MidHook::StartDisabled);
+        if (!hook) {
+            LogError("ActivityUnlock", "Could not create checkpoint load hook");
+            return false;
+        }
+
+        checkpointLoadHook_ = std::move(*hook);
+        checkpointRestored.store(false, std::memory_order_release);
+        if (const auto enabled = checkpointLoadHook_.enable(); !enabled) {
+            LogError("ActivityUnlock", "Could not enable checkpoint load hook");
+            return false;
+        }
+        return true;
+    }
+
+    // The game thread is about to overwrite every activity's unlock flags with
+    // the checkpoint's, which may predate items applied since the level began.
+    // Frame dispatches can't run until the restore has finished.
+    static void CheckpointLoadHook(safetyhook::Context&) {
+        checkpointRestored.store(true, std::memory_order_release);
+    }
+
+    static bool ApplyItem(const ActivityUnlockItem& item) {
+        bool unlocked = true;
+        for (const auto& activity : item.activitiesToUnlock) {
+            // Items with a single activity leave the second slot null.
+            if (!activity) {
+                continue;
+            }
+
+            if (!Lua::UnlockActivity(activity)) {
+                unlocked = false;
+                LogWarning(
+                    "ActivityUnlock",
+                    fmt::format("Failed to unlock activity={} for item={}",
+                                activity, item.itemName));
+            }
+        }
+        return unlocked;
+    }
+
+    // Unlocking is idempotent, so items the checkpoint kept are unaffected.
+    void ReapplyItems() {
+        const auto* const game = InspectSupportedGameModule();
+        if (!game || !ReadGameContext(game).IsInteractive()) {
+            checkpointRestored.store(true, std::memory_order_release);
+            return;
+        }
+
+        for (const auto* const item : appliedItems_) {
+            ApplyItem(*item);
+        }
+        if (!appliedItems_.empty()) {
+            LogDebug(
+                "ActivityUnlock",
+                fmt::format("Reapplied {} item(s) after checkpoint restore",
+                            appliedItems_.size()));
+        }
+    }
+
     GameThreadDispatcher& dispatcher_;
+    safetyhook::MidHook checkpointLoadHook_;
+    // Only touched on the game thread.
+    std::vector<const ActivityUnlockItem*> appliedItems_;
+    inline static std::atomic_bool checkpointRestored{};
 };
 }  // namespace
 
