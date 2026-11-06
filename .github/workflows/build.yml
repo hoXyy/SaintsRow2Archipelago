@@ -48,7 +48,9 @@ jobs:
           cp -r modded_game_files/sr2ap_core_files output/Mods/sr2ap_core_files
           cp -r modded_game_files/sr2ap_seed_files output/Mods/sr2ap_seed_files
       - name: Create zip file
-        run: powershell Compress-Archive -Path output/* -DestinationPath SR2Archipelago.zip
+        run: |
+          cd output
+          7z a ../SR2Archipelago.zip *
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
